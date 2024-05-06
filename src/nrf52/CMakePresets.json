@@ -1,0 +1,24 @@
+{
+    "version": 6,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 19,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "jpower-default",
+            "displayName": "Default CMake Presets",
+            "generator": "Unix Makefiles",
+            "description": "Sets Unix Makefiles generator, build and install directory",
+            "binaryDir": "${sourceDir}/out/build/${presetName}",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/nRF5-cmake-scripts/nRF5-cmake-toolchain.cmake",
+                "JLINKRTTCLIENT": "C:/Program Files/SEGGER/JLink/JLinkRTTClient.exe",
+                "JLINKGDBSERVER": "C:/Program Files/SEGGER/JLink/JLinkGDBServer.exe"
+            }
+        }
+    ]
+}
