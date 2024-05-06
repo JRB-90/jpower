@@ -60,6 +60,17 @@ if(JLINKRTTCLIENT)
     message("-- Found JLinkRTTClient: ${JLINKRTTCLIENT}")
 endif()
 
+# Make sure DFU keys have been generated for the secure bootloader
+if(NOT EXISTS ${CMAKE_SOURCE_DIR}/keys)
+    file(MAKE_DIRECTORY ${CMAKE_SOURCE_DIR}/keys)
+endif()
+
+add_custom_target(GEN_DFU_KEYS
+    COMMAND ${NRFUTIL} keys generate ${CMAKE_SOURCE_DIR}/keys/dfu_private.key
+    COMMAND ${NRFUTIL} keys display --key pk --format code ${CMAKE_SOURCE_DIR}/keys/dfu_private.key --out_file ${CMAKE_SOURCE_DIR}/keys/dfu_public_key.c
+    COMMENT "Generating DFU Keys"
+    VERBATIM
+)
 
 # Check if all the necessary variables have been set
 
