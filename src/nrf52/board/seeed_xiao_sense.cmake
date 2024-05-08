@@ -1,0 +1,10 @@
+set(SEEED_XIAO_SENSE_DEFINES
+    -DBOARD_SEEED_XIAO_SENSE
+    -DCONFIG_GPIO_AS_PINRESET
+    -DCUSTOM_BOARD_INC=seeed_xiao_sense
+)
+
+set(SEEED_XIAO_SENSE_INCLUDE_DIRS
+    "${SDK_ROOT}/components/boards"
+    "${CMAKE_SOURCE_DIR}/board"
+)

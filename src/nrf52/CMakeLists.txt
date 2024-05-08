@@ -2,9 +2,10 @@ cmake_minimum_required(VERSION 3.19)
 
 # Adjust these parameters for your hardware platform
 # must be set as cache strings to ensure they are not overwritten in mesh SDK
-set(IC "nRF52832" CACHE STRING "IC")
-set(PLATFORM "nrf52832_xxAA"  CACHE STRING "Platform")
-set(SOFTDEVICE_TYPE "s132" CACHE STRING "SoftDevice type")
+set(IC "nRF52840" CACHE STRING "IC")
+set(PLATFORM "nrf52840_xxAA"  CACHE STRING "Platform")
+set(BOARD "SEEED_XIAO_SENSE" CACHE STRING "Board type")
+set(SOFTDEVICE_TYPE "s140" CACHE STRING "SoftDevice type")
 set(SOFTDEVICE_VERSION "7.2.0" CACHE STRING "SoftDevice version")
 
 # enable to output verbose info
@@ -25,17 +26,12 @@ if(NOT EXISTS "${nRF5_cmake_path}")
 endif()
 include("${nRF5_cmake_path}")
 
-# project() must be called after including nRF5-cmake.cmake but before calling nRF5_setup
-# to ensure variables are set correctly
-project(BlinkyExampleProject
+project(JPower
         VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_BUGFIX}
         LANGUAGES NONE)
 
 message(STATUS "Configuring CMake for nRF5 SDK for ${PROJECT_NAME} ${VERSION_STRING}")
 nRF5_setup()
-
-# uncomment to enable C++
-# enable_language(CXX)
 
 if(NOT TARGET download)
     add_subdirectory("src")

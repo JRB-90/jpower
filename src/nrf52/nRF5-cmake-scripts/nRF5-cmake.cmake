@@ -196,14 +196,14 @@ macro(nRF5_setup)
     include("${CMAKE_CONFIG_DIR}/FindSDK.cmake")
 
     include("${CMAKE_CONFIG_DIR}/BuildType.cmake")
-    include("${CMAKE_CONFIG_DIR}/Board.cmake")
+    include("${nRF5_CMAKE_PATH}/includes/CustomBoard.cmake")
     include("${CMAKE_CONFIG_DIR}/PCLint.cmake")
     include("${CMAKE_CONFIG_DIR}/GenerateSESProject.cmake")
 
     include("${CMAKE_CONFIG_DIR}/sdk/${nRF5_SDK_VERSION}.cmake")
     include("${CMAKE_CONFIG_DIR}/platform/${PLATFORM}.cmake")
     include("${CMAKE_CONFIG_DIR}/softdevice/${SOFTDEVICE}.cmake")
-    include("${CMAKE_CONFIG_DIR}/board/${BOARD}.cmake")
+    include("${CMAKE_SOURCE_DIR}/board/${BOARD}.cmake")
 
     include(${nRF5_CMAKE_PATH}/includes/libraries.cmake)
 
