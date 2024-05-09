@@ -56,7 +56,38 @@ macro(nRF5_addPower)
     list(APPEND SOURCE_FILES
             "${SDK_ROOT}/modules/nrfx/drivers/src/nrfx_power.c"
             )
+endmacro()
 
+macro(nRF5_addPowerLegacy)
+    nRF5_addHWRNG()
+    list(APPEND INCLUDE_DIRS
+            "${SDK_ROOT}/integration/nrfx/legacy"
+            )
+
+    list(APPEND SOURCE_FILES
+            "${SDK_ROOT}/integration/nrfx/legacy/nrf_drv_power.c"
+            )
+endmacro()
+
+macro(nRF5_addSoc)
+    list(APPEND INCLUDE_DIRS
+            "${SDK_ROOT}/modules/nrfx/soc"
+            )
+
+    list(APPEND SOURCE_FILES
+            "${SDK_ROOT}/modules/nrfx/soc/nrfx_atomic.c"
+            )
+endmacro()
+
+macro(nRF5_addSystick)
+    nRF5_addHWRNG()
+    list(APPEND INCLUDE_DIRS
+            "${SDK_ROOT}/integration/nrfx/legacy"
+            )
+
+    list(APPEND SOURCE_FILES
+            "${SDK_ROOT}/modules/nrfx/drivers/src/nrfx_systick.c"
+            )
 endmacro()
 
 # adds balloc lib
@@ -722,6 +753,63 @@ macro(nRF5_addBSP WITH_BLE_BTN WITH_ANT_BTN WITH_NFC)
 
 endmacro()
 
+# adds usbd lib
+macro(nRF5_addUsbd)
+    nRF5_addAtomic()
+    nRF5_addQueue()
+    nRF5_addBalloc()
+    nRF5_addHardfaultHandler()
+    nRF5_addAtomicFIFO()
+    nRF5_addUtf()
+    nRF5_addPower()
+    nRF5_addPowerLegacy()
+    nRF5_addSoc()
+    nRF5_addPRS()
+    nRF5_addSystick()
+
+    list(APPEND INCLUDE_DIRS
+            "${SDK_ROOT}/components/libraries/usbd"
+            "${SDK_ROOT}/components/libraries/usbd/class/cdc"
+            "${SDK_ROOT}/components/libraries/usbd/class/cdc/acm"
+            "${SDK_ROOT}/modules/nrfx/drivers/src/"
+        )
+
+    list(APPEND SOURCE_FILES
+            "${SDK_ROOT}/components/libraries/usbd/app_usbd.c"
+            "${SDK_ROOT}/components/libraries/usbd/class/cdc/acm/app_usbd_cdc_acm.c"
+            "${SDK_ROOT}/components/libraries/usbd/app_usbd_core.c"
+            "${SDK_ROOT}/components/libraries/usbd/app_usbd_serial_num.c"
+            "${SDK_ROOT}/components/libraries/usbd/app_usbd_string_desc.c"
+            "${SDK_ROOT}/modules/nrfx/drivers/src/nrfx_usbd.c"
+        )
+endmacro()
+
+# adds cli lib
+macro(nRF5_addCli)
+    list(APPEND INCLUDE_DIRS
+            "${SDK_ROOT}/components/libraries/cli"
+            "${SDK_ROOT}/components/libraries/cli/uart"
+            "${SDK_ROOT}/components/libraries/bsp"
+        )
+
+    list(APPEND SOURCE_FILES
+            "${SDK_ROOT}/components/libraries/cli/nrf_cli.c"
+            "${SDK_ROOT}/components/libraries/cli/uart/nrf_cli_uart.c"
+            "${SDK_ROOT}/components/libraries/bsp/bsp_cli.c"
+        )
+endmacro()
+
+# adds utf lib
+macro(nRF5_addUtf)
+    list(APPEND INCLUDE_DIRS
+            "${SDK_ROOT}/external/utf_converter"
+        )
+
+    list(APPEND SOURCE_FILES
+            "${SDK_ROOT}/external/utf_converter/utf.c"
+        )
+endmacro()
+
 macro(nRF5_addSoftDeviceSupport)
     nRF5_addMemobj()
     nRF5_addStrError()
@@ -853,6 +941,44 @@ macro(nRF5_addBLEPeerManager)
             "${SDK_ROOT}/components/ble/peer_manager/security_manager.c"
             )
 
+endmacro()
+
+macro(nRF5_addANTPlus)
+    list(APPEND INCLUDE_DIRS
+        "${SDK_ROOT}/components/softdevice/common"
+        "${SDK_ROOT}/components/softdevice/s340/headers"
+        "${SDK_ROOT}/components/softdevice/s340/headers/nrf52"
+        "${SDK_ROOT}/components/ant/ant_key_manager"
+        "${SDK_ROOT}/components/ant/ant_key_manager/config"
+        "${SDK_ROOT}/components/ant/ant_state_indicator"
+        "${SDK_ROOT}/components/ant/ant_channel_config"
+        "${SDK_ROOT}/components/ant/ant_profiles/ant_common/pages"
+        "${SDK_ROOT}/components/ant/ant_profiles/ant_bpwr"
+        "${SDK_ROOT}/components/ant/ant_profiles/ant_bpwr/pages"
+        "${SDK_ROOT}/components/ant/ant_profiles/ant_bpwr/utils"
+        "${SDK_ROOT}/components/ant/ant_profiles/ant_bpwr/simulator"
+        "${SDK_ROOT}/components/libraries/sensorsim"
+    )
+
+    list(APPEND SOURCE_FILES
+        "${SDK_ROOT}/components/softdevice/common/nrf_sdh_ant.c"
+        "${SDK_ROOT}/components/ant/ant_channel_config/ant_channel_config.c"
+        "${SDK_ROOT}/components/ant/ant_profiles/ant_common/pages/ant_common_page_80.c"
+        "${SDK_ROOT}/components/ant/ant_profiles/ant_common/pages/ant_common_page_81.c"
+        "${SDK_ROOT}/components/ant/ant_key_manager/ant_key_manager.c"
+        "${SDK_ROOT}/components/ant/ant_state_indicator/ant_state_indicator.c"
+        "${SDK_ROOT}/components/ant/ant_profiles/ant_bpwr/ant_bpwr.c"
+        "${SDK_ROOT}/components/ant/ant_profiles/ant_bpwr/pages/ant_bpwr_common_data.c"
+        "${SDK_ROOT}/components/ant/ant_profiles/ant_bpwr/pages/ant_bpwr_page_1.c"
+        "${SDK_ROOT}/components/ant/ant_profiles/ant_bpwr/pages/ant_bpwr_page_16.c"
+        "${SDK_ROOT}/components/ant/ant_profiles/ant_bpwr/pages/ant_bpwr_page_17.c"
+        "${SDK_ROOT}/components/ant/ant_profiles/ant_bpwr/pages/ant_bpwr_page_18.c"
+        "${SDK_ROOT}/components/ant/ant_profiles/ant_bpwr/pages/ant_bpwr_page_torque.c"
+        "${SDK_ROOT}/components/ant/ant_profiles/ant_bpwr/simulator/ant_bpwr_simulator.c"
+        "${SDK_ROOT}/components/libraries/sensorsim/sensorsim.c"
+    )
+
+    add_definitions(-DANT_STACK_SUPPORT_REQD)
 endmacro()
 
 # adds NFC library

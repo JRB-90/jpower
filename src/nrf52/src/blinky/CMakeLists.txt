@@ -13,9 +13,20 @@ set(DFU_VERSION_STRING "${VERSION_STRING}")
 nRF5_addLog()
 nRF5_addSeggerRTT()
 nRF5_addAppError()
-nRF5_addBSP(FALSE FALSE FALSE)
+nRF5_addBSP(FALSE TRUE FALSE)
 nRF5_addAppButton()
 nRF5_addGPIOTE()
+
+# Tests
+jpow_addJPowMath()
+jpow_addI2C()
+jpow_addSPI()
+jpow_addLSM6DS()
+jpow_addFusion()
+jpow_addStrain()
+jpow_addUSB()
+jpow_addBLE()
+jpow_addANTPlus()
 
 list(APPEND SOURCE_FILES
     ${NRF_PROJECT_PATH}/main.c
@@ -30,6 +41,14 @@ nRF5_addExecutable(${target}
     "${INCLUDE_DIRS}"
     "${NRF5_LINKER_SCRIPT}"
     ".rtt"
+)
+
+target_compile_definitions(${target} PRIVATE 
+    USE_APP_CONFIG
+)
+
+target_link_libraries(${target} PRIVATE
+    m
 )
 
 set(bootloader_vars "")

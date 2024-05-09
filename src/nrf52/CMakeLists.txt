@@ -26,6 +26,9 @@ if(NOT EXISTS "${nRF5_cmake_path}")
 endif()
 include("${nRF5_cmake_path}")
 
+set(jpowlib_cmake_path "${CMAKE_SOURCE_DIR}/cmake/jpowlib.cmake")
+include("${jpowlib_cmake_path}")
+
 project(JPower
         VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_BUGFIX}
         LANGUAGES NONE)
