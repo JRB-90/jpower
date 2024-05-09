@@ -5,8 +5,8 @@ cmake_minimum_required(VERSION 3.19)
 set(IC "nRF52840" CACHE STRING "IC")
 set(PLATFORM "nrf52840_xxAA"  CACHE STRING "Platform")
 set(BOARD "SEEED_XIAO_SENSE" CACHE STRING "Board type")
-set(SOFTDEVICE_TYPE "s140" CACHE STRING "SoftDevice type")
-set(SOFTDEVICE_VERSION "7.2.0" CACHE STRING "SoftDevice version")
+set(SOFTDEVICE_TYPE "s340" CACHE STRING "SoftDevice type")
+set(SOFTDEVICE_VERSION "6.1.1" CACHE STRING "SoftDevice version")
 
 # enable to output verbose info
 set(CMAKE_VERBOSE_MAKEFILE off)
