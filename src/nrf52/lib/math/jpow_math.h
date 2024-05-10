@@ -73,17 +73,17 @@ extern float calc_anglular_vel(
 );
 extern float inv_sqrt(float x);
 
-inline float to_rad(const float degrees)
+static inline float to_rad(const float degrees)
 {
     return degrees * ((float) M_PI / 180.0f);
 }
 
-inline float to_deg(const float radians)
+static inline float to_deg(const float radians)
 {
     return radians * (180.0f / (float) M_PI);
 }
 
-inline bool are_floats_equal(const float f1, const float f2)
+static inline bool are_floats_equal(const float f1, const float f2)
 {
     // return
     //     f1 < (f2 + FLT_EPSILON) &&

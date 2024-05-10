@@ -1,577 +1,406 @@
 #include "ad779x.h"
 #include <string.h>
 #include "nrf_log.h"
+#include "nrf_delay.h"
+#include "nrf_gpio.h"
+#include "nrf_drv_spi.h"
+#include "spi_helper.h"
 
 // #region Defines
 
-#define AD7798_CHIP_ID 0x08
-#define AD7799_CHIP_ID 0x09
+#define AD779X_BOOT_TIME_MS         10
+#define AD779X_RESET_TIME_US        500
 
-#define AD7799_REG_COMM 0x00
-#define AD7799_REG_STATUS 0x00
-#define AD7799_REG_MODE 0x08
-#define AD7799_REG_CONF 0x10
-#define AD7799_REG_DATA 0x18
-#define AD7799_REG_ID 0x20
-#define AD7799_REG_IO 0x28
-#define AD7799_REG_OFFSET 0x30
-#define AD7799_REG_FULL_SCALE 0x38
+#define AD7798_CHIP_ID              0x08
+#define AD7799_CHIP_ID              0x09
 
-#define AD7799_COMM_READ 0b01000000
-#define AD7799_COMM_WRITE 0b00000000
+#define AD779X_REG_COMM             0x00
+#define AD779X_REG_STATUS           0x00
+#define AD779X_REG_MODE             0x08
+#define AD779X_REG_CONF             0x10
+#define AD779X_REG_DATA             0x18
+#define AD779X_REG_ID               0x20
+#define AD779X_REG_IO               0x28
+#define AD779X_REG_OFFSET           0x30
+#define AD779X_REG_FULL_SCALE       0x38
 
-#define AD7799_STATUS_NREADY 0b10000000
+#define AD779X_COMM_READ            0b01000000
+#define AD779X_COMM_WRITE           0b00000000
 
-#define AD7799_READY_MASK 0b10000000
-#define AD7799_ERROR_MASK 0b01000000
-#define AD7799_NOREF_MASK 0b00100000
-#define AD7799_MODEL_MASK 0b00001000
-#define AD7799_CHAN1_MASK 0b00000001
-#define AD7799_CHAN2_MASK 0b00000010
-#define AD7799_CHAN3_MASK 0b00000100
-#define AD7799_MODE_MASK 0b1110000000000000
-#define AD7799_PSW_MASK 0b0001000000000000
-#define AD7799_FILTER_MASK 0b0000000000001111
-#define AD7799_BURNOUT_MASK 0b0010000000000000
-#define AD7799_CODING_MASK 0b0001000000000000
-#define AD7799_GAIN_MASK 0b0000011100000000
-#define AD7799_REF_DETECT_MASK 0b0000000000100000
-#define AD7799_BUF_MODE_MASK 0b0000000000010000
-#define AD7799_CHAN_SEL_MASK 0b0000000000000111
-#define AD7799_AIN3_SET_MASK 0b01000000
-#define AD7799_P1_STATE_MASK 0b00100000
-#define AD7799_P2_STATE_MASK 0b00010000
+#define AD779X_READY_MASK           0b10000000
+#define AD779X_ERROR_MASK           0b01000000
+#define AD779X_NOREF_MASK           0b00100000
+#define AD779X_MODEL_MASK           0b00001000
+#define AD779X_CHAN1_MASK           0b00000001
+#define AD779X_CHAN2_MASK           0b00000010
+#define AD779X_CHAN3_MASK           0b00000100
+#define AD779X_MODE_MASK            0b1110000000000000
+#define AD779X_PSW_MASK             0b0001000000000000
+#define AD779X_FILTER_MASK          0b0000000000001111
+#define AD779X_BURNOUT_MASK         0b0010000000000000
+#define AD779X_CODING_MASK          0b0001000000000000
+#define AD779X_GAIN_MASK            0b0000011100000000
+#define AD779X_REF_DETECT_MASK      0b0000000000100000
+#define AD779X_BUF_MODE_MASK        0b0000000000010000
+#define AD779X_CHAN_SEL_MASK        0b0000000000000111
+#define AD779X_AIN3_SET_MASK        0b01000000
+#define AD779X_P1_STATE_MASK        0b00100000
+#define AD779X_P2_STATE_MASK        0b00010000
 
-// #endregion
-
-// #region Private Functions
-
-static uint32_t read_register(
-    device_context_t *const device,
-    uint8_t address,
-    uint8_t size);
-
-static void write_register(
-    device_context_t *const device,
-    uint8_t address,
-    uint8_t size,
-    uint32_t value);
-
-static uint8_t ad7799_read_status(device_context_t *const device);
-
-static uint16_t ad7799_read_mode(device_context_t *const device);
-static void write_mode(
-    device_context_t *const device,
-    uint16_t value);
-
-static uint16_t read_conf(device_context_t *const device);
-static void write_conf(
-    device_context_t *const device,
-    uint16_t value);
-
-static uint32_t read_data(device_context_t *const device);
-
-static uint8_t read_id(device_context_t *const device);
-
-static uint8_t read_io(device_context_t *const device);
-static void write_io(
-    device_context_t *const device,
-    uint8_t value);
-
-static uint32_t read_offset(device_context_t *const device);
-static void write_offset(
-    device_context_t *const device,
-    uint32_t value);
-
-static uint32_t read_fullscale(device_context_t *const device);
-static void write_fullscale(
-    device_context_t *const device,
-    uint32_t value);
+const float vRef                    = 3.3f;
+const float gain                    = 128.0f;
 
 // #endregion
 
-// #region Public Functions
+// #region Private Function Defs
 
-ret_code_t ad7799_init(device_context_t *const device)
+static void write_register_8bit(
+    const uint8_t register_address,
+    const uint8_t value);
+
+static void write_register_16bit(
+    const uint8_t register_address,
+    const uint16_t value);
+
+static uint8_t read_register_8bit(const uint8_t register_address);
+static uint16_t read_register_16bit(const uint8_t register_address);
+static uint32_t read_register_24bit(const uint8_t register_address);
+
+// #endregion
+
+// #region Private Data
+
+static nrf_drv_spi_t spi = NRF_DRV_SPI_INSTANCE(1);
+
+static ad779x_mode_reg_t default_mode =
 {
-    ad7799_reset(device);
+    .mode = AD779X_MODE_IDLE,
+    .psw_state = AD779X_PSW_OPEN,
+    .filter_rate = AD779X_FILTER_RATE_50HZ,
+};
 
-    uint8_t id = (uint8_t)(read_register(device, AD7799_REG_ID, 1) & 0x0F);
-    //uint8_t id = ad7799_get_id(device);
-    //uint8_t id = read_id(device);
+static ad779x_conf_reg_t default_conf =
+{
+    .burnout_enable = AD779X_CONF_BURNOUT_DISABLED,
+    .coding_polarity = AD779X_CONF_BIPOLAR,
+    .gain = AD779X_CONF_GAIN_128,
+    .ref_detect = AD779X_CONF_REF_DET_DISABLED,
+    .buffer_mode = AD779X_CONF_BUFFERED,
+    .channel_select = AD779X_CONF_CHAN_AIN1_POS,
+};
 
-    NRF_LOG_INFO("Chip ID: %u", id);
+// #endregion
 
-    if (id == AD7799_CHIP_ID)
+// #region Public Functions Implementations
+
+ret_code_t ad779x_init(
+    const uint32_t adc_pwr_pin,
+    const uint8_t sck_pin,
+    const uint8_t mosi_pin,
+    const uint8_t miso_pin)
+{
+    ret_code_t err_code;
+
+    nrf_gpio_cfg(
+        adc_pwr_pin,
+        NRF_GPIO_PIN_DIR_OUTPUT,
+        NRF_GPIO_PIN_INPUT_DISCONNECT,
+        NRF_GPIO_PIN_NOPULL,
+        NRF_GPIO_PIN_H0H1,
+        NRF_GPIO_PIN_NOSENSE
+    );
+    nrf_gpio_pin_clear(adc_pwr_pin);
+    nrf_delay_ms(AD779X_BOOT_TIME_MS); // Let ADC Boot
+
+    nrf_drv_spi_config_t spi_config =
+        {
+            .frequency = NRF_DRV_SPI_FREQ_500K,
+            .mode = NRF_DRV_SPI_MODE_3,
+            .bit_order = NRF_DRV_SPI_BIT_ORDER_MSB_FIRST,
+            .irq_priority = 3,
+            .sck_pin = sck_pin,
+            .mosi_pin = mosi_pin,
+            .miso_pin = miso_pin,
+            .ss_pin = NRF_DRV_SPI_PIN_NOT_USED,
+        };
+
+    err_code =
+        spi_init(
+            &spi,
+            &spi_config
+        );
+
+    APP_ERROR_CHECK(err_code);
+
+    nrf_delay_ms(AD779X_BOOT_TIME_MS); // Let SPI wake up
+
+    ad779x_reset();
+
+    uint8_t chip_id = ad779x_read_id_reg();
+
+    if (chip_id != AD7799_CHIP_ID)
     {
-        return NRF_SUCCESS;
+        APP_ERROR_CHECK(NRF_ERROR_INVALID_DATA);
     }
-    else
-    {
-        return NRF_ERROR_INVALID_DATA;
-    }
+
+    ad779x_set_default_settings();
+
+    ad779x_internal_fullscale_calibration();
+
+    return NRF_SUCCESS;
 }
 
-void ad7799_reset(device_context_t *const device)
+void ad779x_reset()
 {
     uint8_t reset_value[4] = {0xFF, 0xFF, 0xFF, 0xFF};
-
-    ret_code_t err_code = device->write_func(reset_value, 4);
-    APP_ERROR_CHECK(err_code);
-    
-    device->delay_func(AD7799_RESET_TIME_MS);
+    APP_ERROR_CHECK(spi_write(&spi, reset_value, 4));
+    nrf_delay_us(AD779X_RESET_TIME_US);
 }
 
-bool ad7799_is_ready(device_context_t *const device)
+bool ad779x_is_ready()
 {
-    uint8_t status = ad7799_read_status(device);
+    ad779x_status_reg_t status = ad779x_read_status_reg();
 
-    return !(status & AD7799_STATUS_NREADY);
+    return status.is_ready;
 }
 
-ad7799_status_reg_t ad7799_get_status(device_context_t *const device)
+void ad779x_set_default_settings()
 {
-    uint8_t value = ad7799_read_status(device);
+    ad779x_write_mode_reg(&default_mode);
+    ad779x_write_conf_reg(&default_conf);
+}
 
-    ad7799_status_reg_t status =
+void ad779x_internal_zeroscale_calibration()
+{
+    ad779x_mode_reg_t mode = ad779x_read_mode_reg();
+    mode.mode = AD779X_MODE_CAL_INT_ZERO;
+    ad779x_write_mode_reg(&mode);
+
+    while (!ad779x_is_ready()) { }
+}
+
+void ad779x_internal_fullscale_calibration()
+{
+    ad779x_mode_reg_t mode = ad779x_read_mode_reg();
+    mode.mode = AD779X_MODE_CAL_INT_FSCALE;
+    ad779x_write_mode_reg(&mode);
+
+    while (!ad779x_is_ready()) { }
+}
+
+void ad779x_system_zeroscale_calibration()
+{
+    ad779x_mode_reg_t mode = ad779x_read_mode_reg();
+    mode.mode = AD779X_MODE_CAL_SYS_ZERO;
+    ad779x_write_mode_reg(&mode);
+
+    while (!ad779x_is_ready()) { }
+}
+
+void ad779x_system_fullscale_calibration()
+{
+    ad779x_mode_reg_t mode = ad779x_read_mode_reg();
+    mode.mode = AD779X_MODE_CAL_SYS_FSCALE;
+    ad779x_write_mode_reg(&mode);
+
+    while (!ad779x_is_ready()) { }
+}
+
+uint8_t ad779x_read_id_reg()
+{
+    uint8_t value = read_register_8bit(AD779X_REG_ID);
+    uint8_t id = value & 0x0F;
+
+    return id;
+}
+
+ad779x_status_reg_t ad779x_read_status_reg()
+{
+    uint8_t value = read_register_8bit(AD779X_REG_STATUS);
+
+    ad779x_status_reg_t status =
     {
-        .is_ready = !(value & AD7799_READY_MASK),
-        .is_error = value & AD7799_ERROR_MASK,
-        .is_no_ref = value & AD7799_NOREF_MASK,
-        .chip_model = (chip_model_t)(value & AD7799_MODEL_MASK),
-        .adc_channel_1_en = value & AD7799_CHAN1_MASK,
-        .adc_channel_2_en = value & AD7799_CHAN2_MASK,
-        .adc_channel_3_en = value & AD7799_CHAN3_MASK,
+        .is_ready = (value & AD779X_READY_MASK) == 0,
+        .is_error = (value & AD779X_ERROR_MASK) != 0,
+        .is_no_ref = (value & AD779X_NOREF_MASK) != 0,
+        .model_type = (ad779x_model_t)(value & AD779X_MODEL_MASK),
+        .adc_channel_1_en = (value & AD779X_CHAN1_MASK) != 0,
+        .adc_channel_2_en = (value & AD779X_CHAN2_MASK) != 0,
+        .adc_channel_3_en = (value & AD779X_CHAN3_MASK) != 0,
     };
 
     return status;
 }
 
-ad7799_mode_reg_t ad7799_get_mode(device_context_t *const device)
+ad779x_mode_reg_t ad779x_read_mode_reg()
 {
-    uint16_t value = ad7799_read_mode(device);
+    uint16_t value = read_register_16bit(AD779X_REG_MODE);
 
-    ad7799_mode_reg_t mode =
+    ad779x_mode_reg_t mode =
     {
-        .mode = value & AD7799_MODE_MASK,
-        .psw_state = value & AD7799_PSW_MASK,
-        .filter_rate = value & AD7799_FILTER_MASK,
+        .mode = value & AD779X_MODE_MASK,
+        .psw_state = value & AD779X_PSW_MASK,
+        .filter_rate = value & AD779X_FILTER_MASK,
     };
 
     return mode;
 }
 
-void ad7799_set_mode(
-    device_context_t *const device,
-    const ad7799_mode_reg_t *const mode)
-{
-    ad7799_set_mode_direct(
-        device,
-        mode->mode,
-        mode->psw_state,
-        mode->filter_rate);
-}
-
-void ad7799_set_mode_direct(
-    device_context_t *const device,
-    ad7799_mode_t mode,
-    ad7799_psw_state_t psw_state,
-    ad7799_filter_rate_t filter_rate)
+void ad779x_write_mode_reg(const ad779x_mode_reg_t* const mode)
 {
     uint16_t value =
-        (uint16_t)mode |
-        (uint16_t)psw_state |
-        (uint16_t)filter_rate;
+        (uint16_t)mode->mode |
+        (uint16_t)mode->psw_state |
+        (uint16_t)mode->filter_rate;
 
-    write_mode(device, value);
+    write_register_16bit(AD779X_REG_MODE, value);
 }
 
-ad7799_conf_reg_t ad7799_get_conf(device_context_t *const device)
+ad779x_conf_reg_t ad779x_read_conf_reg()
 {
-    uint16_t value = read_conf(device);
+    uint16_t value = read_register_16bit(AD779X_REG_CONF);
 
-    ad7799_conf_reg_t mode =
-        {
-            .burnout_enable = value & AD7799_BURNOUT_MASK,
-            .coding_polarity = value & AD7799_CODING_MASK,
-            .gain = value & AD7799_GAIN_MASK,
-            .ref_detect = value & AD7799_REF_DETECT_MASK,
-            .buffer_mode = value & AD7799_BUF_MODE_MASK,
-            .channel_select = value & AD7799_CHAN_SEL_MASK,
-        };
+    ad779x_conf_reg_t conf =
+    {
+        .burnout_enable = value & AD779X_BURNOUT_MASK,
+        .coding_polarity = value & AD779X_CODING_MASK,
+        .gain = value & AD779X_GAIN_MASK,
+        .ref_detect = value & AD779X_REF_DETECT_MASK,
+        .buffer_mode = value & AD779X_BUF_MODE_MASK,
+        .channel_select = value & AD779X_CHAN_SEL_MASK,
+    };
 
-    return mode;
+    return conf;
 }
 
-void ad7799_set_conf(
-    device_context_t *const device,
-    const ad7799_conf_reg_t *const conf)
-{
-    ad7799_set_conf_direct(
-        device,
-        conf->burnout_enable,
-        conf->coding_polarity,
-        conf->gain,
-        conf->ref_detect,
-        conf->buffer_mode,
-        conf->channel_select);
-}
-
-void ad7799_set_conf_direct(
-    device_context_t *const device,
-    ad7799_burnout_enable_state_t burnout_enable_state,
-    ad7799_coding_polarity_t coding_polarity,
-    ad7799_gain_t gain,
-    ad7799_ref_detect_t ref_detect,
-    ad7799_buffer_mode_t buffer_mode,
-    ad7799_channel_select_t channel_select)
+void ad779x_write_conf_reg(const ad779x_conf_reg_t* const conf)
 {
     uint16_t value =
-        (uint16_t)burnout_enable_state |
-        (uint16_t)coding_polarity |
-        (uint16_t)gain |
-        (uint16_t)ref_detect |
-        (uint16_t)buffer_mode |
-        (uint16_t)channel_select;
+        (uint16_t)conf->burnout_enable |
+        (uint16_t)conf->coding_polarity |
+        (uint16_t)conf->gain |
+        (uint16_t)conf->ref_detect |
+        (uint16_t)conf->buffer_mode |
+        (uint16_t)conf->channel_select;
 
-    write_conf(device, value);
+    write_register_16bit(AD779X_REG_CONF, value);
 }
 
-uint32_t ad7799_get_data(device_context_t *const device)
+uint16_t ad7798_read_raw_data_single()
 {
-    // TODO - Support continous mode?
-    return read_data(device);
+    ad779x_mode_reg_t mode = ad779x_read_mode_reg();
+    mode.mode = AD779X_MODE_SINGLE;
+    ad779x_write_mode_reg(&mode);
+
+    while (!ad779x_is_ready()) { }
+
+    uint16_t value = read_register_16bit(AD779X_REG_DATA);
+
+    return value;
 }
 
-uint8_t ad7799_get_id(device_context_t *const device)
+uint32_t ad7799_read_raw_data_single()
 {
-    uint8_t id = read_id(device);
+    ad779x_mode_reg_t mode = ad779x_read_mode_reg();
+    mode.mode = AD779X_MODE_SINGLE;
+    ad779x_write_mode_reg(&mode);
 
-    return id;
+    while (!ad779x_is_ready()) { }
+
+    uint32_t value = read_register_24bit(AD779X_REG_DATA);
+
+    return value;
 }
 
-ad7799_io_reg_t ad7799_get_io(device_context_t *const device)
+float ad7798_read_mV_single()
 {
-    uint8_t value = read_io(device);
+    float rawData = (float)ad7798_read_raw_data_single();
+    float voltage = ((rawData * 0.00000011920928955078125f - 1.0f) * vRef) / (gain * 1000.0f);
 
-    ad7799_io_reg_t mode =
-        {
-            .ain3_setting = value & AD7799_AIN3_SET_MASK,
-            .p1_state = (bool)(value & AD7799_P1_STATE_MASK),
-            .p2_state = (bool)(value & AD7799_P2_STATE_MASK),
-        };
-
-    return mode;
+    return voltage;
 }
 
-void ad7799_set_io(
-    device_context_t *const device,
-    ad7799_ain3_setting_t ain3_setting,
-    bool p1_state,
-    bool p2_state)
+float ad7799_read_mV_single()
 {
-    uint8_t p1 = p1_state ? AD7799_P1_STATE_MASK : 0b00000000;
-    uint8_t p2 = p2_state ? AD7799_P2_STATE_MASK : 0b00000000;
+    float rawData = (float)ad7799_read_raw_data_single();
+    float voltage = ((rawData * 0.00000011920928955078125f - 1.0f) * vRef) / (gain * 1000.0f);
 
-    uint8_t value =
-        (uint8_t)ain3_setting |
-        p1 |
-        p2;
-
-    write_io(device, value);
-}
-
-uint32_t ad7799_get_offset(device_context_t *const device)
-{
-    return read_offset(device);
-}
-
-void ad7799_set_offset(device_context_t *const device, uint32_t value)
-{
-    write_offset(device, value);
-}
-
-uint32_t ad7799_get_fullscale(device_context_t *const device)
-{
-    return read_fullscale(device);
-}
-
-void ad7799_set_fullscale(device_context_t *const device, uint32_t value)
-{
-    write_fullscale(device, value);
-}
-
-void ad7799_conf_to_str(
-    const ad7799_conf_reg_t *const config,
-    char *output_str)
-{
-    char burnout_str[32];
-
-    switch (config->burnout_enable)
-    {
-    case AD7799_CONF_BURNOUT_ENABLED:
-        sprintf(burnout_str, "Burnout Enabled");
-        break;
-    case AD7799_CONF_BURNOUT_DISABLED:
-        sprintf(burnout_str, "Burnout Disabled");
-        break;
-    default:
-        sprintf(burnout_str, "Unknown");
-        break;
-    }
-
-    char coding_str[32];
-
-    switch (config->coding_polarity)
-    {
-    case AD7799_CONF_UNIPOLAR:
-        sprintf(coding_str, "UniPolar");
-        break;
-    case AD7799_CONF_BIPOLAR:
-        sprintf(coding_str, "BiPolar");
-        break;
-    default:
-        sprintf(coding_str, "Unknown");
-        break;
-    }
-
-    char gain_str[32];
-
-    switch (config->gain)
-    {
-    case AD7799_CONF_GAIN_1:
-        sprintf(gain_str, "1");
-        break;
-    case AD7799_CONF_GAIN_2:
-        sprintf(gain_str, "2");
-        break;
-    case AD7799_CONF_GAIN_4:
-        sprintf(gain_str, "4");
-        break;
-    case AD7799_CONF_GAIN_8:
-        sprintf(gain_str, "8");
-        break;
-    case AD7799_CONF_GAIN_16:
-        sprintf(gain_str, "16");
-        break;
-    case AD7799_CONF_GAIN_32:
-        sprintf(gain_str, "32");
-        break;
-    case AD7799_CONF_GAIN_64:
-        sprintf(gain_str, "64");
-        break;
-    case AD7799_CONF_GAIN_128:
-        sprintf(gain_str, "128");
-        break;
-    default:
-        sprintf(gain_str, "Unknown");
-        break;
-    }
-
-    char ref_str[32];
-
-    switch (config->ref_detect)
-    {
-    case AD7799_CONF_REF_DET_ENABLED:
-        sprintf(ref_str, "Det Enabled");
-        break;
-    case AD7799_CONF_REF_DET_DISABLED:
-        sprintf(ref_str, "Det Disabled");
-        break;
-    default:
-        sprintf(ref_str, "Unknown");
-        break;
-    }
-
-    char buffer_str[32];
-
-    switch (config->buffer_mode)
-    {
-    case AD7799_CONF_BUFFERED:
-        sprintf(buffer_str, "Buffered");
-        break;
-    case AD7799_CONF_UNBUFFERED:
-        sprintf(buffer_str, "Unbuffered");
-        break;
-    default:
-        sprintf(buffer_str, "Unknown");
-        break;
-    }
-
-    char channel_str[32];
-
-    switch (config->channel_select)
-    {
-    case AD7799_CONF_CHAN_AIN1_POS:
-        sprintf(channel_str, "AIN1 +");
-        break;
-    case AD7799_CONF_CHAN_AIN2_POS:
-        sprintf(channel_str, "AIN2 +");
-        break;
-    case AD7799_CONF_CHAN_AIN3_POS:
-        sprintf(channel_str, "AIN3 +");
-        break;
-    case AD7799_CONF_CHAN_AIN1_NEG:
-        sprintf(channel_str, "AIN1 -");
-        break;
-    case AD7799_CONF_CHAN_AVDD_MON:
-        sprintf(channel_str, "AVDD Monitor");
-        break;
-    default:
-        sprintf(channel_str, "Unknown");
-        break;
-    }
-
-    sprintf(
-        output_str,
-        "BE: %s, CP: %s, G: %s, RF: %s, BF: %s, CH: %s",
-        burnout_str,
-        coding_str,
-        gain_str,
-        ref_str,
-        buffer_str,
-        channel_str);
+    return voltage;
 }
 
 // #endregion
 
-// #region Private Functions
+// #region Private Functions Implementations
 
-static uint32_t read_register(
-    device_context_t *const device,
-    uint8_t address,
-    uint8_t size)
+static void write_register_8bit(
+    const uint8_t register_address,
+    const uint8_t value)
 {
-    uint8_t out_data[1] = {AD7799_COMM_READ | address};
-    uint8_t in_data[3] = {0x00, 0x00, 0x00};
-    uint32_t received = 0x00;
+    uint8_t out_data[2] =
+        {
+            AD779X_COMM_WRITE | register_address,
+            value};
 
-    APP_ERROR_CHECK(device->write_func(out_data, 1));
+    APP_ERROR_CHECK(spi_write(&spi, out_data, 2));
+}
 
-    switch (size)
-    {
-    case 1:
-        APP_ERROR_CHECK(device->read_func(in_data, 1));
-        received |= in_data[0] << 0;
-        break;
+static void write_register_16bit(
+    const uint8_t register_address,
+    const uint16_t value)
+{
+    uint8_t out_data[3] =
+        {
+            AD779X_COMM_WRITE | register_address,
+            (uint8_t)((value & 0x00FF00) >> 8),
+            (uint8_t)((value & 0x0000FF) >> 0),
+        };
 
-    case 2:
-        APP_ERROR_CHECK(device->read_func(in_data, 2));
-        received |= in_data[0] << 8;
-        received |= in_data[1] << 0;
-        break;
+    APP_ERROR_CHECK(spi_write(&spi, out_data, 3));
+}
 
-    case 3:
-        APP_ERROR_CHECK(device->read_func(in_data, 3));
-        received |= in_data[0] << 16;
-        received |= in_data[1] << 8;
-        received |= in_data[2] << 0;
-        break;
+static uint8_t read_register_8bit(const uint8_t register_address)
+{
+    uint8_t out_data[1] = {AD779X_COMM_READ | register_address};
+    uint8_t in_data[1] = {0x00};
+    uint8_t received = 0;
 
-    default:
-        APP_ERROR_CHECK(NRF_ERROR_INVALID_PARAM);
-    }
+    APP_ERROR_CHECK(spi_write(&spi, out_data, 1));
+    APP_ERROR_CHECK(spi_read(&spi, in_data, 1));
+
+    received = in_data[0];
 
     return received;
 }
 
-static void write_register(
-    device_context_t *const device,
-    uint8_t address,
-    uint8_t size,
-    uint32_t value)
+static uint16_t read_register_16bit(const uint8_t register_address)
 {
-    uint8_t out_data[4] =
-        {
-            AD7799_COMM_WRITE | address,
-            0x00,
-            0x00,
-            0x00};
+    uint8_t out_data[1] = {AD779X_COMM_READ | register_address};
+    uint8_t in_data[2] = {0x00, 0x00};
+    uint16_t received = 0;
 
-    if (size == 1)
-    {
-        out_data[1] = (uint8_t)value;
-    }
+    APP_ERROR_CHECK(spi_write(&spi, out_data, 1));
+    APP_ERROR_CHECK(spi_read(&spi, in_data, 2));
 
-    if (size == 2)
-    {
-        out_data[2] = (uint8_t)((value & 0x0000FF) >> 0);
-        out_data[1] = (uint8_t)((value & 0x00FF00) >> 8);
-    }
+    received |= in_data[0] << 8;
+    received |= in_data[1] << 0;
 
-    if (size == 3)
-    {
-        out_data[3] = (uint8_t)((value & 0x0000FF) >> 0);
-        out_data[2] = (uint8_t)((value & 0x00FF00) >> 8);
-        out_data[1] = (uint8_t)((value & 0xFF0000) >> 16);
-    }
-
-    APP_ERROR_CHECK(device->write_func(out_data, size + 1));
+    return received;
 }
 
-static uint8_t ad7799_read_status(device_context_t *const device)
+static uint32_t read_register_24bit(const uint8_t register_address)
 {
-    return (uint8_t)(read_register(device, AD7799_REG_STATUS, 1) & 0x000000FF);
-}
+    uint8_t out_data[1] = {AD779X_COMM_READ | register_address};
+    uint8_t in_data[3] = {0x00, 0x00, 0x00};
+    uint32_t received = 0;
 
-static uint16_t ad7799_read_mode(device_context_t *const device)
-{
-    return (uint16_t)(read_register(device, AD7799_REG_MODE, 2) & 0x0000FFFF);
-}
+    APP_ERROR_CHECK(spi_write(&spi, out_data, 1));
+    APP_ERROR_CHECK(spi_read(&spi, in_data, 3));
 
-static void write_mode(device_context_t *const device, uint16_t value)
-{
-    write_register(device, AD7799_REG_MODE, 2, (uint32_t)value);
-}
+    received |= in_data[0] << 16;
+    received |= in_data[1] << 8;
+    received |= in_data[2] << 0;
 
-static uint16_t read_conf(device_context_t *const device)
-{
-    return (uint16_t)(read_register(device, AD7799_REG_CONF, 2) & 0x0000FFFF);
-}
-
-static void write_conf(device_context_t *const device, uint16_t value)
-{
-    write_register(device, AD7799_REG_CONF, 2, (uint32_t)value);
-}
-
-static uint32_t read_data(device_context_t *const device)
-{
-    return read_register(device, AD7799_REG_DATA, 3) & 0x00FFFFFF;
-}
-
-static uint8_t read_id(device_context_t *const device)
-{
-    return (uint8_t)(read_register(device, AD7799_REG_ID, 1) & 0x000000FF);
-}
-
-static uint8_t read_io(device_context_t *const device)
-{
-    return (uint8_t)(read_register(device, AD7799_REG_IO, 1) & 0x000000FF);
-}
-
-static void write_io(device_context_t *const device, uint8_t value)
-{
-    write_register(device, AD7799_REG_IO, 1, (uint32_t)value);
-}
-
-static uint32_t read_offset(device_context_t *const device)
-{
-    return (read_register(device, AD7799_REG_OFFSET, 3) & 0x00FFFFFF);
-}
-
-static void write_offset(device_context_t *const device, uint32_t value)
-{
-    write_register(device, AD7799_REG_OFFSET, 3, value);
-}
-
-static uint32_t read_fullscale(device_context_t *const device)
-{
-    return (read_register(device, AD7799_REG_FULL_SCALE, 3) & 0x00FFFFFF);
-}
-
-static void write_fullscale(device_context_t *const device, uint32_t value)
-{
-    write_register(device, AD7799_REG_FULL_SCALE, 3, value);
+    return received;
 }
 
 // #endregion

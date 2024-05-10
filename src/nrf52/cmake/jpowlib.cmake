@@ -33,6 +33,8 @@ endmacro()
 
 # Add IMU Library
 macro(jpow_addLSM6DS)
+    nRF5_addClock()
+    nRF5_addTWILegacy()
     jpow_addJPowMath()
     jpow_addI2C()
     list(APPEND INCLUDE_DIRS

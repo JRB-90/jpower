@@ -4,12 +4,6 @@
 #include "seeed_xiao_sense.h"
 #include "nrf_delay.h"
 
-#include "jpow_math.h"
-#include "i2c_helper.h"
-#include "spi_helper.h"
-#include "Fusion.h"
-#include "imu.h"
-
 int main()
 {
     bsp_board_init(BSP_INIT_LEDS);

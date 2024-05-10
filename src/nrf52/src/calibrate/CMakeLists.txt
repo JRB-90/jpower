@@ -1,4 +1,4 @@
-set(target blinky)
+set(target calibrate)
 
 set(NRF_PROJECT_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 set(NRF5_LINKER_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/gcc_nrf52)
@@ -13,9 +13,12 @@ set(DFU_VERSION_STRING "${VERSION_STRING}")
 nRF5_addLog()
 nRF5_addSeggerRTT()
 nRF5_addAppError()
-nRF5_addBSP(FALSE TRUE FALSE)
 nRF5_addAppButton()
-nRF5_addGPIOTE()
+nRF5_addBSP(TRUE TRUE FALSE)
+nRF5_addClock()
+
+jpow_addBLE()
+jpow_addANTPlus()
 
 list(APPEND SOURCE_FILES
     ${NRF_PROJECT_PATH}/main.c
@@ -44,3 +47,5 @@ set(bootloader_vars "")
 nRF5_addSecureBootloader(${target} "${PUBLIC_KEY}" "${bootloader_vars}")
 nRF5_addBootloaderSoftDeviceAppMergeTarget(${target} ${DFU_VERSION_STRING} ${PRIVATE_KEY} ${PREVIOUS_SOFTDEVICES} ${APP_VALIDATION_TYPE} ${SD_VALIDATION_TYPE} ${BOOTLOADER_VERSION})
 nRF5_addFullFlashTarget(${target}_bl_sd_app_merge "${CMAKE_CURRENT_BINARY_DIR}/${target}_bl_sd_app.hex")
+nRF5_addDFU_BL_SD_APP_PkgTarget(${target} ${DFU_VERSION_STRING} ${PRIVATE_KEY} ${PREVIOUS_SOFTDEVICES} ${APP_VALIDATION_TYPE} ${SD_VALIDATION_TYPE} ${BOOTLOADER_VERSION})
+nRF5_addDFU_APP_PkgTarget(${target} ${DFU_VERSION_STRING} ${PRIVATE_KEY} ${PREVIOUS_SOFTDEVICES} ${APP_VALIDATION_TYPE})

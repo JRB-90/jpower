@@ -60,8 +60,9 @@ set(s212_6.1.1_FWID 0xBC)
 set(s332_6.1.1_FWID 0xBA)
 set(s340_6.1.1_FWID 0xB9)
 
-set(SECURE_BOOTLOADER_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/dfu/secure_bootloader/${BOARD}_${SOFTDEVICE_TYPE}_ble/armgcc")
+set(SECURE_BOOTLOADER_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib/dfu/secure_bootloader/${BOARD}_${SOFTDEVICE_TYPE}_ble/armgcc")
 #set(SECURE_BOOTLOADER_SRC_DIR "${SDK_ROOT}/examples/dfu/secure_bootloader/${BOARD}_${SOFTDEVICE_TYPE}_ble/armgcc")
+#set(OPEN_BOOTLOADER_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib/dfu/open_bootloader/${BOARD}_${SOFTDEVICE_TYPE}_ble/armgcc")
 set(OPEN_BOOTLOADER_SRC_DIR "${SDK_ROOT}/examples/dfu/open_bootloader/${BOARD}_${SOFTDEVICE_TYPE}_ble/armgcc")
 
 if(NOT DEFINED ${IC}_FAMILY)
