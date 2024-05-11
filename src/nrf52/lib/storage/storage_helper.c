@@ -126,6 +126,8 @@ ret_code_t storage_delete(
         APP_ERROR_CHECK(err_code);
         wait_for_fds_delete();
     }
+
+    err_code = fds_gc();
     
     return err_code;
 }
