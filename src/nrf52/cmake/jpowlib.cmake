@@ -9,6 +9,17 @@ macro(jpow_addJPowMath)
     )
 endmacro()
 
+# Add Storage Library
+macro(jpow_addStorage)
+    list(APPEND INCLUDE_DIRS
+        "${CMAKE_SOURCE_DIR}/lib/storage"
+    )
+
+    list(APPEND SOURCE_FILES
+        "${CMAKE_SOURCE_DIR}/lib/storage/storage_helper.c"
+    )
+endmacro()
+
 # Add I2C Library
 macro(jpow_addI2C)
     list(APPEND INCLUDE_DIRS

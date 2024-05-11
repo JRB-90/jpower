@@ -23,6 +23,8 @@ nRF5_addGPIOTE()
 nRF5_addSoftDeviceSupport()
 nRF5_addFDS(TRUE)
 
+jpow_addStorage()
+
 list(APPEND SOURCE_FILES
     ${NRF_PROJECT_PATH}/main.c
 )
