@@ -20,6 +20,17 @@ macro(jpow_addStorage)
     )
 endmacro()
 
+# Add Calibrate Library
+macro(jpow_addCalibrate)
+    list(APPEND INCLUDE_DIRS
+        "${CMAKE_SOURCE_DIR}/lib/calibrate"
+    )
+
+    list(APPEND SOURCE_FILES
+        "${CMAKE_SOURCE_DIR}/lib/calibrate/calibrate.c"
+    )
+endmacro()
+
 # Add I2C Library
 macro(jpow_addI2C)
     list(APPEND INCLUDE_DIRS

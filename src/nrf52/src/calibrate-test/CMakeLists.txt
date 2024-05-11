@@ -1,4 +1,4 @@
-set(target calibrate)
+set(target calibrate-test)
 
 set(NRF_PROJECT_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 set(NRF5_LINKER_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/gcc_nrf52)
@@ -19,6 +19,8 @@ nRF5_addClock()
 
 jpow_addBLE()
 jpow_addANTPlus()
+jpow_addStorage()
+jpow_addCalibrate()
 
 list(APPEND SOURCE_FILES
     ${NRF_PROJECT_PATH}/main.c

@@ -18,6 +18,8 @@
 #include "nrf_drv_clock.h"
 #include "ble_subsystem.h"
 #include "ant_subsystem.h"
+#include "storage_helper.h"
+#include "calibrate.h"
 
 #define COM_PORT                "COM6"                  // The COM port that the NRF BLE dongle is attached to
 #define DEVICE_NAME             "JPower"                // The BLE advertising device name
@@ -36,12 +38,19 @@ static ble_srv_nus_config_t ble_srv_nus_config =
     .data_handler = blesub_nus_default_data_handler,
 };
 
+static calibration_data_t calibration_data =
+{
+    .cal_id = 0,
+    .slope = 0.0f
+};
+
 static void log_init();
 static void io_init();
 static void timers_init();
 static void power_management_init();
 static void idle_state_handler();
 static void softdevice_init();
+static void calibration_init();
 static bool app_shutdown_handler(nrf_pwr_mgmt_evt_t event);
 static void buttonless_dfu_sdh_state_observer(
     nrf_sdh_state_evt_t state, 
@@ -65,7 +74,8 @@ int main()
     blesub_enable_ble_dfu();
     blesub_init(&ble_subsystem_config);
 
-    antsub_init();
+    calibration_init();
+    //antsub_init();
 
     NRF_LOG_INFO("Logger app initialised");
     blesub_start_advertising();
@@ -91,6 +101,9 @@ static void io_init()
     APP_ERROR_CHECK(err_code);
 
     bsp_board_init(BSP_INIT_LEDS);
+
+    err_code = storage_init();
+    APP_ERROR_CHECK(err_code);
 }
 
 static void timers_init()
@@ -120,6 +133,33 @@ static void softdevice_init()
     APP_ERROR_CHECK(err_code);
 
     ASSERT(nrf_sdh_is_enabled());
+}
+
+static void calibration_init()
+{
+    ret_code_t err_code = calibrate_init();
+    APP_ERROR_CHECK(err_code);
+
+    if (!calibrate_get_is_calibrated())
+    {
+        // TODO - In future, go into awaiting cal state
+        //        For now, put in some dummy data
+        calibration_data_t calibration =
+        {
+            .cal_id = 0x0001,
+            .slope = 0.5f
+        };
+
+        calibrate_set_calibration(calibration);
+    }
+
+    calibration_data = calibrate_get_calibration();
+
+    NRF_LOG_INFO(
+        "Cal ID: %lu - Slope: %f", 
+        calibration_data.cal_id,
+        calibration_data.slope
+    );
 }
 
 static void idle_state_handler()

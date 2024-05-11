@@ -1,4 +1,4 @@
-set(target fdstest)
+set(target fds-test)
 
 set(NRF_PROJECT_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 set(NRF5_LINKER_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/gcc_nrf52)

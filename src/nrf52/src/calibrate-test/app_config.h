@@ -1,6 +1,23 @@
 #define COM_PORT "COM6"         // The COM port that the NRF BLE dongle is attached to
 #define DEVICE_NAME "JPower"    // The BLE advertising device name
 
+#define CRC16_ENABLED 1
+#define FDS_ENABLED 1
+#define FDS_BACKEND 2
+#define FDS_CRC_CHECK_ON_READ 1
+#define FDS_CRC_CHECK_ON_WRITE 0
+#define FDS_MAX_USERS 4
+#define FDS_OP_QUEUE_SIZE 4
+#define FDS_VIRTUAL_PAGES 3
+#define FDS_VIRTUAL_PAGE_SIZE 1024
+#define FDS_VIRTUAL_PAGES_RESERVED 0
+
+#define NRF_FSTORAGE_ENABLED 1
+#define NRF_FSTORAGE_PARAM_CHECK_DISABLED 0
+#define NRF_FSTORAGE_SD_QUEUE_SIZE 4
+#define NRF_FSTORAGE_SD_MAX_RETRIES 8
+#define NRF_FSTORAGE_SD_MAX_WRITE_SIZE 4096
+
 #define NRF_QUEUE_ENABLED 1
 
 #define TWI_ENABLED 1
