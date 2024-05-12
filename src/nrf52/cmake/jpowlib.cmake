@@ -22,12 +22,14 @@ endmacro()
 
 # Add Calibrate Library
 macro(jpow_addCalibrate)
+    jpow_addBLE()
     list(APPEND INCLUDE_DIRS
         "${CMAKE_SOURCE_DIR}/lib/calibrate"
     )
 
     list(APPEND SOURCE_FILES
         "${CMAKE_SOURCE_DIR}/lib/calibrate/calibrate.c"
+        "${CMAKE_SOURCE_DIR}/lib/calibrate/calibrate_srv.c"
     )
 endmacro()
 

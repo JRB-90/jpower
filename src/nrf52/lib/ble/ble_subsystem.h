@@ -70,6 +70,11 @@ typedef struct ble_subsystem_config_t
 extern void blesub_enable_lbs(ble_srv_lbs_config_t* ble_srv_lbs_config);
 extern void blesub_enable_nus(ble_srv_nus_config_t* ble_srv_nus_config);
 extern void blesub_enable_ble_dfu();
+extern void blesub_service_init(
+    ble_uuid128_t base_uuid,
+    uint16_t service_uuid,
+    uint16_t* service_handle
+);
 extern void blesub_init(ble_subsystem_config_t* ble_subsystem_config);
 extern void blesub_start_advertising();
 extern void blesub_nus_send_string(const char* string);

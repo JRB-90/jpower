@@ -3,9 +3,11 @@
 #include "app_error.h"
 #include "app_button.h"
 #include "boards.h"
+#include "bsp.h"
 #include "nrf_pwr_mgmt.h"
 #include "nrf_log.h"
 #include "nrf_sdh.h"
+#include "ble_advertising.h"
 
 // ======== BLE Data ========
 
@@ -50,6 +52,7 @@ static uint32_t enabled_services = 0;                                   // Enabl
 static ble_srv_lbs_config_t* lbs_config = NULL;                         // Configuration params of the lbs service
 static ble_srv_nus_config_t* nus_config = NULL;                         // Configuration params of the nus service
 
+BLE_ADVERTISING_DEF(m_advertising);                                     // Advertising instance
 BLE_LBS_DEF(m_lbs);                                                     // LED Button Service instance
 BLE_NUS_DEF(m_nus, NRF_SDH_BLE_TOTAL_LINK_COUNT);                       // BLE NUS service instance
 
@@ -116,6 +119,33 @@ void blesub_enable_ble_dfu()
     NRF_LOG_INFO("BLE enabled BLE DFU service");
 }
 
+void blesub_service_init(
+    ble_uuid128_t base_uuid,
+    uint16_t service_uuid,
+    uint16_t* service_handle)
+{
+    ble_uuid_t ble_service_uuid;
+    ble_uuid128_t bsrv_base_uuid = base_uuid;
+    ble_service_uuid.uuid = service_uuid;
+    
+    ret_code_t err_code =
+        sd_ble_uuid_vs_add(
+            &bsrv_base_uuid,
+            &ble_service_uuid.type
+        );
+    APP_ERROR_CHECK(err_code);
+
+    err_code =
+        sd_ble_gatts_service_add(
+            BLE_GATTS_SRVC_TYPE_PRIMARY,
+            &ble_service_uuid,
+            service_handle
+        );
+    APP_ERROR_CHECK(err_code);
+
+    ble_service_uuid.type = BLE_UUID_TYPE_VENDOR_BEGIN;
+}
+
 void blesub_init(ble_subsystem_config_t* ble_subsystem_config)
 {
     if (ble_subsystem_config == NULL)
@@ -131,7 +161,6 @@ void blesub_init(ble_subsystem_config_t* ble_subsystem_config)
     init_gap_params();
     init_gatt();
     init_services();
-    init_advertising();
     init_conn_params();
 
     NRF_LOG_INFO("BLE init success");
@@ -139,6 +168,8 @@ void blesub_init(ble_subsystem_config_t* ble_subsystem_config)
 
 void blesub_start_advertising()
 {
+    init_advertising();
+
     ret_code_t err_code = 
         sd_ble_gap_adv_start(
             m_adv_handle, 
@@ -335,29 +366,16 @@ static void init_advertising()
     //        error for more than one advertised service uuid..
     // ble_uuid_t adv_uuids[NRF_SDH_BLE_VS_UUID_COUNT];
 
-    ble_uuid_t adv_uuids[1];
-
-    if (enabled_services & BLE_SRV_LBS)
-    {
-        adv_uuids[0].type = m_lbs.uuid_type;
-        adv_uuids[0].uuid = LBS_UUID_SERVICE;
-    }
-    else if (enabled_services & BLE_SRV_NUS)
-    {
-        adv_uuids[0].type = m_nus.uuid_type;
-        adv_uuids[0].uuid = BLE_UUID_NUS_SERVICE;
-    }
-
     // Build and set advertising data.
     memset(&advdata, 0, sizeof(advdata));
-
-    advdata.name_type          = BLE_ADVDATA_FULL_NAME;
+    advdata.name_type = BLE_ADVDATA_FULL_NAME;
     advdata.include_appearance = true;
-    advdata.flags              = BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE;
+    advdata.flags = BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE;
 
     memset(&srdata, 0, sizeof(srdata));
-    srdata.uuids_complete.uuid_cnt = sizeof(adv_uuids) / sizeof(adv_uuids[0]);
-    srdata.uuids_complete.p_uuids  = adv_uuids;
+    //srdata.uuids_complete.uuid_cnt = sizeof(adv_uuids) / sizeof(adv_uuids[0]);
+    //srdata.uuids_complete.p_uuids  = adv_uuids;
+    srdata.name_type = BLE_ADVDATA_FULL_NAME;
 
     err_code = 
         ble_advdata_encode(
