@@ -15,6 +15,7 @@ typedef struct
 } calibration_data_t;
 
 extern ret_code_t calibrate_init();
+extern void calibrate_update();
 extern bool calibrate_get_is_calibrated();
 extern calibration_data_t calibrate_get_calibration();
 extern ret_code_t calibrate_set_calibration(const calibration_data_t calibration);

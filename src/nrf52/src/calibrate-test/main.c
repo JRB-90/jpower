@@ -51,16 +51,20 @@ static void power_management_init();
 static void idle_state_handler();
 static void softdevice_init();
 static void calibration_init();
+static void start_timers();
 static bool app_shutdown_handler(nrf_pwr_mgmt_evt_t event);
 static void buttonless_dfu_sdh_state_observer(
     nrf_sdh_state_evt_t state, 
     void * p_context
 );
+static void slow_timer_callback(void* context);
 
 NRF_SDH_STATE_OBSERVER(m_buttonless_dfu_state_obs, 0) =
 {
     .handler = buttonless_dfu_sdh_state_observer,
 };
+
+APP_TIMER_DEF(slow_timer);
 
 int main()
 {
@@ -76,6 +80,8 @@ int main()
 
     calibration_init();
     //antsub_init();
+
+    start_timers();
 
     NRF_LOG_INFO("Logger app initialised");
     blesub_start_advertising();
@@ -109,6 +115,15 @@ static void io_init()
 static void timers_init()
 {
     ret_code_t err_code = app_timer_init();
+    APP_ERROR_CHECK(err_code);
+
+    err_code = 
+        app_timer_create(
+            &slow_timer,
+            APP_TIMER_MODE_REPEATED,
+            slow_timer_callback
+        );
+
     APP_ERROR_CHECK(err_code);
 
     err_code = nrf_drv_clock_init();
@@ -162,6 +177,18 @@ static void calibration_init()
     );
 }
 
+static void start_timers()
+{
+    ret_code_t err_code = 
+        app_timer_start(
+            slow_timer, 
+            APP_TIMER_TICKS(1000),
+            NULL
+        );
+
+    APP_ERROR_CHECK(err_code);
+}
+
 static void idle_state_handler()
 {
     if (NRF_LOG_PROCESS() == false)
@@ -191,4 +218,9 @@ static void buttonless_dfu_sdh_state_observer(nrf_sdh_state_evt_t state, void * 
         nrf_power_gpregret2_set(BOOTLOADER_DFU_SKIP_CRC);
         nrf_pwr_mgmt_shutdown(NRF_PWR_MGMT_SHUTDOWN_GOTO_SYSOFF);
     }
+}
+
+static void slow_timer_callback(void* context)
+{
+    calibrate_update();
 }

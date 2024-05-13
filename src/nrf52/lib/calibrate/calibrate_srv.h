@@ -18,5 +18,9 @@ typedef struct calibrate_srv_t
 } calibrate_srv_t;
 
 extern void calibrate_srv_init(calibrate_srv_t* service);
+extern void calibrate_srv_update_raw_adc(
+    calibrate_srv_t* service, 
+    int32_t* value
+);
 
 #endif // CALIBRATE_SRV_H__
