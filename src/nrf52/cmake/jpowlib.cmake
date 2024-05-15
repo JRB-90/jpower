@@ -123,6 +123,7 @@ macro(jpow_addBLE)
 
     list(APPEND SOURCE_FILES
         "${CMAKE_SOURCE_DIR}/lib/ble/ble_subsystem.c"
+        "${CMAKE_SOURCE_DIR}/lib/ble/ble_srv_helper.c"
     )
 endmacro()
 
