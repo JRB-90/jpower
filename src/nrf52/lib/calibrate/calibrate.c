@@ -8,36 +8,23 @@
 
 static bool is_calibrated = false;
 static calibration_data_t calibration_data;
-static calibrate_srv_t calibrate_srv;
-
 static uint32_t adc_value = 0;
 
-static void calibrate_srv_on_event(
-    ble_evt_t const* ble_evt, 
-    void* context
-);
+// static void calibrate_srv_on_event(
+//     ble_evt_t const* ble_evt, 
+//     void* context
+// );
 
 ret_code_t calibrate_init()
 {
-    ble_uuid128_t srv_base_uuid = 
-    {
-        .uuid128 = BLE_UUID_CALIBRATE_SRV_BASE_UUID
-    };
+    calibrate_srv_init();
 
-    blesub_service_init(
-        srv_base_uuid,
-        BLE_UUID_CALIBRATE_SRV_SERVICE,
-        &calibrate_srv.service_handle
-    );
-
-    calibrate_srv_init(&calibrate_srv);
-
-    NRF_SDH_BLE_OBSERVER(
-        calibrate_srv_observer,
-        APP_BLE_OBSERVER_PRIO, 
-        calibrate_srv_on_event, 
-        (void*)&calibrate_srv
-    );
+    // NRF_SDH_BLE_OBSERVER(
+    //     calibrate_srv_observer,
+    //     APP_BLE_OBSERVER_PRIO, 
+    //     calibrate_srv_on_event, 
+    //     (void*)&calibrate_srv
+    // );
 
     fds_flash_record_t read_record;
 
@@ -64,10 +51,7 @@ ret_code_t calibrate_init()
 
 void calibrate_update()
 {
-    calibrate_srv_update_raw_adc(
-        &calibrate_srv,
-        &adc_value
-    );
+    calibrate_srv_update_raw_adc(adc_value);
     adc_value++;
 }
 
@@ -96,22 +80,22 @@ ret_code_t calibrate_set_calibration(const calibration_data_t calibration)
     return storage_write(&record);
 }
 
-static void calibrate_srv_on_event(
-    ble_evt_t const* ble_evt, 
-    void* context)
-{
-    calibrate_srv_t* service = (calibrate_srv_t*) context;
+// static void calibrate_srv_on_event(
+//     ble_evt_t const* ble_evt, 
+//     void* context)
+// {
+//     calibrate_srv_t* service = (calibrate_srv_t*) context;
 	
-    switch (ble_evt->header.evt_id)
-    {
-        case BLE_GAP_EVT_CONNECTED:
-            service->conn_handle = ble_evt->evt.gap_evt.conn_handle;
-            break;
-        case BLE_GAP_EVT_DISCONNECTED:
-            service->conn_handle = BLE_CONN_HANDLE_INVALID;
-            break;
-        default:
-            // No implementation needed.
-            break;
-    }
-}
+//     switch (ble_evt->header.evt_id)
+//     {
+//         case BLE_GAP_EVT_CONNECTED:
+//             service->conn_handle = ble_evt->evt.gap_evt.conn_handle;
+//             break;
+//         case BLE_GAP_EVT_DISCONNECTED:
+//             service->conn_handle = BLE_CONN_HANDLE_INVALID;
+//             break;
+//         default:
+//             // No implementation needed.
+//             break;
+//     }
+// }

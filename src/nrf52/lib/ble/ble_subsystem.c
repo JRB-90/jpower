@@ -8,6 +8,7 @@
 #include "nrf_log.h"
 #include "nrf_sdh.h"
 #include "ble_advertising.h"
+#include "ble_srv_helper.h"
 
 // ======== BLE Data ========
 
@@ -449,21 +450,24 @@ static void ble_event_handler(
             m_conn_handle = p_ble_evt->evt.gap_evt.conn_handle;
             err_code = nrf_ble_qwr_conn_handle_assign(&m_qwr, m_conn_handle);
             APP_ERROR_CHECK(err_code);
-            err_code = app_button_enable();
-            APP_ERROR_CHECK(err_code);
+            if (enabled_services & BLE_SRV_LBS)
+            {
+                err_code = app_button_enable();
+                APP_ERROR_CHECK(err_code);
+            }
             break;
 
         case BLE_GAP_EVT_DISCONNECTED:
             NRF_LOG_INFO("Disconnected");
             bsp_board_led_off(ble_config->connected_led_idx);
             m_conn_handle = BLE_CONN_HANDLE_INVALID;
-            err_code = app_button_disable();
-            APP_ERROR_CHECK(err_code);
-            blesub_start_advertising();
             if (enabled_services & BLE_SRV_LBS)
             {
                 bsp_board_led_off(lbs_config->led_idx);
+                err_code = app_button_disable();
+                APP_ERROR_CHECK(err_code);
             }
+            blesub_start_advertising();
             break;
 
         case BLE_GAP_EVT_SEC_PARAMS_REQUEST:

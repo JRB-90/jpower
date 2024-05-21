@@ -1,165 +1,183 @@
 #include "ble_srv_helper.h"
 
 #include <string.h>
-#include "app_error.h"
+#include "nrf_sdh_ble.h"
 
-static void add_char(
-    char_def_t* char_definition,
-    uint8_t length,
-    uint8_t* initial_value
-);
-
-void ble_srv_add_int8_char(char_def_t* char_definition)
+ret_code_t ble_srv_init_dyn_service(ble_srv_dyn_desc_t* srv_desc)
 {
-    uint8_t value[1] = { 0x0 };
+    ret_code_t err_code;
 
-    add_char(
-        char_definition,
-        1,
-        value
-    );
-}
-
-void ble_srv_add_uint8_char(char_def_t* char_definition)
-{
-    uint8_t value[1] = { 0x0 };
-
-    add_char(
-        char_definition,
-        1,
-        value
-    );
-}
-
-void ble_srv_add_int16_char(char_def_t* char_definition)
-{
-    uint8_t value[2] = { 0x0, 0x0 };
-
-    add_char(
-        char_definition,
-        2,
-        value
-    );
-}
-
-void ble_srv_add_uint16_char(char_def_t* char_definition)
-{
-    uint8_t value[2] = { 0x0, 0x0 };
-
-    add_char(
-        char_definition,
-        2,
-        value
-    );
-}
-
-void ble_srv_add_int32_char(char_def_t* char_definition)
-{
-    uint8_t value[4] = { 0x0, 0x0, 0x0, 0x0 };
-
-    add_char(
-        char_definition,
-        4,
-        value
-    );
-}
-
-void ble_srv_add_uint32_char(char_def_t* char_definition)
-{
-    uint8_t value[4] = { 0x0, 0x0, 0x0, 0x0 };
-
-    add_char(
-        char_definition,
-        4,
-        value
-    );
-}
-
-void ble_srv_add_int64_char(char_def_t* char_definition)
-{
-    uint8_t value[8] = { 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0 };
-
-    add_char(
-        char_definition,
-        8,
-        value
-    );
-}
-
-void ble_srv_add_uint64_char(char_def_t* char_definition)
-{
-    uint8_t value[8] = { 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0 };
-
-    add_char(
-        char_definition,
-        8,
-        value
-    );
-}
-
-static void add_char(
-    char_def_t* char_definition,
-    uint8_t length,
-    uint8_t* initial_value)
-{
-    ble_uuid_t char_uuid;
-    char_uuid.uuid = char_definition->srv_uuid;
-    *char_definition->srv_conn_handle = BLE_CONN_HANDLE_INVALID;
-
-    ret_code_t err_code = 
-        sd_ble_uuid_vs_add(
-            &char_definition->base_uuid, 
-            &char_uuid.type
-        );
-    APP_ERROR_CHECK(err_code);
-
-    ble_gatts_char_md_t char_md;
-    memset(&char_md, 0, sizeof(char_md));
-
-    if (char_definition->wr_type == ReadOnly ||
-        char_definition->wr_type == ReadWrite)
-    {
-        char_md.char_props.read = 1;
-    }
-
-    if (char_definition->wr_type == WriteOnly ||
-        char_definition->wr_type == ReadWrite)
-    {
-        char_md.char_props.write = 1;
-    }
-
-    ble_gatts_attr_md_t cccd_md;
-    memset(&cccd_md, 0, sizeof(cccd_md));
-    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&cccd_md.read_perm);
-    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&cccd_md.write_perm);
-    cccd_md.vloc = BLE_GATTS_VLOC_STACK;    
-    char_md.p_cccd_md = &cccd_md;
-
-    if (char_definition->is_notifying)
-    {
-        char_md.char_props.notify = 1;
-    }
-
-    ble_gatts_attr_md_t attr_md;
-    memset(&attr_md, 0, sizeof(attr_md));
-    attr_md.vloc = BLE_GATTS_VLOC_STACK;
-    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&attr_md.read_perm);
-    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&attr_md.write_perm);
-    
-    ble_gatts_attr_t attr_char_value;
-    memset(&attr_char_value, 0, sizeof(attr_char_value));
-    attr_char_value.p_uuid = &char_uuid;
-    attr_char_value.p_attr_md = &attr_md;
-    attr_char_value.max_len = length;
-    attr_char_value.init_len = length;
-    attr_char_value.p_value = initial_value;
+    srv_desc->conn_handle = BLE_CONN_HANDLE_INVALID;
 
     err_code =
-        sd_ble_gatts_characteristic_add(
-            char_definition->srv_handle,
-            &char_md,
-            &attr_char_value,
-            char_definition->char_handles
+        sd_ble_gatts_service_add(
+            BLE_GATTS_SRVC_TYPE_PRIMARY,
+            srv_desc->uuid,
+            &srv_desc->service_handler
         );
     APP_ERROR_CHECK(err_code);
+
+    for (int i = 0; i < srv_desc->service_descriptor->srv_char_count; i++)
+    {
+        ble_srv_dyn_char_desc_t* dyn_char_desc = &srv_desc->chars_handler[i];
+        const ble_srv_char_desc_t* char_desc = dyn_char_desc->char_descriptor;
+
+        if (char_desc->char_access_rights & BLE_SRV_NOTIFY)
+        {
+            BLE_GAP_CONN_SEC_MODE_SET_OPEN(&dyn_char_desc->char_cccd.read_perm);
+            BLE_GAP_CONN_SEC_MODE_SET_OPEN(&dyn_char_desc->char_cccd.write_perm);
+            dyn_char_desc->char_cccd.vloc = BLE_GATTS_VLOC_STACK;
+            dyn_char_desc->char_md.char_props.notify = 1;
+            dyn_char_desc->char_md.p_cccd_md = &dyn_char_desc->char_cccd;
+        }
+        else
+        {
+            dyn_char_desc->char_md.char_props.notify = 0;
+            dyn_char_desc->char_md.p_cccd_md = NULL;
+        }
+
+        if (char_desc->char_access_rights & BLE_SRV_READ)
+        {
+            dyn_char_desc->char_md.char_props.read = 1;
+            BLE_GAP_CONN_SEC_MODE_SET_OPEN(&dyn_char_desc->char_attr.read_perm);
+        }
+        else
+        {
+            BLE_GAP_CONN_SEC_MODE_SET_NO_ACCESS(&dyn_char_desc->char_attr.read_perm);
+        }
+
+        if (char_desc->char_access_rights & BLE_SRV_WRITE)
+        {
+            dyn_char_desc->char_md.char_props.write = 1;
+            BLE_GAP_CONN_SEC_MODE_SET_OPEN(&dyn_char_desc->char_attr.write_perm);
+        }
+        else
+        {
+            BLE_GAP_CONN_SEC_MODE_SET_NO_ACCESS(&dyn_char_desc->char_attr.write_perm);
+        }
+
+        dyn_char_desc->char_md.p_char_user_desc = NULL;
+        dyn_char_desc->char_md.p_char_pf = NULL;
+        dyn_char_desc->char_md.p_user_desc_md = NULL;
+        dyn_char_desc->char_md.p_sccd_md = NULL;
+
+        dyn_char_desc->char_attr.vloc = BLE_GATTS_VLOC_STACK;
+        dyn_char_desc->char_attr.rd_auth = 0;
+        dyn_char_desc->char_attr.wr_auth = 0;
+        dyn_char_desc->char_attr.vlen = 0;
+
+        dyn_char_desc->char_attr.rd_auth = (char_desc->on_read != NULL) ? 1 : 0;
+        dyn_char_desc->char_attr.wr_auth = 0;
+
+        BLE_UUID_BLE_ASSIGN(
+            dyn_char_desc->char_uuid,
+            dyn_char_desc->char_descriptor->char_uuid
+        );
+
+        dyn_char_desc->char_value.p_uuid = &dyn_char_desc->char_uuid;
+        dyn_char_desc->char_value.p_attr_md = &dyn_char_desc->char_attr;
+        dyn_char_desc->char_value.init_len = dyn_char_desc->char_descriptor->char_data_len;
+        dyn_char_desc->char_value.init_offs = 0;
+        dyn_char_desc->char_value.max_len = dyn_char_desc->char_descriptor->char_data_len;
+
+        memcpy(
+            dyn_char_desc->char_data,
+            dyn_char_desc->char_descriptor->char_data_init,
+            dyn_char_desc->char_descriptor->char_data_len
+        );
+        dyn_char_desc->char_value.p_value = dyn_char_desc->char_data;
+
+        err_code = 
+            sd_ble_gatts_characteristic_add(
+                srv_desc->service_handler,
+                &dyn_char_desc->char_md,
+                &dyn_char_desc->char_value,
+                &dyn_char_desc->char_handler
+            ); 
+		APP_ERROR_CHECK(err_code);
+    }
+
+    return NRF_SUCCESS;
+}
+
+ret_code_t ble_srv_update_dyn_char(
+    ble_srv_dyn_desc_t* dyn_srv_desc,
+    ble_srv_dyn_char_desc_t* dyn_char_desc,
+    uint8_t* value)
+{
+    ret_code_t err_code;
+
+    const ble_srv_char_desc_t* char_desc = dyn_char_desc->char_descriptor;
+    memcpy(dyn_char_desc->char_data, value, char_desc->char_data_len);
+
+    ble_gatts_value_t gatts_value;
+    memset(&gatts_value, 0, sizeof(ble_gatts_value_t));
+    gatts_value.len = char_desc->char_data_len;
+    gatts_value.offset = 0;
+    gatts_value.p_value = dyn_char_desc->char_data;
+
+    err_code =
+        sd_ble_gatts_value_set(
+            dyn_srv_desc->conn_handle,
+            dyn_char_desc->char_handler.value_handle,
+            &gatts_value
+        );
+    APP_ERROR_CHECK(err_code);
+
+    if (dyn_srv_desc->conn_handle != BLE_CONN_HANDLE_INVALID &&
+        char_desc->char_access_rights & BLE_SRV_NOTIFY)
+	{
+        ble_gatts_hvx_params_t hvx_params;
+    	memset(&hvx_params, 0, sizeof(ble_gatts_hvx_params_t));
+
+		hvx_params.handle = dyn_char_desc->char_handler.value_handle;
+		hvx_params.type   = BLE_GATT_HVX_NOTIFICATION;
+		hvx_params.p_len  = &gatts_value.len;
+		hvx_params.offset = gatts_value.offset;
+		hvx_params.p_data = gatts_value.p_value;
+
+    	err_code = 
+            sd_ble_gatts_hvx(
+                dyn_srv_desc->conn_handle,
+                &hvx_params
+            );
+        
+        // Invalid state can sometimes fire if this notification
+        // happens at the wrong time, so ignore this for now
+        if (err_code != NRF_ERROR_INVALID_STATE)
+        {
+            APP_ERROR_CHECK(err_code);
+        }
+	}
+
+    return NRF_SUCCESS;
+}
+
+void ble_srv_on_event(
+    ble_evt_t const* ble_evt, 
+    void* context)
+{
+    ret_code_t err_code;
+    ble_srv_dyn_desc_t* service = (ble_srv_dyn_desc_t*)context;
+	
+    switch (ble_evt->header.evt_id)
+    {
+        case BLE_GAP_EVT_CONNECTED:
+            service->conn_handle = ble_evt->evt.gap_evt.conn_handle;
+            err_code = 
+                sd_ble_gatts_sys_attr_set(
+                    service->conn_handle,
+                    NULL,
+                    0,
+                    0
+                );
+            APP_ERROR_CHECK(err_code);
+            break;
+        case BLE_GAP_EVT_DISCONNECTED:
+            service->conn_handle = BLE_CONN_HANDLE_INVALID;
+            break;
+        default:
+            // No implementation needed.
+            break;
+    }
 }

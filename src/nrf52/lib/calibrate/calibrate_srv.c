@@ -2,43 +2,95 @@
 
 #include <stdbool.h>
 #include <string.h>
+#include "nrf_sdh_ble.h"
 #include "ble_srv_common.h"
 #include "ble_srv_helper.h"
+#include "ble_subsystem.h"
 
-void calibrate_srv_init(calibrate_srv_t* service)
+static void on_connect();
+static void on_disconnect();
+
+static ble_uuid128_t base_uuid = { BLE_CAL_SRV_BASE_UUID };
+
+static ble_uuid_t srv_uuid =
 {
-    ble_uuid128_t base_uuid = { BLE_UUID_CALIBRATE_SRV_BASE_UUID };
+    .uuid = BLE_CAL_SRV_SERVICE_UUID,
+    .type = BLE_UUID_TYPE_UNKNOWN,
+};
 
-    char_def_t char_def =
-    {
-        .base_uuid = base_uuid,
-        .srv_uuid = BLE_UUID_ADC_RAW_CHARACTERISTC_UUID,
-        .srv_handle = service->service_handle,
-        .srv_conn_handle = &service->conn_handle,
-        .char_handles = &service->char_handles,
-        .wr_type = ReadWrite,
-        .is_notifying = true
-    };
+static ble_srv_char_desc_t adc_char_desc =
+{
+    .char_description = "Raw ADC Stream",
+    .char_uuid = BLE_CAL_SRV_ADC_RAW_CHAR_UUID,
+    .char_access_rights = (BLE_SRV_READ | BLE_SRV_WRITE | BLE_SRV_NOTIFY),
+    .char_data_len = sizeof(uint32_t),
+    .char_data_init = { 0x00, 0x00, 0x00, 0x00 },
+    .on_read = NULL,
+    .on_write = NULL,
+};
 
-    ble_srv_add_int32_char(&char_def);
+static ble_srv_desc_t cal_service_desc =
+{
+    .srv_description = "Calibrate Service",
+    .srv_uuid = BLE_CAL_SRV_SERVICE_UUID,
+    .srv_char_count = BLE_CAL_SRV_CHAR_COUNT,
+    .on_connect = &on_connect,
+    .on_disconnect = &on_disconnect,
+};
+
+static ble_srv_dyn_desc_t cal_service =
+{
+    .service_descriptor = &cal_service_desc,
+    .uuid = &srv_uuid,
+    .service_handler = 0,
+    .conn_handle = 0,
+};
+
+NRF_SDH_BLE_OBSERVER(
+    calibrate_srv_observer,
+    APP_BLE_OBSERVER_PRIO,
+    ble_srv_on_event, 
+    &cal_service
+);
+
+void calibrate_srv_init()
+{
+    ret_code_t err_code;
+
+    cal_service.chars_handler[BLE_CAL_SRV_ADC_INDEX].char_descriptor = &adc_char_desc;
+    cal_service_desc.srv_chars[BLE_CAL_SRV_ADC_INDEX] = adc_char_desc;
+
+    err_code =
+        sd_ble_uuid_vs_add(
+            &base_uuid,
+            &cal_service.uuid->type
+        );
+    APP_ERROR_CHECK(err_code);
+
+    err_code =
+        ble_srv_init_dyn_service(
+            &cal_service
+        );
+    APP_ERROR_CHECK(err_code);
 }
 
-void calibrate_srv_update_raw_adc(
-    calibrate_srv_t* service, 
-    int32_t* value)
+void calibrate_srv_update_raw_adc(int32_t value)
 {
-    if (service->conn_handle != BLE_CONN_HANDLE_INVALID)
-	{
-	    uint16_t len = 4;
-        ble_gatts_hvx_params_t hvx_params;
-    	memset(&hvx_params, 0, sizeof(hvx_params));
+    ret_code_t err_code =
+        ble_srv_update_dyn_char(
+            &cal_service,
+            &cal_service.chars_handler[BLE_CAL_SRV_ADC_INDEX],
+            (uint8_t*)&value
+        );
+    APP_ERROR_CHECK(err_code);
+}
 
-		hvx_params.handle = service->char_handles.value_handle;
-		hvx_params.type   = BLE_GATT_HVX_NOTIFICATION;
-		hvx_params.offset = 0;
-		hvx_params.p_len  = &len;
-		hvx_params.p_data = (uint8_t*)value;  
+static void on_connect()
+{
 
-    	sd_ble_gatts_hvx(service->conn_handle, &hvx_params);
-	}
+}
+
+static void on_disconnect()
+{
+
 }
