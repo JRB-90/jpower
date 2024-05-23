@@ -1,1 +1,0 @@
-C:\Development\jpower\src\calapp\JPowerApp\JPowerApp\JPowerApp.csproj;x64
