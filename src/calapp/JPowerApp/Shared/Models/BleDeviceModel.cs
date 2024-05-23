@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Plugin.BLE.Abstractions.Contracts;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,11 +9,13 @@ namespace JPowerApp.Shared.Models
 {
     public class BleDeviceModel
     {
-        public BleDeviceModel(string name)
+        public BleDeviceModel(IDevice device)
         {
-            Name = name;
+            this.device = device;
         }
 
-        public string Name { get; }
+        public string Name => device.Name;
+
+        private readonly IDevice device;
     }
 }

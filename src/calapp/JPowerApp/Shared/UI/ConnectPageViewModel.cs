@@ -8,19 +8,32 @@ namespace JPowerApp.Shared.UI
     public class ConnectPageViewModel : ViewModelBase
     {
         public ConnectPageViewModel(
+            IPermissionsService permissionsService,
             INavigationService navigation,
+            IAlertService alertService,
             IJPowerDiscoveryService jpowerDiscovery)
         {
+            this.permissionsService = permissionsService;
             this.navigation = navigation;
+            this.alertService = alertService;
             this.jpowerDiscovery = jpowerDiscovery;
-            DiscoveredDevices = new ObservableCollection<BleDeviceModel>();
             selectedDevice = null;
-            ScanCommand = new Command(async () => await Scan());
+            DiscoveredDevices = new ObservableCollection<BleDeviceModel>();
+            
+            ScanCommand = 
+                new Command(
+                    async () => await Scan(),
+                    () => jpowerDiscovery.ScanState != BleScanState.Scanning
+                );
+            
             ConnectCommand = 
                 new Command(
                     async () => await Connect(),
                     () => SelectedDevice != null
                 );
+
+            jpowerDiscovery.ScanStateChanged += JpowerDiscovery_ScanStateChanged;
+            jpowerDiscovery.BleDeviceDiscovered += JpowerDiscovery_BleDeviceDiscovered;
         }
 
         public ObservableCollection<BleDeviceModel> DiscoveredDevices { get; }
@@ -41,17 +54,44 @@ namespace JPowerApp.Shared.UI
 
         private async Task Scan()
         {
+            if (await permissionsService.HasBLEPermission() == false)
+            {
+                await alertService.DisplayAlert(
+                    "Permissions Error",
+                    "App cannot function without BLE permission",
+                    "OK"
+                );
+
+                return;
+            }
+
+            SelectedDevice = null;
             DiscoveredDevices.Clear();
-            await Task.Delay(1000);
-            DiscoveredDevices.Add(new BleDeviceModel("Test Device"));
+            await jpowerDiscovery.ScanForDevices();
         }
 
         private async Task Connect()
         {
+            await jpowerDiscovery.StopScan();
             await navigation.NavigateToCalibratePage();
         }
 
+        private void JpowerDiscovery_ScanStateChanged(object sender, BleScanState e)
+        {
+            ScanCommand.ChangeCanExecute();
+        }
+
+        private void JpowerDiscovery_BleDeviceDiscovered(object sender, BleDeviceModel e)
+        {
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                DiscoveredDevices.Add(e);
+            });
+        }
+
+        private readonly IPermissionsService permissionsService;
         private readonly INavigationService navigation;
+        private readonly IAlertService alertService;
         private readonly IJPowerDiscoveryService jpowerDiscovery;
         private BleDeviceModel selectedDevice;
     }

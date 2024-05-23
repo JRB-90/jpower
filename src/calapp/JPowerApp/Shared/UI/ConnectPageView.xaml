@@ -49,7 +49,6 @@
                 HorizontalOptions="Center"
                 Margin="5, 10, 0, 10"
                 WidthRequest="100"
-                IsEnabled="{Binding CanConnect}"
                 Command="{Binding ConnectCommand}"
                 Text="Connect"/>
         </StackLayout>

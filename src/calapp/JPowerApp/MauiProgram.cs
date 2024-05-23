@@ -26,7 +26,9 @@ public static class MauiProgram
             options.SetShouldSuppressExceptionsInAnimations(false);
         });
 
+        builder.Services.AddSingleton<IPermissionsService, PermissionsService>();
         builder.Services.AddSingleton<INavigationService, NavigationService>();
+        builder.Services.AddSingleton<IAlertService, AlertService>();
 		builder.Services.AddSingleton<IJPowerDiscoveryService, JPowerDiscoveryService>();
 
 		builder.Services.AddTransient<ConnectPageView>();

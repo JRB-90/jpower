@@ -6,5 +6,5 @@ public partial class ConnectPageView : ContentPage
 	{
 		BindingContext = viewModel;
 		InitializeComponent();
-	}
+    }
 }
