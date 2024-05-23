@@ -1,0 +1,57 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="JPowerApp.MainPage">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Label
+            x:Name="TitleLabel"
+            Grid.Row="0"
+            HorizontalOptions="Center"
+            Margin="10"
+            Text="Find JPower Device"/>
+
+        <ListView
+            x:Name="DeviceListView"
+            Grid.Row="1"
+            HorizontalOptions="CenterAndExpand"
+            ItemsSource="{Binding DiscoveredDevices}"
+            SelectedItem="{Binding SelectedDevice}">
+
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <TextCell Text="{Binding Name}"/>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+
+        <StackLayout
+            Grid.Row="2"
+            HorizontalOptions="Center"
+            Orientation="Horizontal">
+            <Button
+                x:Name="ScanButton"
+                HorizontalOptions="Center"
+                Margin="0, 10, 5, 10"
+                WidthRequest="100"
+                Text="Scan"
+                Clicked="ScanButton_Clicked"/>
+
+            <Button
+                x:Name="ConnectButton"
+                HorizontalOptions="Center"
+                Margin="5, 10, 0, 10"
+                WidthRequest="100"
+                IsEnabled="{Binding CanConnect}"
+                Text="Connect"
+                Clicked="ConnectButton_Clicked"/>
+        </StackLayout>
+    </Grid>
+
+</ContentPage>
