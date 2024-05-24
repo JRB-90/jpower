@@ -16,6 +16,8 @@ namespace JPowerApp.Shared.Models
 
         public string Name => device.Name;
 
+        public string ID => device.Id.ToString();
+
         private readonly IDevice device;
     }
 }

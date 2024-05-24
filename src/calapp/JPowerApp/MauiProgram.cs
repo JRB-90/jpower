@@ -1,6 +1,16 @@
 ﻿using CommunityToolkit.Maui;
 using JPowerApp.Shared.Services;
 using JPowerApp.Shared.UI;
+using MauiIcons.Cupertino;
+using MauiIcons.Fluent;
+using MauiIcons.Fluent.Filled;
+using MauiIcons.FontAwesome;
+using MauiIcons.FontAwesome.Brand;
+using MauiIcons.Material;
+using MauiIcons.Material.Outlined;
+using MauiIcons.Material.Rounded;
+using MauiIcons.Material.Sharp;
+using MauiIcons.SegoeFluent;
 using Microsoft.Extensions.Logging;
 
 namespace JPowerApp;
@@ -13,6 +23,16 @@ public static class MauiProgram
 		builder
 			.UseMauiApp<App>()
             .UseMauiCommunityToolkit()
+            .UseFluentMauiIcons()
+            .UseSegoeFluentMauiIcons()
+            .UseCupertinoMauiIcons()
+            .UseFluentFilledMauiIcons()
+            .UseFontAwesomeMauiIcons()
+            .UseFontAwesomeBrandMauiIcons()
+            .UseMaterialMauiIcons()
+            .UseMaterialOutlinedMauiIcons()
+            .UseMaterialSharpMauiIcons()
+            .UseMaterialRoundedMauiIcons()
             .ConfigureFonts(fonts =>
 			{
 				fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
