@@ -4,10 +4,36 @@
              x:Class="JPowerApp.Shared.UI.CalibratePageView"
              Title="Calibrate">
     
-    <VerticalStackLayout>
-        <Label 
-            Text="Calibrate JPower Device"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" />
-    </VerticalStackLayout>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <Label
+            Grid.Row="0"
+            x:Name="TitleLabel"
+            Margin="20"
+            HorizontalOptions="Center" 
+            FontSize="Medium"
+            Text="Calibrate JPower Device"/>
+
+        <Label
+            Grid.Row="1"
+            x:Name="StateLabel"
+            Margin="20"
+            HorizontalOptions="Center" 
+            FontSize="Small"
+            Text="{Binding DeviceManager.DeviceState}"/>
+
+        <Button
+            Grid.Row="2"
+            x:Name="DisconnectButton"
+            HorizontalOptions="Center"
+            Margin="10"
+            WidthRequest="100"
+            Command="{Binding DisconnectCommand}"
+            Text="Disconnect"/>
+    </Grid>
 </ContentPage>

@@ -18,7 +18,8 @@ namespace JPowerApp.Shared.UI
             this.alertService = alertService;
             this.jpowerDiscovery = jpowerDiscovery;
             selectedDevice = null;
-            DiscoveredDevices = new ObservableCollection<BleDeviceModel>();
+            isBusy = false;
+            DiscoveredDevices = new ObservableCollection<BleDeviceInfo>();
             
             ScanCommand = 
                 new Command(
@@ -36,15 +37,25 @@ namespace JPowerApp.Shared.UI
             jpowerDiscovery.BleDeviceDiscovered += JpowerDiscovery_BleDeviceDiscovered;
         }
 
-        public ObservableCollection<BleDeviceModel> DiscoveredDevices { get; }
+        public ObservableCollection<BleDeviceInfo> DiscoveredDevices { get; }
 
-        public BleDeviceModel SelectedDevice
+        public BleDeviceInfo SelectedDevice
         {
             get => selectedDevice;
             set
             {
                 selectedDevice = value;
                 ConnectCommand.ChangeCanExecute();
+            }
+        }
+
+        public bool IsBusy
+        {
+            get => isBusy;
+            set
+            {
+                isBusy = value;
+                NotifyOfChange(nameof(IsBusy));
             }
         }
 
@@ -72,8 +83,14 @@ namespace JPowerApp.Shared.UI
 
         private async Task Connect()
         {
-            await jpowerDiscovery.StopScan();
-            await navigation.NavigateToCalibratePage();
+            IsBusy = true;
+
+            await Task.Delay(3000);
+
+            //await jpowerDiscovery.StopScan();
+            //await navigation.NavigateToCalibratePage(SelectedDevice);
+
+            IsBusy = false;
         }
 
         private void JpowerDiscovery_ScanStateChanged(object sender, BleScanState e)
@@ -81,7 +98,7 @@ namespace JPowerApp.Shared.UI
             ScanCommand.ChangeCanExecute();
         }
 
-        private void JpowerDiscovery_BleDeviceDiscovered(object sender, BleDeviceModel e)
+        private void JpowerDiscovery_BleDeviceDiscovered(object sender, BleDeviceInfo e)
         {
             MainThread.BeginInvokeOnMainThread(() =>
             {
@@ -93,6 +110,7 @@ namespace JPowerApp.Shared.UI
         private readonly INavigationService navigation;
         private readonly IAlertService alertService;
         private readonly IJPowerDiscoveryService jpowerDiscovery;
-        private BleDeviceModel selectedDevice;
+        private BleDeviceInfo selectedDevice;
+        private bool isBusy;
     }
 }

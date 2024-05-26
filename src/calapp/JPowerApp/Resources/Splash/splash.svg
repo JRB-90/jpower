@@ -2,11 +2,9 @@
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg width="100" height="100" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
    
-<rect width="100" height="100" rx="0" fill="#1a75ff"/>
-
 <circle cx="50" cy="50.0" r="20" fill="white"/>
 
-<path stroke="#0047b3" stroke-linecap="round" stroke-width="5"
+<path stroke="#0047b3" stroke-linecap="round" stroke-width="5" fill="none"
 d="
   M52 37
   L52 57
@@ -15,7 +13,7 @@ d="
   A 7 5 0 1 1 52 49"
 />
 
-<path stroke="#1a75ff" stroke-linecap="round" stroke-width="5"
+<path stroke="#66a3ff" stroke-linecap="round" stroke-width="5" fill="none"
 d="
   M50 35 
   L50 55

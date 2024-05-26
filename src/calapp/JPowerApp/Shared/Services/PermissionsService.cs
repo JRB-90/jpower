@@ -4,19 +4,25 @@
     {
         public async Task<bool> HasBLEPermission()
         {
-            if (await Permissions.CheckStatusAsync<BluetoothPermissions>() == PermissionStatus.Granted)
+            if (await Permissions.CheckStatusAsync<BluetoothPermissions>() != PermissionStatus.Granted)
             {
-                return true;
+                if (await Permissions.RequestAsync<BluetoothPermissions>() != PermissionStatus.Granted)
+                {
+                    return false;
+                }
             }
 
-            if (await Permissions.RequestAsync<BluetoothPermissions>() == PermissionStatus.Granted)
+#if ANDROID
+            if (await Permissions.CheckStatusAsync<Permissions.LocationWhenInUse>() != PermissionStatus.Granted)
             {
-                return true;
+                if (await Permissions.RequestAsync<Permissions.LocationWhenInUse>() != PermissionStatus.Granted)
+                {
+                    return false;
+                }
             }
-            else
-            {
-                return false;
-            }
+#endif
+
+            return true;
         }
     }
 }

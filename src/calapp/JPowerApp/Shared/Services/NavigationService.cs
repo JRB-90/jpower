@@ -1,4 +1,5 @@
-﻿using JPowerApp.Shared.Mvvm;
+﻿using JPowerApp.Shared.Models;
+using JPowerApp.Shared.Mvvm;
 using JPowerApp.Shared.UI;
 using System.Diagnostics;
 using System.Diagnostics.Contracts;
@@ -39,9 +40,9 @@ namespace JPowerApp.Shared.Services
             return NavigateToPage<ConnectPageView>();
         }
 
-        public Task NavigateToCalibratePage()
+        public Task NavigateToCalibratePage(BleDeviceInfo deviceInfo)
         {
-            return NavigateToPage<CalibratePageView>();
+            return NavigateToPage<CalibratePageView>(deviceInfo);
         }
 
         public Task NavigateBack()

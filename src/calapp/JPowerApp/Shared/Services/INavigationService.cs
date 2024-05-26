@@ -1,9 +1,11 @@
-﻿namespace JPowerApp.Shared.Services
+﻿using JPowerApp.Shared.Models;
+
+namespace JPowerApp.Shared.Services
 {
     public interface INavigationService
     {
         Task NavigateToConnectPage();
-        Task NavigateToCalibratePage();
+        Task NavigateToCalibratePage(BleDeviceInfo deviceInfo);
         Task NavigateBack();
     }
 }

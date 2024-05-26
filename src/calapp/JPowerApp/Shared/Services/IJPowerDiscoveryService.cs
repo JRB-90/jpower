@@ -8,7 +8,7 @@ namespace JPowerApp.Shared.Services
 
         event EventHandler<BleScanState> ScanStateChanged;
 
-        event EventHandler<BleDeviceModel> BleDeviceDiscovered;
+        event EventHandler<BleDeviceInfo> BleDeviceDiscovered;
 
         Task ScanForDevices();
 

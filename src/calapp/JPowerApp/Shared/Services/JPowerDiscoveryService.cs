@@ -31,7 +31,7 @@ namespace JPowerApp.Shared.Services
 
         public event EventHandler<BleScanState> ScanStateChanged;
 
-        public event EventHandler<BleDeviceModel> BleDeviceDiscovered;
+        public event EventHandler<BleDeviceInfo> BleDeviceDiscovered;
 
         public BleScanState ScanState
         {
@@ -63,7 +63,10 @@ namespace JPowerApp.Shared.Services
 
         private void Adapter_DeviceDiscovered(object sender, DeviceEventArgs e)
         {
-            BleDeviceDiscovered?.Invoke(this, new BleDeviceModel(e.Device));
+            if (e.Device.IsConnectable)
+            {
+                BleDeviceDiscovered?.Invoke(this, new BleDeviceInfo(e.Device));
+            }
         }
 
         private void Adapter_ScanTimeoutElapsed(object sender, EventArgs e)
