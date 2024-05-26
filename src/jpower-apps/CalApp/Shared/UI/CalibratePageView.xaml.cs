@@ -2,8 +2,9 @@ namespace CalApp.Shared.UI;
 
 public partial class CalibratePageView : ContentPage
 {
-	public CalibratePageView()
+	public CalibratePageView(CalibratePageViewModel viewModel)
 	{
-		InitializeComponent();
+        BindingContext = viewModel;
+        InitializeComponent();
 	}
 }

@@ -1,19 +1,17 @@
 ﻿using CalApp.Shared.Models;
 using CalApp.Shared.Mvvm;
 using CalApp.Shared.Services;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CalApp.Shared.UI
 {
     public class CalibratePageViewModel : ViewModelBase
     {
-        public CalibratePageViewModel(INavigationService navigationService)
+        public CalibratePageViewModel(
+            INavigationService navigationService,
+            IAlertService alertService)
         {
             this.navigationService = navigationService;
+            this.alertService = alertService;
 
             DisconnectCommand =
                 new Command(
@@ -21,6 +19,16 @@ namespace CalApp.Shared.UI
                     () => DeviceManager != null &&
                           DeviceManager.DeviceState == BleDeviceState.Connected
                 );
+        }
+
+        public bool IsBusy
+        {
+            get => isBusy;
+            set
+            {
+                isBusy = value;
+                NotifyOfChange(nameof(IsBusy));
+            }
         }
 
         public BleDeviceManager? DeviceManager
@@ -41,13 +49,29 @@ namespace CalApp.Shared.UI
 
         public override async Task OnNavigatingTo(object? parameter)
         {
-            BleDeviceInfo? deviceInfo = parameter as BleDeviceInfo;
-            DeviceManager = new BleDeviceManager(deviceInfo);
+            DeviceManager = parameter as BleDeviceManager;
 
-            var isConnected = await DeviceManager.Connect();
-
-            if (!isConnected)
+            if (DeviceManager == null)
             {
+                await alertService.DisplayAlert(
+                    "Error",
+                    "No device selected, returning to connect page",
+                    "OK"
+                );
+
+                await navigationService.NavigateToConnectPage();
+
+                return;
+            }
+
+            if (DeviceManager.DeviceState != BleDeviceState.Connected)
+            {
+                await alertService.DisplayAlert(
+                    "Error",
+                    "Device disconnected, returning to connect page",
+                    "OK"
+                );
+
                 await navigationService.NavigateToConnectPage();
             }
         }
@@ -62,7 +86,27 @@ namespace CalApp.Shared.UI
 
         private async Task Disconnect()
         {
-            var isDisconnected = await deviceManager.Disconnect();
+            if (DeviceManager != null)
+            {
+                try
+                {
+                    IsBusy = true;
+                    await DeviceManager.Disconnect();
+                }
+                catch (Exception ex)
+                {
+                    await alertService.DisplayAlert(
+                        "Error",
+                        ex.Message,
+                        "OK"
+                    );
+                }
+                finally
+                {
+                    IsBusy = false;
+                }
+            }
+
             await navigationService.NavigateToConnectPage();
         }
 
@@ -73,6 +117,8 @@ namespace CalApp.Shared.UI
         }
 
         private readonly INavigationService navigationService;
+        private readonly IAlertService alertService;
         private BleDeviceManager? deviceManager;
+        private bool isBusy;
     }
 }

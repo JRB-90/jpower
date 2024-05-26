@@ -82,14 +82,50 @@ namespace CalApp.Shared.UI
 
         private async Task Connect()
         {
-            IsBusy = true;
+            if (SelectedDevice == null)
+            {
+                await alertService.DisplayAlert(
+                    "Error",
+                    "Failed to connect, no device selected",
+                    "OK"
+                );
 
-            await Task.Delay(3000);
+                return;
+            }
 
-            //await jpowerDiscovery.StopScan();
-            //await navigation.NavigateToCalibratePage(SelectedDevice);
+            try
+            {
+                IsBusy = true;
 
-            IsBusy = false;
+                await jpowerDiscovery.StopScan();
+                var deviceManager = new BleDeviceManager(SelectedDevice);
+                var isConnected = await deviceManager.Connect();
+
+                if (isConnected)
+                {
+                    await navigation.NavigateToCalibratePage(deviceManager);
+                }
+                else
+                {
+                    await alertService.DisplayAlert(
+                        "Error",
+                        "Failed to connect to device",
+                        "OK"
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                await alertService.DisplayAlert(
+                    "Error",
+                    ex.Message,
+                    "OK"
+                );
+            }
+            finally
+            {
+                IsBusy = false;
+            }
         }
 
         private void JpowerDiscovery_ScanStateChanged(object? sender, BleScanState e)

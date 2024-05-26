@@ -43,7 +43,7 @@ public partial class BluetoothPermissions : Permissions.BasePlatformPermission
         _bluetoothLocation = bluetoothLocation;
     }
 
-    private (string androidPermission, bool isRuntime)[] _requiredPermissions;
+    private (string androidPermission, bool isRuntime)[]? _requiredPermissions;
 
     public override (string androidPermission, bool isRuntime)[] RequiredPermissions
     {
@@ -108,7 +108,7 @@ public partial class BluetoothPermissions : Permissions.BasePlatformPermission
                     }
                 }
             }
-            _requiredPermissions = result.ToArray();
+            _requiredPermissions = [.. result];
 
             return _requiredPermissions;
         }

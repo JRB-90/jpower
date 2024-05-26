@@ -7,6 +7,16 @@
             string message, 
             string cancel)
         {
+            if (Application.Current == null)
+            {
+                throw new InvalidOperationException("Failed to get Application Context");
+            }
+
+            if (Application.Current.MainPage == null)
+            {
+                throw new InvalidOperationException("Failed to get MainPage Context");
+            }
+
             return 
                 Application.Current.MainPage.DisplayAlert(
                     title, 
@@ -21,6 +31,16 @@
             string cancel, 
             FlowDirection flowDirection)
         {
+            if (Application.Current == null)
+            {
+                throw new InvalidOperationException("Failed to get Application Context");
+            }
+
+            if (Application.Current.MainPage == null)
+            {
+                throw new InvalidOperationException("Failed to get MainPage Context");
+            }
+
             return 
                 Application.Current.MainPage.DisplayAlert(
                     title, 
@@ -36,7 +56,17 @@
             string accept, 
             string cancel)
         {
-            return 
+            if (Application.Current == null)
+            {
+                throw new InvalidOperationException("Failed to get Application Context");
+            }
+
+            if (Application.Current.MainPage == null)
+            {
+                throw new InvalidOperationException("Failed to get MainPage Context");
+            }
+
+            return
                 Application.Current.MainPage.DisplayAlert(
                     title, 
                     message, 
@@ -52,6 +82,16 @@
             string cancel, 
             FlowDirection flowDirection)
         {
+            if (Application.Current == null)
+            {
+                throw new InvalidOperationException("Failed to get Application Context");
+            }
+
+            if (Application.Current.MainPage == null)
+            {
+                throw new InvalidOperationException("Failed to get MainPage Context");
+            }
+
             return Application.Current.MainPage.DisplayAlert(
                 title, 
                 message, 

@@ -14,7 +14,7 @@
 
     <Grid>
         <Grid
-        IsEnabled="{Binding IsBusy, Converter={StaticResource InvertedBoolConverter}}">
+            IsEnabled="{Binding IsBusy, Converter={StaticResource InvertedBoolConverter}}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
