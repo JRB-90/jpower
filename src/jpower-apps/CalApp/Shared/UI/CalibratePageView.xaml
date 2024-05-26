@@ -3,7 +3,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="CalApp.Shared.UI.CalibratePageView"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-             Title="Calibrate">
+             xmlns:ui="clr-namespace:CalApp.Shared.UI"
+             xmlns:models="clr-namespace:CalApp.Shared.Models"
+             Title="Calibrate"
+             x:DataType="ui:CalibratePageViewModel">
 
     <ContentPage.Resources>
         <ResourceDictionary>
@@ -15,6 +18,7 @@
         <Grid
             IsEnabled="{Binding IsBusy, Converter={StaticResource InvertedBoolConverter}}">
             <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
@@ -36,8 +40,73 @@
                 FontSize="Small"
                 Text="{Binding DeviceManager.DeviceState}"/>
 
-            <Button
+            <toolkit:Expander
                 Grid.Row="2"
+                Margin="10">
+
+                <toolkit:Expander.Header>
+                    <Label
+                        Margin="5"
+                        FontSize="Medium"
+                        Text="Device Info"/>
+                </toolkit:Expander.Header>
+                
+                <CollectionView
+                    Grid.Row="2"
+                    x:Name="ServiceView"
+                    Margin="10"
+                    SelectionMode="None"
+                    ItemsSource="{Binding DeviceManager.Services}">
+
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate
+                            x:DataType="models:BleService">
+                            <Grid
+                                Margin="20">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <VerticalStackLayout
+                                    Grid.Column="0"
+                                    Margin="5">
+                                
+                                    <Label
+                                        Margin="5"
+                                        FontSize="Small"
+                                        Text="{Binding Name}"/>
+
+                                    <Label
+                                        Margin="5"
+                                        FontSize="Micro"
+                                        FontAttributes="Italic"
+                                        Text="{Binding UUID}"/>
+                                </VerticalStackLayout>
+
+                                <CollectionView
+                                    Grid.Column="1"
+                                    Margin="10"
+                                    SelectionMode="None"
+                                    ItemsSource="{Binding Characteristics}">
+                                    <CollectionView.ItemTemplate>
+                                        <DataTemplate
+                                            x:DataType="models:BleCharacteristic">
+                                            <Label
+                                                Margin="5"
+                                                FontSize="Micro"
+                                                Text="{Binding Name}"/>
+                                        </DataTemplate>
+                                    </CollectionView.ItemTemplate>
+                                </CollectionView>
+                            </Grid>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </toolkit:Expander>
+
+            <Button
+                Grid.Row="3"
                 x:Name="DisconnectButton"
                 HorizontalOptions="Center"
                 Margin="10"

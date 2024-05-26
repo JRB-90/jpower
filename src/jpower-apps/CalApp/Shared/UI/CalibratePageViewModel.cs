@@ -31,7 +31,7 @@ namespace CalApp.Shared.UI
             }
         }
 
-        public BleDeviceManager? DeviceManager
+        public BleDevice? DeviceManager
         {
             get => deviceManager;
             set
@@ -49,7 +49,7 @@ namespace CalApp.Shared.UI
 
         public override async Task OnNavigatingTo(object? parameter)
         {
-            DeviceManager = parameter as BleDeviceManager;
+            DeviceManager = parameter as BleDevice;
 
             if (DeviceManager == null)
             {
@@ -110,15 +110,26 @@ namespace CalApp.Shared.UI
             await navigationService.NavigateToConnectPage();
         }
 
-        private void DeviceManager_DeviceStateChanged(object? sender, BleDeviceState e)
+        private async void DeviceManager_DeviceStateChanged(object? sender, BleDeviceState newState)
         {
             NotifyOfChange(nameof(DeviceManager));
             DisconnectCommand.ChangeCanExecute();
+
+            if (newState == BleDeviceState.Disconnected)
+            {
+                await alertService.DisplayAlert(
+                    "Error",
+                    "Device disconnected",
+                    "OK"
+                );
+
+                await navigationService.NavigateToConnectPage();
+            }
         }
 
         private readonly INavigationService navigationService;
         private readonly IAlertService alertService;
-        private BleDeviceManager? deviceManager;
+        private BleDevice? deviceManager;
         private bool isBusy;
     }
 }

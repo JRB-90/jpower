@@ -5,7 +5,7 @@ namespace CalApp.Shared.Services
     public interface INavigationService
     {
         Task NavigateToConnectPage();
-        Task NavigateToCalibratePage(BleDeviceManager deviceManager);
+        Task NavigateToCalibratePage(BleDevice bleDevice);
         Task NavigateBack();
     }
 }

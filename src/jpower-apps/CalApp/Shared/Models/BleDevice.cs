@@ -19,17 +19,18 @@ namespace CalApp.Shared.Models
     /// <summary>
     /// Mamages the connection to and data exchange with a BLE device.
     /// </summary>
-    public class BleDeviceManager
+    public class BleDevice
     {
         public const int ConnectTimeoutMs = 5000;
         public const int DisconnectTimeoutMs = 2000;
 
-        public BleDeviceManager(BleDeviceInfo deviceInfo)
+        public BleDevice(BleDeviceInfo deviceInfo)
         {
             deviceState = BleDeviceState.Disconnected;
+            services = new List<BleService>();
+            device = deviceInfo.Device;
             connectResetEvent = new AsyncManualResetEvent(false);
             disconnectResetEvent = new AsyncManualResetEvent(false);
-            device = deviceInfo.Device;
 
             adapter = CrossBluetoothLE.Current.Adapter;
             adapter.DeviceConnected += Adapter_DeviceConnected;
@@ -46,6 +47,12 @@ namespace CalApp.Shared.Models
                 deviceState = value;
                 DeviceStateChanged?.Invoke(this, deviceState);
             }
+        }
+
+        public IReadOnlyCollection<BleService> Services
+        {
+            get => services;
+            private set => services = value;
         }
 
         public event EventHandler<BleDeviceState>? DeviceStateChanged;
@@ -93,6 +100,8 @@ namespace CalApp.Shared.Models
                     throw new InvalidOperationException("Failed to connect");
                 }
 
+                await PopulateServices();
+
                 return true;
             }
             catch
@@ -136,6 +145,40 @@ namespace CalApp.Shared.Models
             }
         }
 
+        private async Task PopulateServices()
+        {
+            var bleServices = new List<BleService>();
+            var deviceServices = await device.GetServicesAsync();
+
+            foreach (var service in deviceServices)
+            {
+                if (service != null)
+                {
+                    bleServices.Add(new BleService(service));
+                }
+            }
+
+            Services = bleServices;
+        }
+
+        private bool IsJPowerDevice()
+        {
+            if (Services.Count == 0)
+            {
+                return false;
+            }
+
+            foreach (var serviceUUID in BleServiceUUIDs.JPOWER_SERVICES)
+            {
+                if (Services.Select(x => x.UUID).Contains(serviceUUID))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         private void Adapter_DeviceConnected(object? sender, Plugin.BLE.Abstractions.EventArgs.DeviceEventArgs e)
         {
             DeviceState = BleDeviceState.Connected;
@@ -159,33 +202,10 @@ namespace CalApp.Shared.Models
             DeviceState = BleDeviceState.Disconnected;
         }
 
-        //private void Test()
-        //{
-        //    connectedDevice = e.Device;
-
-        //    var services = await connectedDevice.GetServicesAsync();
-
-        //    foreach (var service in services)
-        //    {
-        //        if (service.Id == BleServiceUUIDs.JPOWER_CAL_SRV_UUID)
-        //        {
-        //            var characteristics = await service.GetCharacteristicsAsync();
-
-        //            foreach (var characteristic in characteristics)
-        //            {
-        //                if (characteristic.Id == BleServiceUUIDs.JPOWER_CAL_SRV_ADC_RAW_UUID)
-        //                {
-        //                    characteristic.ValueUpdated += Characteristic_ValueUpdated;
-        //                    await characteristic.StartUpdatesAsync();
-        //                }
-        //            }
-        //        }
-        //    }
-        //}
-
         private readonly IAdapter adapter;
         private readonly IDevice device;
         private BleDeviceState deviceState;
+        private IReadOnlyCollection<BleService> services;
         private AsyncManualResetEvent connectResetEvent;
         private AsyncManualResetEvent disconnectResetEvent;
     }

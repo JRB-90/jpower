@@ -98,12 +98,12 @@ namespace CalApp.Shared.UI
                 IsBusy = true;
 
                 await jpowerDiscovery.StopScan();
-                var deviceManager = new BleDeviceManager(SelectedDevice);
-                var isConnected = await deviceManager.Connect();
+                var bleDevice = new BleDevice(SelectedDevice);
+                var isConnected = await bleDevice.Connect();
 
                 if (isConnected)
                 {
-                    await navigation.NavigateToCalibratePage(deviceManager);
+                    await navigation.NavigateToCalibratePage(bleDevice);
                 }
                 else
                 {

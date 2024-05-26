@@ -4,7 +4,10 @@
              x:Class="CalApp.Shared.UI.ConnectPageView"
              xmlns:mi="http://www.aathifmahir.com/dotnet/2022/maui/icons"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-             Title="Connect">
+             xmlns:ui="clr-namespace:CalApp.Shared.UI"
+             xmlns:models="clr-namespace:CalApp.Shared.Models"
+             Title="Connect"
+             x:DataType="ui:ConnectPageViewModel">
 
     <ContentPage.Resources>
         <ResourceDictionary>
@@ -22,60 +25,61 @@
             </Grid.RowDefinitions>
 
             <Label
-            x:Name="TitleLabel"
-            Grid.Row="0"
-            HorizontalOptions="Center"
-            Margin="20"
-            FontSize="Medium"
-            Text="Connect to JPower Device"/>
+                x:Name="TitleLabel"
+                Grid.Row="0"
+                HorizontalOptions="Center"
+                Margin="20"
+                FontSize="Medium"
+                Text="Connect to JPower Device"/>
 
             <CollectionView
-            x:Name="DeviceListView"
-            Grid.Row="1"
-            HorizontalOptions="Center"
-            SelectionMode="Single"
-            ItemsSource="{Binding DiscoveredDevices}"
-            SelectedItem="{Binding SelectedDevice}">
+                x:Name="DeviceListView"
+                Grid.Row="1"
+                HorizontalOptions="Center"
+                SelectionMode="Single"
+                ItemsSource="{Binding DiscoveredDevices}"
+                SelectedItem="{Binding SelectedDevice}">
 
                 <CollectionView.ItemTemplate>
-                    <DataTemplate>
+                    <DataTemplate
+                        x:DataType="models:BleDeviceInfo">
                         <Grid
-                        Margin="20">
+                            Margin="20">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
 
                             <mi:MauiIcon
-                            Grid.Column="0"
-                            Margin="10"
-                            VerticalOptions="Center"
-                            HorizontalOptions="Center"
-                            Icon="{mi:Material Bluetooth}"/>
+                                Grid.Column="0"
+                                Margin="10"
+                                VerticalOptions="Center"
+                                HorizontalOptions="Center"
+                                Icon="{mi:Material Bluetooth}"/>
 
                             <Grid
-                            Grid.Column="1">
+                                Grid.Column="1">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
 
                                 <Label
-                                Grid.Row="0"
-                                Margin="5"
-                                VerticalOptions="Center"
-                                HorizontalOptions="Center"
-                                FontSize="Small"
-                                Text="{Binding Name}"/>
+                                    Grid.Row="0"
+                                    Margin="5"
+                                    VerticalOptions="Center"
+                                    HorizontalOptions="Center"
+                                    FontSize="Small"
+                                    Text="{Binding Name}"/>
 
                                 <Label 
-                                Grid.Row="1"
-                                Margin="5"
-                                VerticalOptions="Center"
-                                HorizontalOptions="Center"
-                                FontAttributes="Italic"
-                                FontSize="Micro"
-                                Text="{Binding ID}"/>
+                                    Grid.Row="1"
+                                    Margin="5"
+                                    VerticalOptions="Center"
+                                    HorizontalOptions="Center"
+                                    FontAttributes="Italic"
+                                    FontSize="Micro"
+                                    Text="{Binding ID}"/>
                             </Grid>
                         </Grid>
                     </DataTemplate>
@@ -83,28 +87,29 @@
             </CollectionView>
 
             <StackLayout
-            Grid.Row="2"
-            HorizontalOptions="Center"
-            Orientation="Horizontal">
-                <Button
-                x:Name="ScanButton"
+                Grid.Row="2"
                 HorizontalOptions="Center"
-                Margin="0, 10, 5, 10"
-                WidthRequest="100"
-                Command="{Binding ScanCommand}"
-                Text="Scan"/>
+                Orientation="Horizontal">
 
                 <Button
-                x:Name="ConnectButton"
-                HorizontalOptions="Center"
-                Margin="5, 10, 0, 10"
-                WidthRequest="100"
-                Command="{Binding ConnectCommand}"
-                Text="Connect"/>
+                    x:Name="ScanButton"
+                    HorizontalOptions="Center"
+                    Margin="0, 10, 5, 10"
+                    WidthRequest="100"
+                    Command="{Binding ScanCommand}"
+                    Text="Scan"/>
+
+                <Button
+                    x:Name="ConnectButton"
+                    HorizontalOptions="Center"
+                    Margin="5, 10, 0, 10"
+                    WidthRequest="100"
+                    Command="{Binding ConnectCommand}"
+                    Text="Connect"/>
             </StackLayout>
         </Grid>
 
         <ActivityIndicator
-        IsRunning="{Binding IsBusy}"/>
+            IsRunning="{Binding IsBusy}"/>
     </Grid>
 </ContentPage>
