@@ -37,6 +37,7 @@
                 Grid.Row="1"
                 HorizontalOptions="Center"
                 SelectionMode="Single"
+                ItemSizingStrategy="MeasureAllItems"
                 ItemsSource="{Binding DiscoveredDevices}"
                 SelectedItem="{Binding SelectedDevice}">
 

@@ -43,6 +43,8 @@ namespace CalApp
             builder.Services.AddTransient<ConnectPageViewModel>();
             builder.Services.AddTransient<CalibratePageView>();
             builder.Services.AddTransient<CalibratePageViewModel>();
+            builder.Services.AddTransient<BleServicesView>();
+            builder.Services.AddTransient<BleServicesViewModel>();
 
             return builder.Build();
         }

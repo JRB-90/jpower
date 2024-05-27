@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:ui="clr-namespace:CalApp.Shared.UI"
+             x:Class="CalApp.Shared.UI.JPowerView"
+             x:DataType="ui:JPowerViewModel">
+
+    <Grid
+        ColumnSpacing="10"
+        RowSpacing="5">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Label
+            Grid.Column="0"
+            Grid.Row="0"
+            FontSize="Micro"
+            Text="Raw ADC Value"/>
+        <Label
+            Grid.Column="1"
+            Grid.Row="0"
+            FontSize="Micro"
+            Text="{Binding JPower.RawAdcValue}"/>
+        
+    </Grid>
+</ContentView>

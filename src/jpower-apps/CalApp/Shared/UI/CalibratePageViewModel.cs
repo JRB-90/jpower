@@ -24,11 +24,7 @@ namespace CalApp.Shared.UI
         public bool IsBusy
         {
             get => isBusy;
-            set
-            {
-                isBusy = value;
-                NotifyOfChange(nameof(IsBusy));
-            }
+            set => SetProperty(ref isBusy, value);
         }
 
         public BleDevice? DeviceManager
@@ -36,13 +32,37 @@ namespace CalApp.Shared.UI
             get => deviceManager;
             set
             {
-                deviceManager = value;
-                if ( deviceManager != null )
+                SetProperty(ref deviceManager, value);
+                if (deviceManager != null )
                 {
                     deviceManager.DeviceStateChanged += DeviceManager_DeviceStateChanged;
                 }
-                NotifyOfChange(nameof(DeviceManager));
             }
+        }
+
+        public JPowerDevice? JPower
+        {
+            get => jpower;
+            set
+            {
+                SetProperty(ref jpower, value);
+                if (jpower != null)
+                {
+                    JPowerVM = new JPowerViewModel(jpower);
+                }
+            }
+        }
+
+        public BleServicesViewModel? ServicesVM
+        {
+            get => servicesVM;
+            private set => SetProperty(ref servicesVM, value);
+        }
+
+        public JPowerViewModel? JPowerVM
+        {
+            get => jpowerVM;
+            set => SetProperty(ref jpowerVM, value);
         }
 
         public Command DisconnectCommand { get; }
@@ -74,6 +94,10 @@ namespace CalApp.Shared.UI
 
                 await navigationService.NavigateToConnectPage();
             }
+
+            ServicesVM = new BleServicesViewModel(DeviceManager.Services);
+            JPower = await JPowerDevice.CreateAsync(DeviceManager);
+            await JPower.StartStreaming();
         }
 
         public override async Task OnNavigatedFrom(bool isForwardNavigation)
@@ -112,7 +136,7 @@ namespace CalApp.Shared.UI
 
         private async void DeviceManager_DeviceStateChanged(object? sender, BleDeviceState newState)
         {
-            NotifyOfChange(nameof(DeviceManager));
+            OnPropertyChanged(nameof(DeviceManager));
             DisconnectCommand.ChangeCanExecute();
 
             if (newState == BleDeviceState.Disconnected)
@@ -129,7 +153,10 @@ namespace CalApp.Shared.UI
 
         private readonly INavigationService navigationService;
         private readonly IAlertService alertService;
+        private BleServicesViewModel? servicesVM;
+        private JPowerViewModel? jpowerVM;
         private BleDevice? deviceManager;
+        private JPowerDevice? jpower;
         private bool isBusy;
     }
 }

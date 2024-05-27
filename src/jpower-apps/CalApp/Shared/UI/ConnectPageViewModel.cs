@@ -51,11 +51,7 @@ namespace CalApp.Shared.UI
         public bool IsBusy
         {
             get => isBusy;
-            set
-            {
-                isBusy = value;
-                NotifyOfChange(nameof(IsBusy));
-            }
+            set => SetProperty(ref isBusy, value);
         }
 
         public Command ScanCommand { get; }
@@ -103,6 +99,11 @@ namespace CalApp.Shared.UI
 
                 if (isConnected)
                 {
+                    if (!bleDevice.IsJPowerDevice())
+                    {
+                        throw new InvalidOperationException("Not a JPower device");
+                    }
+
                     await navigation.NavigateToCalibratePage(bleDevice);
                 }
                 else
