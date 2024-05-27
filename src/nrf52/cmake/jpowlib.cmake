@@ -46,6 +46,7 @@ endmacro()
 
 # Add SPI Library
 macro(jpow_addSPI)
+    nRF5_addLegacySpi()
     list(APPEND INCLUDE_DIRS
         "${CMAKE_SOURCE_DIR}/lib/spi"
     )
@@ -56,18 +57,18 @@ macro(jpow_addSPI)
 endmacro()
 
 # Add IMU Library
-macro(jpow_addLSM6DS)
+macro(jpow_addIMU)
     nRF5_addClock()
     nRF5_addTWILegacy()
     jpow_addJPowMath()
     jpow_addI2C()
     list(APPEND INCLUDE_DIRS
-        "${CMAKE_SOURCE_DIR}/lib/lsm6ds"
+        "${CMAKE_SOURCE_DIR}/lib/imu"
     )
 
     list(APPEND SOURCE_FILES
-        "${CMAKE_SOURCE_DIR}/lib/lsm6ds/imu.c"
-        "${CMAKE_SOURCE_DIR}/lib/lsm6ds/lsm6ds3tr-c_reg.c"
+        "${CMAKE_SOURCE_DIR}/lib/imu/imu.c"
+        "${CMAKE_SOURCE_DIR}/lib/imu/lsm6ds3tr-c_reg.c"
     )
 endmacro()
 
@@ -88,12 +89,12 @@ endmacro()
 macro(jpow_addStrain)
     jpow_addSPI()
     list(APPEND INCLUDE_DIRS
-        "${CMAKE_SOURCE_DIR}/lib/ad779x"
+        "${CMAKE_SOURCE_DIR}/lib/strain"
     )
 
     list(APPEND SOURCE_FILES
-        "${CMAKE_SOURCE_DIR}/lib/ad779x/strain.c"
-        "${CMAKE_SOURCE_DIR}/lib/ad779x/ad779x.c"
+        "${CMAKE_SOURCE_DIR}/lib/strain/strain.c"
+        "${CMAKE_SOURCE_DIR}/lib/strain/ad779x.c"
     )
 endmacro()
 

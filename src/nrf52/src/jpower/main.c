@@ -17,59 +17,34 @@
 #include "nrf_pwr_mgmt.h"
 #include "nrf_drv_clock.h"
 #include "nrf_drv_twi.h"
+#include "nrf_drv_spi.h"
 #include "ble_subsystem.h"
 #include "ant_subsystem.h"
 #include "jpow_math.h"
 #include "imu.h"
-#include "Fusion.h"
+#include "strain.h"
+#include "storage_helper.h"
+#include "calibrate.h"
 
 #define DEVICE_NAME             "JPower"                // Name of device. Will be included in the advertising data
 #define IMU_SCL_PIN             I2C_SCL_INT_PIN         // The i2c scl pin that is on the imu i2c bus
 #define IMU_SDA_PIN             I2C_SDA_INT_PIN         // The i2c sda pin that is on the imu i2c bus
+#define TWI_INSTANCE_ID         0                       // Internal TWI device to use
+#define SPI_INSTANCE_ID         1                       // Internal SPI device to use
 #define ADVERTISING_LED         BSP_BOARD_LED_2         // Is on when device is advertising
 #define CONNECTED_LED           BSP_BOARD_LED_1         // Is on when device has connected
-#define TWI_INSTANCE_ID         0                       // Instance ID for the i2c device to read the IMU
-#define HI_FREQ_CLK_HZ          100                     // Frequency (Hz) of the high speed timer
+#define HI_FREQ_CLK_HZ          1000                    // Frequency (Hz) of the high speed timer
 #define HI_FREQ_CLK_PERIOD_MS   1000 / HI_FREQ_CLK_HZ   // High speed timer period in ms
-#define PWR_UPDATE_HZ           10                      // Frequency (Hz) to update the power status
-#define PWR_UPDATE_PERIOD_MS    1000 / PWR_UPDATE_HZ    // Power update period in ms
 
-#define CALLBACK_COUNT_TICKS    HI_FREQ_CLK_HZ / PWR_UPDATE_HZ
-#define ANG_TO_RPM_RATIO        0.16666666f
-#define EPS_F                   0.001f
-#define CRANK_LENGTH            172.5f
+typedef enum
+{
+    JPOWER_STATE_STARTUP,
+    JPOWER_STATE_IDLE,
+    JPOWER_STATE_CALIBRATING,
+    JPOWER_STATE_RUNNING
+} jpower_state_t;
 
 APP_TIMER_DEF(high_freq_timer);
-
-typedef struct
-{
-    float time;
-    FusionQuaternion attitude;
-} timestamped_reading_t;
-
-typedef struct
-{
-    float angular_velocity;
-    uint16_t cadence;
-} pedal_state_t;
-
-static nrf_drv_twi_t twi                    = NRF_DRV_TWI_INSTANCE(TWI_INSTANCE_ID);
-static FusionAhrs ahrs                      = { 0 };
-static timestamped_reading_t last_hi_speed  = { 0.0f, {{ 1.0f, 0.0f, 0.0f, 0.0f }}};
-static timestamped_reading_t last_lo_speed  = { 0.0f, {{ 1.0f, 0.0f, 0.0f, 0.0f }}};
-static pedal_state_t pedal_state            = { 0.0f, 0 };
-static float time_in_s                      = 0;
-static uint16_t callback_count              = 0;
-
-static FusionAhrsSettings settings =
-{
-    .convention = FusionConventionNwu,
-    .gain = 0.5f,
-    .gyroscopeRange = 2000.0f,
-    .accelerationRejection = 90.0f,
-    .magneticRejection = 90.0f,
-    .recoveryTriggerPeriod = 0.25f,
-};
 
 static ble_subsystem_config_t ble_subsystem_config =
 {
@@ -78,76 +53,72 @@ static ble_subsystem_config_t ble_subsystem_config =
     .connected_led_idx = CONNECTED_LED,
 };
 
-static ble_srv_nus_config_t ble_srv_nus_config =
-{
-    .data_handler = blesub_nus_default_data_handler,
-};
+static nrf_drv_twi_t twi                = NRF_DRV_TWI_INSTANCE(TWI_INSTANCE_ID);
+static nrf_drv_spi_t spi                = NRF_DRV_SPI_INSTANCE(SPI_INSTANCE_ID);
+static jpower_state_t current_state;
 
-static void log_init();
-static void io_init();
-static void timers_init();
-static void power_management_init();
-static void idle_state_handler();
+static void board_init();
 static void softdevice_init();
 static void start_timers();
-static void high_freq_callback(void* context);
-static void read_imu(float time_delta);
-static void update_power();
-static pedal_state_t calculate_pedal_state(
-    float time_delta,
-    const FusionQuaternion attitude_start,
-    const FusionQuaternion attitude_end
-);
 static bool app_shutdown_handler(nrf_pwr_mgmt_evt_t event);
-static void buttonless_dfu_sdh_state_observer(
-    nrf_sdh_state_evt_t state, 
-    void * p_context
-);
-
-NRF_SDH_STATE_OBSERVER(m_buttonless_dfu_state_obs, 0) =
-{
-    .handler = buttonless_dfu_sdh_state_observer,
-};
+static void high_freq_callback(void* context);
+static void enter_calibrate_mode();
+static void enter_run_mode();
 
 int main()
 {
-    log_init();
-    io_init();
-    timers_init();
-    power_management_init();
-    softdevice_init();
+    current_state = JPOWER_STATE_STARTUP;
 
-    blesub_enable_nus(&ble_srv_nus_config);
+    board_init();
+    NRF_LOG_INFO("Board initialised");
+
+    softdevice_init();
+    NRF_LOG_INFO("Soft device initialised");
+
     blesub_enable_ble_dfu();
     blesub_init(&ble_subsystem_config);
+    NRF_LOG_INFO("BLE initialised");
 
-    antsub_init();
-
-    FusionAhrsInitialise(&ahrs);
-    FusionAhrsSetSettings(&ahrs, &settings);
-
-    NRF_LOG_INFO("Logger app initialised");
+    //antsub_init();
+    NRF_LOG_INFO("ANT Plus initialised");
+    
     start_timers();
-    blesub_start_advertising();
-    NRF_LOG_INFO("BLE started advertising...");
 
+    current_state = JPOWER_STATE_IDLE;
+    NRF_LOG_INFO("JPower fully initialised");
+
+    if (!calibrate_get_is_calibrated())
+    {
+        NRF_LOG_INFO("No calibration data found");
+        enter_calibrate_mode();
+    }
+    else
+    {
+        NRF_LOG_INFO("Calibration data found");
+        enter_run_mode();
+    }
+    
     while (true)
     {
-        idle_state_handler();
+        if (NRF_LOG_PROCESS() == false)
+        {
+            nrf_pwr_mgmt_run();
+        }
     }
 }
 
-static void log_init()
+static void board_init()
 {
-    ret_code_t err_code = NRF_LOG_INIT(NULL);
+    ret_code_t err_code;
+
+    // Logging init
+    err_code = NRF_LOG_INIT(NULL);
     APP_ERROR_CHECK(err_code);
 
     NRF_LOG_DEFAULT_BACKENDS_INIT();
-}
 
-static void io_init()
-{
-    ret_code_t err_code = ble_dfu_buttonless_async_svci_init();
+    // IO init
+    err_code = ble_dfu_buttonless_async_svci_init();
     APP_ERROR_CHECK(err_code);
 
     bsp_board_init(BSP_INIT_LEDS);
@@ -160,11 +131,19 @@ static void io_init()
             IMU_SDA_PIN
         );
     APP_ERROR_CHECK(err_code);
-}
 
-static void timers_init()
-{
-    ret_code_t err_code = app_timer_init();
+    err_code =
+        strain_init(
+            &spi,
+            ADC_PWR_PIN,
+            SPI_SCK_PIN,
+            SPI_MOSI_PIN,
+            SPI_MISO_PIN
+        );
+    APP_ERROR_CHECK(err_code);
+
+    // Timers init
+    err_code = app_timer_init();
     APP_ERROR_CHECK(err_code);
 
     err_code = 
@@ -188,11 +167,8 @@ static void timers_init()
 	NRF_TIMER1->CC[0] = 0;
 	NRF_TIMER1->BITMODE = (TIMER_BITMODE_BITMODE_24Bit << TIMER_BITMODE_BITMODE_Pos);
 	NRF_TIMER1->TASKS_CLEAR = 1;
-}
 
-static void power_management_init()
-{
-    ret_code_t err_code;
+    // Power management init
     err_code = nrf_pwr_mgmt_init();
     APP_ERROR_CHECK(err_code);
 
@@ -205,6 +181,12 @@ static void softdevice_init()
     APP_ERROR_CHECK(err_code);
 
     ASSERT(nrf_sdh_is_enabled());
+
+    err_code = storage_init();
+    APP_ERROR_CHECK(err_code);
+
+    err_code = calibrate_init();
+    APP_ERROR_CHECK(err_code);
 }
 
 static void start_timers()
@@ -221,126 +203,6 @@ static void start_timers()
     NRF_TIMER1->TASKS_START = 1;
 }
 
-static void idle_state_handler()
-{
-    if (NRF_LOG_PROCESS() == false)
-    {
-        nrf_pwr_mgmt_run();
-    }
-}
-
-static void high_freq_callback(void* context)
-{
-    NRF_TIMER1->TASKS_CAPTURE[1] = 1;
-    uint32_t interval_us = NRF_TIMER1->CC[1];
-    NRF_TIMER1->TASKS_CLEAR = 1;
-
-    float time_delta = (float)interval_us / 1000000.0f;
-    time_in_s += time_delta;
-
-    read_imu(time_delta);
-
-    if (callback_count > CALLBACK_COUNT_TICKS)
-    {
-        update_power();
-        callback_count = 0;
-    }
-
-    callback_count++;
-}
-
-static void read_imu(float time_delta)
-{
-    FusionVector accel = {{ 0.0f, 0.0f, 0.0f }};
-    FusionVector gyro = {{ 0.0f, 0.0f, 0.0f }};
-
-    ret_code_t err_code =
-        imu_take_reading_raw(
-            accel.array, 
-            gyro.array
-        );
-
-    APP_ERROR_CHECK(err_code);
-
-    FusionAhrsUpdateNoMagnetometer(
-        &ahrs,
-        gyro,
-        accel,
-        time_delta
-    );
-
-    last_hi_speed.attitude = FusionAhrsGetQuaternion(&ahrs);
-    last_hi_speed.time = time_in_s;
-}
-
-static void update_power()
-{
-    pedal_state =
-        calculate_pedal_state(
-            time_in_s - last_lo_speed.time,
-            last_lo_speed.attitude,
-            last_hi_speed.attitude
-        );
-
-    last_lo_speed.attitude = last_hi_speed.attitude;
-    last_lo_speed.time = last_hi_speed.time;
-
-    float distance = to_rad(pedal_state.angular_velocity) * M_PI * 0.1f;
-
-    bike_power_data_t power_state =
-    {
-        .power = 120 * distance,
-        .cadence = pedal_state.cadence
-    };
-
-    antsub_update_power(&power_state);
-}
-
-static pedal_state_t calculate_pedal_state(
-    float time_delta,
-    const FusionQuaternion attitude_start,
-    const FusionQuaternion attitude_end)
-{
-    FusionQuaternion conj =
-	{{
-		attitude_start.element.w,
-		-attitude_start.element.x,
-        -attitude_start.element.y,
-        -attitude_start.element.z,
-	}};
-
-	FusionQuaternion relative = 
-        FusionQuaternionMultiply(
-            attitude_end, 
-            conj
-        );
-
-    float angle = 0.0f;
-
-    if (relative.element.w <= (0.0f + EPS_F))
-    {
-        angle = M_PI;
-    }
-    else if (relative.element.w >= (1.0f - EPS_F))
-    {
-        angle = 0.0f;
-    }
-    else
-    {
-        angle = 2.0f * acosf(relative.element.w);
-    }
-
-    float angular_velocity = FusionRadiansToDegrees(angle) / time_delta;
-
-    pedal_state_t state =
-    {
-        .angular_velocity = angular_velocity,
-        .cadence = (uint16_t)fabsf(angular_velocity * ANG_TO_RPM_RATIO)
-    };
-
-    return state;
-}
-
 static bool app_shutdown_handler(nrf_pwr_mgmt_evt_t event)
 {
     switch (event)
@@ -355,11 +217,26 @@ static bool app_shutdown_handler(nrf_pwr_mgmt_evt_t event)
     return true;
 }
 
-static void buttonless_dfu_sdh_state_observer(nrf_sdh_state_evt_t state, void * p_context)
+static void high_freq_callback(void* context)
 {
-    if (state == NRF_SDH_EVT_STATE_DISABLED)
-    {
-        nrf_power_gpregret2_set(BOOTLOADER_DFU_SKIP_CRC);
-        nrf_pwr_mgmt_shutdown(NRF_PWR_MGMT_SHUTDOWN_GOTO_SYSOFF);
-    }
+    NRF_TIMER1->TASKS_CAPTURE[1] = 1;
+    //uint32_t interval_us = NRF_TIMER1->CC[1];
+    NRF_TIMER1->TASKS_CLEAR = 1;
+
+    //float time_delta = (float)interval_us / 1000000.0f;
+}
+
+static void enter_calibrate_mode()
+{
+    bsp_board_led_off(BSP_LED_0);
+    blesub_start_advertising();
+    NRF_LOG_INFO("Entered calibration mode");
+}
+
+static void enter_run_mode()
+{
+    bsp_board_led_off(BSP_LED_1);
+    bsp_board_led_off(BSP_LED_2);
+    bsp_board_led_on(BSP_LED_0);
+    NRF_LOG_INFO("Entered run mode");
 }

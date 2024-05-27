@@ -19,9 +19,11 @@ nRF5_addBSP(TRUE TRUE FALSE)
 jpow_addJPowMath()
 jpow_addI2C()
 jpow_addSPI()
-jpow_addLSM6DS()
+jpow_addIMU()
 jpow_addFusion()
 jpow_addStrain()
+jpow_addStorage()
+jpow_addCalibrate()
 jpow_addUSB()
 jpow_addBLE()
 jpow_addANTPlus()
@@ -43,6 +45,7 @@ nRF5_addExecutable(${target}
 
 target_compile_definitions(${target} PRIVATE 
     USE_APP_CONFIG
+    DEBUG
 )
 
 target_link_libraries(${target} PRIVATE

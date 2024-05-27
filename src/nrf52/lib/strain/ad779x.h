@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "app_error.h"
+#include "nrf_drv_spi.h"
 
 // #region Data Types
 
@@ -145,6 +146,7 @@ typedef struct
 // #region Public Functions
 
 extern ret_code_t ad779x_init(
+    nrf_drv_spi_t* spi_instance,
     const uint32_t adc_pwr_pin,
     const uint8_t sck_pin,
     const uint8_t mosi_pin,

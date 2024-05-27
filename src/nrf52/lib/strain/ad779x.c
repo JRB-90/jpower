@@ -3,7 +3,6 @@
 #include "nrf_log.h"
 #include "nrf_delay.h"
 #include "nrf_gpio.h"
-#include "nrf_drv_spi.h"
 #include "spi_helper.h"
 
 // #region Defines
@@ -70,7 +69,7 @@ static uint32_t read_register_24bit(const uint8_t register_address);
 
 // #region Private Data
 
-static nrf_drv_spi_t spi = NRF_DRV_SPI_INSTANCE(1);
+static nrf_drv_spi_t* spi = NULL;
 
 static ad779x_mode_reg_t default_mode =
 {
@@ -94,12 +93,15 @@ static ad779x_conf_reg_t default_conf =
 // #region Public Functions Implementations
 
 ret_code_t ad779x_init(
+    nrf_drv_spi_t* spi_instance,
     const uint32_t adc_pwr_pin,
     const uint8_t sck_pin,
     const uint8_t mosi_pin,
     const uint8_t miso_pin)
 {
     ret_code_t err_code;
+
+    spi = spi_instance;
 
     nrf_gpio_cfg(
         adc_pwr_pin,
@@ -126,7 +128,7 @@ ret_code_t ad779x_init(
 
     err_code =
         spi_init(
-            &spi,
+            spi,
             &spi_config
         );
 
@@ -153,7 +155,7 @@ ret_code_t ad779x_init(
 void ad779x_reset()
 {
     uint8_t reset_value[4] = {0xFF, 0xFF, 0xFF, 0xFF};
-    APP_ERROR_CHECK(spi_write(&spi, reset_value, 4));
+    APP_ERROR_CHECK(spi_write(spi, reset_value, 4));
     nrf_delay_us(AD779X_RESET_TIME_US);
 }
 
@@ -341,7 +343,7 @@ static void write_register_8bit(
             AD779X_COMM_WRITE | register_address,
             value};
 
-    APP_ERROR_CHECK(spi_write(&spi, out_data, 2));
+    APP_ERROR_CHECK(spi_write(spi, out_data, 2));
 }
 
 static void write_register_16bit(
@@ -355,7 +357,7 @@ static void write_register_16bit(
             (uint8_t)((value & 0x0000FF) >> 0),
         };
 
-    APP_ERROR_CHECK(spi_write(&spi, out_data, 3));
+    APP_ERROR_CHECK(spi_write(spi, out_data, 3));
 }
 
 static uint8_t read_register_8bit(const uint8_t register_address)
@@ -364,8 +366,8 @@ static uint8_t read_register_8bit(const uint8_t register_address)
     uint8_t in_data[1] = {0x00};
     uint8_t received = 0;
 
-    APP_ERROR_CHECK(spi_write(&spi, out_data, 1));
-    APP_ERROR_CHECK(spi_read(&spi, in_data, 1));
+    APP_ERROR_CHECK(spi_write(spi, out_data, 1));
+    APP_ERROR_CHECK(spi_read(spi, in_data, 1));
 
     received = in_data[0];
 
@@ -378,8 +380,8 @@ static uint16_t read_register_16bit(const uint8_t register_address)
     uint8_t in_data[2] = {0x00, 0x00};
     uint16_t received = 0;
 
-    APP_ERROR_CHECK(spi_write(&spi, out_data, 1));
-    APP_ERROR_CHECK(spi_read(&spi, in_data, 2));
+    APP_ERROR_CHECK(spi_write(spi, out_data, 1));
+    APP_ERROR_CHECK(spi_read(spi, in_data, 2));
 
     received |= in_data[0] << 8;
     received |= in_data[1] << 0;
@@ -393,8 +395,8 @@ static uint32_t read_register_24bit(const uint8_t register_address)
     uint8_t in_data[3] = {0x00, 0x00, 0x00};
     uint32_t received = 0;
 
-    APP_ERROR_CHECK(spi_write(&spi, out_data, 1));
-    APP_ERROR_CHECK(spi_read(&spi, in_data, 3));
+    APP_ERROR_CHECK(spi_write(spi, out_data, 1));
+    APP_ERROR_CHECK(spi_read(spi, in_data, 3));
 
     received |= in_data[0] << 16;
     received |= in_data[1] << 8;

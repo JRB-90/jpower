@@ -1109,6 +1109,23 @@ macro(nRF5_addTWIManager)
       )
 endmacro()
 
+# adds legacy twi driver
+macro(nRF5_addLegacySpi)
+    nRF5_addPRS()
+    list(APPEND INCLUDE_DIRS
+            "${SDK_ROOT}/integration/nrfx/legacy"
+            "${SDK_ROOT}/modules/nrfx/drivers/include"
+            "${SDK_ROOT}/components/libraries/spi_mngr"
+            )
+
+    list(APPEND SOURCE_FILES
+            "${SDK_ROOT}/integration/nrfx/legacy/nrf_drv_spi.c"
+            "${SDK_ROOT}/modules/nrfx/drivers/src/nrfx_spi.c"
+            "${SDK_ROOT}/modules/nrfx/drivers/src/nrfx_spim.c"
+            "${SDK_ROOT}/components/libraries/spi_mngr/nrf_spi_mngr.c"
+            )
+endmacro()
+
 macro(nRF5_addClock)
     list(APPEND INCLUDE_DIRS
             "${SDK_ROOT}/modules/nrfx/drivers/include"

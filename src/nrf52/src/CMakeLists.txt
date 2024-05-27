@@ -1,4 +1,5 @@
 #add_subdirectory(blinky)
-add_subdirectory(calibrate-test)
-#add_subdirectory(jpower)
+#add_subdirectory(calibrate-test)
+add_subdirectory(jpower)
+#add_subdirectory(jpower_old)
 #add_subdirectory(fds-test)
