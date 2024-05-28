@@ -1,8 +1,9 @@
 using MauiIcons.Core;
+using UraniumUI.Pages;
 
 namespace CalApp.Shared.UI;
 
-public partial class ConnectPageView : ContentPage
+public partial class ConnectPageView : UraniumContentPage
 {
 	public ConnectPageView(ConnectPageViewModel viewModel)
 	{

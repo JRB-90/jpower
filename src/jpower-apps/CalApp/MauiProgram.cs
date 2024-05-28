@@ -4,6 +4,7 @@ using CommunityToolkit.Maui;
 using MauiIcons.Fluent;
 using MauiIcons.Material;
 using Microsoft.Extensions.Logging;
+using UraniumUI;
 
 namespace CalApp
 {
@@ -17,6 +18,8 @@ namespace CalApp
                 .UseMauiCommunityToolkit()
                 .UseMaterialMauiIcons()
                 .UseFluentMauiIcons()
+                .UseUraniumUI()
+                .UseUraniumUIMaterial()
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");

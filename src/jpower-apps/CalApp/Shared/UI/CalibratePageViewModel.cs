@@ -96,8 +96,8 @@ namespace CalApp.Shared.UI
             }
 
             ServicesVM = new BleServicesViewModel(DeviceManager.Services);
-            JPower = await JPowerDevice.CreateAsync(DeviceManager);
-            await JPower.StartStreaming();
+            //JPower = await JPowerDevice.CreateAsync(DeviceManager);
+            //await JPower.StartStreaming();
         }
 
         public override async Task OnNavigatedFrom(bool isForwardNavigation)
