@@ -99,10 +99,10 @@ namespace CalApp.Shared.UI
 
                 if (isConnected)
                 {
-                    if (!bleDevice.IsJPowerDevice())
-                    {
-                        throw new InvalidOperationException("Not a JPower device");
-                    }
+                    //if (!bleDevice.IsJPowerDevice())
+                    //{
+                    //    throw new InvalidOperationException("Not a JPower device");
+                    //}
 
                     await navigation.NavigateToCalibratePage(bleDevice);
                 }

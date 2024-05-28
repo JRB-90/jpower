@@ -10,7 +10,6 @@
     <CollectionView
             Margin="10"
             SelectionMode="None"
-            BackgroundColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
             ItemsSource="{Binding Services}">
 
         <CollectionView.ItemTemplate>

@@ -1,6 +1,8 @@
+using UraniumUI.Pages;
+
 namespace CalApp.Shared.UI;
 
-public partial class CalibratePageView : ContentPage
+public partial class CalibratePageView : UraniumContentPage
 {
 	public CalibratePageView(CalibratePageViewModel viewModel)
 	{
