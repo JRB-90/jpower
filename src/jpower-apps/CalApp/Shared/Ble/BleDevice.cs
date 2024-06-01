@@ -3,23 +3,12 @@ using Plugin.BLE;
 using Plugin.BLE.Abstractions;
 using Plugin.BLE.Abstractions.Contracts;
 
-namespace CalApp.Shared.Models
+namespace CalApp.Shared.Ble
 {
     /// <summary>
-    /// Currect state of a BLE device.
+    /// Manages the connection to and data exchange with a BLE device.
     /// </summary>
-    public enum BleDeviceState
-    {
-        Connecting,
-        Connected,
-        Disconnecting,
-        Disconnected,
-    }
-
-    /// <summary>
-    /// Mamages the connection to and data exchange with a BLE device.
-    /// </summary>
-    public class BleDevice
+    public class BleDevice : IBleDevice
     {
         public const int ConnectTimeoutMs = 5000;
         public const int DisconnectTimeoutMs = 5000;
@@ -27,8 +16,10 @@ namespace CalApp.Shared.Models
         public BleDevice(BleDeviceInfo deviceInfo)
         {
             deviceState = BleDeviceState.Disconnected;
-            services = new List<BleService>();
-            device = deviceInfo.Device;
+            services = new List<BleDeviceService>();
+
+            device = null; // deviceInfo.Device; TODO - FIX!
+            
             connectResetEvent = new AsyncManualResetEvent(false);
             disconnectResetEvent = new AsyncManualResetEvent(false);
 
@@ -42,20 +33,28 @@ namespace CalApp.Shared.Models
         public BleDeviceState DeviceState
         {
             get => deviceState;
-            set
+            private set
             {
                 deviceState = value;
                 DeviceStateChanged?.Invoke(this, deviceState);
             }
         }
 
-        public IReadOnlyCollection<BleService> Services
+        public IReadOnlyCollection<IBleDeviceService> Services
         {
             get => services;
-            private set => services = value;
+            private set
+            {
+                services = value;
+                DevicePropertiesUpdated?.Invoke(this, new EventArgs());
+            }
         }
 
+        public BleDeviceInfo BleDeviceInfo => throw new NotImplementedException();
+
         public event EventHandler<BleDeviceState>? DeviceStateChanged;
+
+        public event EventHandler? DevicePropertiesUpdated;
 
         public async Task<bool> Connect()
         {
@@ -103,7 +102,7 @@ namespace CalApp.Shared.Models
             return true;
         }
 
-        public async Task Disconnect()
+        public async Task<bool> Disconnect()
         {
             if (DeviceState != BleDeviceState.Connected)
             {
@@ -125,27 +124,11 @@ namespace CalApp.Shared.Models
                 DeviceState = BleDeviceState.Disconnected;
                 throw new InvalidOperationException("Device is not in connected state");
             }
-        }
-
-        public bool IsJPowerDevice()
-        {
-            if (Services.Count == 0)
-            {
-                return false;
-            }
-
-            foreach (var serviceUUID in BleServiceUUIDs.JPOWER_SERVICES)
-            {
-                if (!Services.Select(x => x.UUID).Contains(serviceUUID))
-                {
-                    return false;
-                }
-            }
 
             return true;
         }
 
-        public async Task<BleService> GetService(Guid serviceUUID)
+        public async Task<BleDeviceService> GetService(Guid serviceUUID)
         {
             if (DeviceState != BleDeviceState.Connected)
             {
@@ -158,10 +141,10 @@ namespace CalApp.Shared.Models
                 throw new InvalidOperationException("Failed to find service from UUID");
             }
 
-            return new BleService(service);
+            return new BleDeviceService(service);
         }
 
-        public async Task<BleCharacteristic> GetCharacteristic(Guid serviceUUID, Guid charUUID)
+        public async Task<BleDeviceCharacteristic> GetCharacteristic(Guid serviceUUID, Guid charUUID)
         {
             if (DeviceState != BleDeviceState.Connected)
             {
@@ -180,19 +163,19 @@ namespace CalApp.Shared.Models
                 throw new InvalidOperationException("Failed to find characteristic from UUID");
             }
 
-            return new BleCharacteristic(characteristic);
+            return new BleDeviceCharacteristic(characteristic);
         }
 
         private async Task PopulateServices()
         {
-            var bleServices = new List<BleService>();
+            var bleServices = new List<BleDeviceService>();
             var deviceServices = await device.GetServicesAsync();
 
             foreach (var service in deviceServices)
             {
                 if (service != null)
                 {
-                    bleServices.Add(new BleService(service));
+                    bleServices.Add(new BleDeviceService(service));
                 }
             }
 
@@ -233,7 +216,7 @@ namespace CalApp.Shared.Models
         private readonly IAdapter adapter;
         private readonly IDevice device;
         private BleDeviceState deviceState;
-        private IReadOnlyCollection<BleService> services;
+        private IReadOnlyCollection<IBleDeviceService> services;
         private AsyncManualResetEvent connectResetEvent;
         private AsyncManualResetEvent disconnectResetEvent;
     }

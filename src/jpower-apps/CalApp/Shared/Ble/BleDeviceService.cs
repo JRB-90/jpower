@@ -1,10 +1,10 @@
 ﻿using Plugin.BLE.Abstractions.Contracts;
 
-namespace CalApp.Shared.Models
+namespace CalApp.Shared.Ble
 {
-    public class BleService
+    public class BleDeviceService : IBleDeviceService
     {
-        public BleService(IService service)
+        public BleDeviceService(IService service)
         {
             UUID = service.Id;
             Name =
@@ -15,23 +15,23 @@ namespace CalApp.Shared.Models
             var t = service.GetCharacteristicsAsync();
             t.Wait();
 
-            var characteristics = new List<BleCharacteristic>();
+            var characteristics = new List<BleDeviceCharacteristic>();
 
             foreach (var characteristic in t.Result)
             {
                 if (characteristic != null)
                 {
-                    characteristics.Add(new BleCharacteristic(characteristic));
+                    characteristics.Add(new BleDeviceCharacteristic(characteristic));
                 }
             }
 
             Characteristics = characteristics;
         }
-        
+
         public Guid UUID { get; }
 
         public string Name { get; }
 
-        public IReadOnlyCollection<BleCharacteristic> Characteristics { get; }
+        public IReadOnlyCollection<IBleDeviceCharacteristic> Characteristics { get; }
     }
 }

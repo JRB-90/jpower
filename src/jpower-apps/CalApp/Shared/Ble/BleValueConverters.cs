@@ -1,4 +1,4 @@
-﻿namespace CalApp.Shared.Models
+﻿namespace CalApp.Shared.Ble
 {
     public static class BleValueConverters
     {

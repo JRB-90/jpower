@@ -1,11 +1,14 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using Plugin.BLE.Abstractions.Contracts;
 
-namespace CalApp.Shared.Models
+namespace CalApp.Shared.Ble
 {
-    public class BleCharacteristic : ObservableObject
+    public class BleDeviceCharacteristic
+      :
+        ObservableObject,
+        IBleDeviceCharacteristic
     {
-        public BleCharacteristic(ICharacteristic characteristic)
+        public BleDeviceCharacteristic(ICharacteristic characteristic)
         {
             this.characteristic = characteristic;
             currentValue = new byte[0];
@@ -37,7 +40,7 @@ namespace CalApp.Shared.Models
 
         public event EventHandler<byte[]>? ValueUpdated;
 
-        public async Task StartListing()
+        public async Task StartListening()
         {
             await characteristic.StartUpdatesAsync();
         }
@@ -48,7 +51,7 @@ namespace CalApp.Shared.Models
         }
 
         private void Characteristic_ValueUpdated(
-            object? sender, 
+            object? sender,
             Plugin.BLE.Abstractions.EventArgs.CharacteristicUpdatedEventArgs e)
         {
             CurrentValue = e.Characteristic.Value;

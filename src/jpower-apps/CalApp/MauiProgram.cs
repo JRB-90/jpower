@@ -1,4 +1,5 @@
-﻿using CalApp.Shared.Services;
+﻿using CalApp.Shared.Ble;
+using CalApp.Shared.Services;
 using CalApp.Shared.UI;
 using CommunityToolkit.Maui;
 using MauiIcons.Fluent;
@@ -12,6 +13,8 @@ namespace CalApp
     {
         public static MauiApp CreateMauiApp()
         {
+            bool isSimMode = true;
+
             var builder = MauiApp.CreateBuilder();
             builder
                 .UseMauiApp<App>()
@@ -40,14 +43,20 @@ namespace CalApp
             builder.Services.AddSingleton<IPermissionsService, PermissionsService>();
             builder.Services.AddSingleton<INavigationService, NavigationService>();
             builder.Services.AddSingleton<IAlertService, AlertService>();
-            builder.Services.AddSingleton<IJPowerDiscoveryService, JPowerDiscoveryService>();
+
+            if (isSimMode)
+            {
+                builder.Services.AddSingleton<IBleService, SimulatedBleService>();
+            }
+            else
+            {
+                builder.Services.AddSingleton<IBleService, BleService>();
+            }
 
             builder.Services.AddTransient<ConnectPageView>();
             builder.Services.AddTransient<ConnectPageViewModel>();
             builder.Services.AddTransient<CalibratePageView>();
             builder.Services.AddTransient<CalibratePageViewModel>();
-            builder.Services.AddTransient<BleServicesView>();
-            builder.Services.AddTransient<BleServicesViewModel>();
 
             return builder.Build();
         }

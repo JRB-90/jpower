@@ -1,4 +1,4 @@
-﻿namespace CalApp.Shared.Models
+﻿namespace CalApp.Shared.Ble
 {
     /// <summary>
     /// Here are stored all of the Nordic service UUIDs we use in JPower
@@ -14,5 +14,23 @@
         {
             JPOWER_CAL_SRV_UUID,
         };
+
+        public static bool IsJPowerDevice(this IBleDevice bleDevice)
+        {
+            if (bleDevice.Services.Count == 0)
+            {
+                return false;
+            }
+
+            foreach (var serviceUUID in JPOWER_SERVICES)
+            {
+                if (!bleDevice.Services.Select(x => x.UUID).Contains(serviceUUID))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
     }
 }
