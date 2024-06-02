@@ -8,16 +8,18 @@ using System.Reactive.Linq;
 
 namespace CalApp.Shared.UI
 {
-    public class CalibratePageViewModel : ViewModelBase
+    public class CalibrationPageViewModel : ViewModelBase
     {
         public const int NumSamples             = 10;
         public const int MinMeasurementCount    = 5;
 
-        public CalibratePageViewModel(
+        public CalibrationPageViewModel(
+            IAppContext appContext,
             INavigationService navigationService,
             IAlertService alertService,
             IBleService bleService)
         {
+            this.appContext = appContext;
             this.navigationService = navigationService;
             this.alertService = alertService;
             this.bleService = bleService;
@@ -30,26 +32,26 @@ namespace CalApp.Shared.UI
             ZeroCommand =
                 new Command(
                     async () => await Zero(),
-                    () => JPowerDevice != null &&
-                          BleDevice != null &&
-                          BleDevice.DeviceState == BleDeviceState.Connected
+                    () => appContext.JPowerDevice != null &&
+                          appContext.BleDevice != null &&
+                          appContext.BleDevice.DeviceState == BleDeviceState.Connected
                 );
 
             PushCalibrationCommand =
                 new Command(
                     async () => await Calibrate(),
-                    () => JPowerDevice != null &&
-                          BleDevice != null &&
-                          BleDevice.DeviceState == BleDeviceState.Connected &&
+                    () => appContext.JPowerDevice != null &&
+                          appContext.BleDevice != null &&
+                          appContext.BleDevice.DeviceState == BleDeviceState.Connected &&
                           Measurements.Count >= MinMeasurementCount
                 );
 
             TakeMeasurementCommand =
                 new Command(
                     async () => await TakeMeasurement(),
-                    () => JPowerDevice != null &&
-                          BleDevice != null &&
-                          BleDevice.DeviceState == BleDeviceState.Connected &&
+                    () => appContext.JPowerDevice != null &&
+                          appContext.BleDevice != null &&
+                          appContext.BleDevice.DeviceState == BleDeviceState.Connected &&
                           WeightInput != null &&
                           double.TryParse(WeightInput, out double result)
                 );
@@ -63,40 +65,21 @@ namespace CalApp.Shared.UI
             DisconnectCommand =
                 new Command(
                     async () => await Disconnect(),
-                    () => BleDevice != null &&
-                          BleDevice.DeviceState == BleDeviceState.Connected
+                    () => appContext.BleDevice != null &&
+                          appContext.BleDevice.DeviceState == BleDeviceState.Connected
                 );
-        }
 
-        public bool IsBusy
-        {
-            get => isBusy;
-            set => SetProperty(ref isBusy, value);
-        }
+            appContext.BusyStateChanged += AppContext_BusyStateChanged;
+            appContext.BleDeviceChanged += AppContext_BleDeviceChanged;
+            appContext.JPowerDeviceChanged += AppContext_JPowerDeviceChanged;
 
-        public IBleDevice? BleDevice
-        {
-            get => bleDevice;
-            set
+            if (appContext.BleDevice != null )
             {
-                SetProperty(ref bleDevice, value);
-                if (bleDevice != null )
-                {
-                    bleDevice.DeviceStateChanged += DeviceManager_DeviceStateChanged;
-                }
-                RefreshCommandEnables();
+                appContext.BleDevice.DeviceStateChanged += BleDevice_DeviceStateChanged;
             }
         }
 
-        public IJPowerDevice? JPowerDevice
-        {
-            get => jpower;
-            set
-            {
-                SetProperty(ref jpower, value);
-                RefreshCommandEnables();
-            }
-        }
+        public bool IsBusy => appContext.IsBusy;
 
         public string WeightInput
         {
@@ -107,6 +90,10 @@ namespace CalApp.Shared.UI
                 RefreshCommandEnables();
             }
         }
+
+        public IBleDevice? CurrentBleDevice => appContext.BleDevice;
+
+        public IJPowerDevice? CurrentJPowerDevice => appContext.JPowerDevice;
 
         public ObservableCollection<Measurement> Measurements { get; }
 
@@ -120,60 +107,18 @@ namespace CalApp.Shared.UI
 
         public Command DisconnectCommand { get; }
 
-        public override async Task OnNavigatingTo(object? parameter)
-        {
-            BleDevice = parameter as IBleDevice;
-
-            if (BleDevice == null)
-            {
-                await alertService.DisplayAlert(
-                    "Error",
-                    "No device selected, returning to connect page",
-                    "OK"
-                );
-
-                await navigationService.NavigateToConnectPage();
-
-                return;
-            }
-
-            if (BleDevice.DeviceState != BleDeviceState.Connected)
-            {
-                await alertService.DisplayAlert(
-                    "Error",
-                    "Device disconnected, returning to connect page",
-                    "OK"
-                );
-
-                await navigationService.NavigateToConnectPage();
-            }
-
-            Measurements.Clear();
-            JPowerDevice = await bleService.CreateJPowerDevice(BleDevice);
-            await JPowerDevice.StartStreaming();
-        }
-
-        public override async Task OnNavigatedFrom(bool isForwardNavigation)
-        {
-            if (!isForwardNavigation)
-            {
-                await Disconnect();
-                Measurements.Clear();
-            }
-        }
-
         private async Task Zero()
         {
-            IsBusy = true;
+            appContext.IsBusy = true;
 
             try
             {
-                if (JPowerDevice == null)
+                if (appContext.JPowerDevice == null)
                 {
                     throw new InvalidOperationException("JPower device not connected");
                 }
 
-                var wasSuccessful = await JPowerDevice.ZeroOffset();
+                var wasSuccessful = await appContext.JPowerDevice.ZeroOffset();
 
                 if (!wasSuccessful)
                 {
@@ -196,23 +141,23 @@ namespace CalApp.Shared.UI
             }
             finally
             {
-                IsBusy = false;
+                appContext.IsBusy = false;
             }
         }
 
         private async Task Calibrate()
         {
-            IsBusy = true;
+            appContext.IsBusy = true;
 
             try
             {
-                if (JPowerDevice == null)
+                if (appContext.JPowerDevice == null)
                 {
                     throw new InvalidOperationException("JPower device not connected");
                 }
 
                 var slope = await bleService.CalculateSlope(Measurements);
-                var wasSuccessful = await JPowerDevice.PushSlope(slope);
+                var wasSuccessful = await appContext.JPowerDevice.PushSlope(slope);
 
                 if (!wasSuccessful)
                 {
@@ -235,17 +180,17 @@ namespace CalApp.Shared.UI
             }
             finally
             {
-                IsBusy = false;
+                appContext.IsBusy = false;
             }
         }
 
         private async Task TakeMeasurement()
         {
-            IsBusy = true;
+            appContext.IsBusy = true;
 
             try
             {
-                if (JPowerDevice == null)
+                if (appContext.JPowerDevice == null)
                 {
                     throw new InvalidOperationException("JPower device not connected");
                 }
@@ -254,7 +199,8 @@ namespace CalApp.Shared.UI
 
                 var measurements =
                     await
-                    JPowerDevice
+                    appContext
+                    .JPowerDevice
                     .RawAdcValues
                     .Take(NumSamples)
                     .Timeout(DateTime.Now.AddSeconds(10))
@@ -263,10 +209,10 @@ namespace CalApp.Shared.UI
 
                 var averagedValue = measurements.Average();
 
-                var measurement = 
+                var measurement =
                     new Measurement(
                         weight,
-                        (uint)averagedValue, 
+                        (uint)averagedValue,
                         NumSamples
                     );
 
@@ -282,24 +228,23 @@ namespace CalApp.Shared.UI
             }
             finally
             {
-                IsBusy = false;
+                appContext.IsBusy = false;
             }
         }
 
         private async Task Disconnect()
         {
-            if (BleDevice != null)
+            if (appContext.BleDevice != null)
             {
                 try
                 {
-                    IsBusy = true;
+                    appContext.IsBusy = true;
 
-                    if (bleDevice != null)
+                    if (appContext.BleDevice != null)
                     {
-                        bleDevice.DeviceStateChanged -= DeviceManager_DeviceStateChanged;
+                        appContext.BleDevice.DeviceStateChanged -= BleDevice_DeviceStateChanged;
+                        await appContext.BleDevice.Disconnect();
                     }
-                    
-                    await BleDevice.Disconnect();
                 }
                 catch (Exception ex)
                 {
@@ -311,11 +256,40 @@ namespace CalApp.Shared.UI
                 }
                 finally
                 {
-                    IsBusy = false;
+                    appContext.IsBusy = false;
                 }
             }
 
             await navigationService.NavigateToConnectPage();
+        }
+
+        private void RefreshCommandEnables()
+        {
+            ZeroCommand.ChangeCanExecute();
+            PushCalibrationCommand.ChangeCanExecute();
+            TakeMeasurementCommand.ChangeCanExecute();
+            ResetMeasurementsCommand.ChangeCanExecute();
+            DisconnectCommand.ChangeCanExecute();
+        }
+
+        private void AppContext_BusyStateChanged(object? sender, bool e)
+        {
+            OnPropertyChanged(nameof(IsBusy));
+        }
+
+        private void AppContext_BleDeviceChanged(object? sender, IBleDevice? e)
+        {
+            if (appContext.BleDevice != null)
+            {
+                appContext.BleDevice.DeviceStateChanged += BleDevice_DeviceStateChanged;
+            }
+
+            OnPropertyChanged(nameof(CurrentBleDevice));
+        }
+
+        private void AppContext_JPowerDeviceChanged(object? sender, IJPowerDevice? e)
+        {
+            OnPropertyChanged(nameof(CurrentJPowerDevice));
         }
 
         private void Measurements_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -323,7 +297,7 @@ namespace CalApp.Shared.UI
             RefreshCommandEnables();
         }
 
-        private async void DeviceManager_DeviceStateChanged(object? sender, BleDeviceState newState)
+        private async void BleDevice_DeviceStateChanged(object? sender, BleDeviceState newState)
         {
             OnPropertyChanged(nameof(BleDevice));
             RefreshCommandEnables();
@@ -340,21 +314,10 @@ namespace CalApp.Shared.UI
             }
         }
 
-        private void RefreshCommandEnables()
-        {
-            ZeroCommand.ChangeCanExecute();
-            PushCalibrationCommand.ChangeCanExecute();
-            TakeMeasurementCommand.ChangeCanExecute();
-            ResetMeasurementsCommand.ChangeCanExecute();
-            DisconnectCommand.ChangeCanExecute();
-        }
-
+        private readonly IAppContext appContext;
         private readonly INavigationService navigationService;
         private readonly IAlertService alertService;
         private readonly IBleService bleService;
-        private IBleDevice? bleDevice;
-        private IJPowerDevice? jpower;
-        private bool isBusy;
         private string weightInput;
     }
 }

@@ -81,6 +81,13 @@ namespace CalApp.Shared.Ble
             return new Slope(13.5);
         }
 
+        public async Task<bool> IsJPowerDevice(IBleDevice device)
+        {
+            await Task.Delay(100);
+
+            return true;
+        }
+
         private BleScanningState scanningState;
         private Random random;
     }

@@ -40,6 +40,7 @@ namespace CalApp
             builder.Logging.AddDebug();
 #endif
 
+            builder.Services.AddSingleton<IAppContext, Shared.Services.AppContext>();
             builder.Services.AddSingleton<IPermissionsService, PermissionsService>();
             builder.Services.AddSingleton<INavigationService, NavigationService>();
             builder.Services.AddSingleton<IAlertService, AlertService>();
@@ -55,8 +56,14 @@ namespace CalApp
 
             builder.Services.AddTransient<ConnectPageView>();
             builder.Services.AddTransient<ConnectPageViewModel>();
-            builder.Services.AddTransient<CalibratePageView>();
-            builder.Services.AddTransient<CalibratePageViewModel>();
+            builder.Services.AddTransient<DeviceOverviewView>();
+            builder.Services.AddTransient<DeviceOverviewViewModel>();
+            builder.Services.AddTransient<CalibrationPageView>();
+            builder.Services.AddTransient<CalibrationPageViewModel>();
+            builder.Services.AddTransient<SlopeResultPageView>();
+            builder.Services.AddTransient<SlopeResultPageViewModel>();
+            builder.Services.AddTransient<DeviceInfoPageView>();
+            builder.Services.AddTransient<DeviceInfoPageViewModel>();
 
             return builder.Build();
         }

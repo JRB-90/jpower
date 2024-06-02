@@ -2,9 +2,9 @@ using UraniumUI.Pages;
 
 namespace CalApp.Shared.UI;
 
-public partial class CalibratePageView : UraniumContentPage
+public partial class DeviceOverviewView : UraniumContentPage
 {
-	public CalibratePageView(CalibratePageViewModel viewModel)
+	public DeviceOverviewView(DeviceOverviewViewModel viewModel)
 	{
         BindingContext = viewModel;
         InitializeComponent();

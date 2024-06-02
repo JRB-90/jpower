@@ -39,9 +39,9 @@ namespace CalApp.Shared.Services
             return NavigateToPage<ConnectPageView>();
         }
 
-        public Task NavigateToCalibratePage(IBleDevice bleDevice)
+        public Task NavigateToDeviceOverviewPage()
         {
-            return NavigateToPage<CalibratePageView>(bleDevice);
+            return NavigateToPage<DeviceOverviewView>();
         }
 
         public Task NavigateBack()

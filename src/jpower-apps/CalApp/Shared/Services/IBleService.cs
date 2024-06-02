@@ -20,5 +20,7 @@ namespace CalApp.Shared.Services
         Task<IJPowerDevice> CreateJPowerDevice(IBleDevice bleDevice);
 
         Task<Slope> CalculateSlope(IReadOnlyCollection<Measurement> measurements);
+
+        Task<bool> IsJPowerDevice(IBleDevice device);
     }
 }

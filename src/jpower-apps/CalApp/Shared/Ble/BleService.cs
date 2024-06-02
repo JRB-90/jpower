@@ -81,6 +81,11 @@ namespace CalApp.Shared.Ble
             return Task.FromResult(bleDevice);
         }
 
+        public Task<bool> IsJPowerDevice(IBleDevice device)
+        {
+            return Task.FromResult(BleServiceUUIDs.IsJPowerDevice(device));
+        }
+
         private BleScanningState scanningState;
         private IAdapter adapter;
     }

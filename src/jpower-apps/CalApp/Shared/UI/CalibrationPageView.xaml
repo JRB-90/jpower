@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
+             xmlns:validation="clr-namespace:InputKit.Shared.Validations;assembly=InputKit.Maui"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:ui="clr-namespace:CalApp.Shared.UI"
+             xmlns:ble="clr-namespace:CalApp.Shared.Ble"
+             xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
+             xmlns:mi="http://www.aathifmahir.com/dotnet/2022/maui/icons"
+             x:Class="CalApp.Shared.UI.CalibrationPageView"
+             x:DataType="ui:CalibrationPageViewModel">
+
+    <ContentView.Resources>
+        <ResourceDictionary>
+            <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter"/>
+        </ResourceDictionary>
+    </ContentView.Resources>
+
+    <Grid>
+        <VerticalStackLayout
+            IsEnabled="{Binding IsBusy, Converter={StaticResource InvertedBoolConverter}}">
+            <ui:JPowerDeviceView
+                JPowerDevice="{Binding CurrentJPowerDevice}"/>
+
+            <HorizontalStackLayout
+                HorizontalOptions="Center">
+                <Button
+                    x:Name="ZeroButton"
+                    Margin="10"
+                    WidthRequest="100"
+                    Command="{Binding ZeroCommand}"
+                    Text="Zero"/>
+
+                <Button
+                    x:Name="CalibrateButton"
+                    Margin="10"
+                    WidthRequest="100"
+                    Command="{Binding PushCalibrationCommand}"
+                    Text="Calibrate"/>
+            </HorizontalStackLayout>
+
+            <HorizontalStackLayout
+                HorizontalOptions="Center">
+                <material:TextField
+                    x:Name="WeightInput"
+                    Margin="10"
+                    VerticalOptions="Start"
+                    WidthRequest="220"
+                    Icon="{mi:Material Scale}"
+                    Title="Weight (kg)"
+                    Keyboard="Numeric"
+                    Text="{Binding WeightInput}">
+                    <validation:RequiredValidation />
+                    <validation:NumericValidation />
+                </material:TextField>
+
+                <Button
+                    x:Name="MeasureButton"
+                    Margin="10, 18, 10, 10"
+                    VerticalOptions="Start"
+                    WidthRequest="100"
+                    Command="{Binding TakeMeasurementCommand}"
+                    Text="Measure"/>
+
+                <Button
+                    x:Name="ResetButton"
+                    Margin="10, 18, 10, 10"
+                    VerticalOptions="Start"
+                    WidthRequest="100"
+                    Command="{Binding ResetMeasurementsCommand}"
+                    Text="Reset"/>
+            </HorizontalStackLayout>
+
+            <ui:MeasurementsView
+                HorizontalOptions="Center"
+                Measurements="{Binding Measurements}"/>
+        </VerticalStackLayout>
+
+        <ActivityIndicator
+            IsRunning="{Binding IsBusy}"/>
+    </Grid>
+</ContentView>
