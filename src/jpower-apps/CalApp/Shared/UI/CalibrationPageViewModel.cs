@@ -24,10 +24,9 @@ namespace CalApp.Shared.UI
             this.alertService = alertService;
             this.bleService = bleService;
 
-            Measurements = new ObservableCollection<Measurement>();
-            Measurements.CollectionChanged += Measurements_CollectionChanged;
-
             weightInput = "0.0";
+            calibrationContext = appContext.CalibrationContext;
+            calibrationContext.Measurements.CollectionChanged += Measurements_CollectionChanged;
 
             ZeroCommand =
                 new Command(
@@ -43,7 +42,7 @@ namespace CalApp.Shared.UI
                     () => appContext.JPowerDevice != null &&
                           appContext.BleDevice != null &&
                           appContext.BleDevice.DeviceState == BleDeviceState.Connected &&
-                          Measurements.Count >= MinMeasurementCount
+                          calibrationContext.Measurements.Count >= MinMeasurementCount
                 );
 
             TakeMeasurementCommand =
@@ -58,8 +57,8 @@ namespace CalApp.Shared.UI
 
             ResetMeasurementsCommand =
                 new Command(
-                    () => Measurements.Clear(),
-                    () => Measurements.Count > 0
+                    () => calibrationContext.Measurements.Clear(),
+                    () => calibrationContext.Measurements.Count > 0
                 );
 
             DisconnectCommand =
@@ -77,6 +76,12 @@ namespace CalApp.Shared.UI
             {
                 appContext.BleDevice.DeviceStateChanged += BleDevice_DeviceStateChanged;
             }
+
+            calibrationContext.Measurements.Add(new Measurement(1.0,   8000000, 10));
+            calibrationContext.Measurements.Add(new Measurement(10.0,  8800000, 10));
+            calibrationContext.Measurements.Add(new Measurement(25.0,  9500000, 10));
+            calibrationContext.Measurements.Add(new Measurement(50.0, 12400000, 10));
+            calibrationContext.Measurements.Add(new Measurement(75.0, 15100000, 10));
         }
 
         public bool IsBusy => appContext.IsBusy;
@@ -95,7 +100,7 @@ namespace CalApp.Shared.UI
 
         public IJPowerDevice? CurrentJPowerDevice => appContext.JPowerDevice;
 
-        public ObservableCollection<Measurement> Measurements { get; }
+        public ObservableCollection<Measurement> Measurements => calibrationContext.Measurements;
 
         public Command ZeroCommand { get; }
 
@@ -318,6 +323,7 @@ namespace CalApp.Shared.UI
         private readonly INavigationService navigationService;
         private readonly IAlertService alertService;
         private readonly IBleService bleService;
+        private readonly ICalibrationContext calibrationContext;
         private string weightInput;
     }
 }

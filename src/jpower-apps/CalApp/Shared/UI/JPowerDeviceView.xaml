@@ -6,21 +6,24 @@
     <Grid
         BindingContext="{x:Reference this}">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="2*"/>
+            <ColumnDefinition Width="15*"/>
             <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="15*"/>
+            <ColumnDefinition Width="2*"/>
         </Grid.ColumnDefinitions>
-
-        <Label
-            Grid.Column="0"
-            Margin="10"
-            HorizontalTextAlignment="Start"
-            FontSize="Small"
-            Text="ADC Value"/>
 
         <Label
             Grid.Column="1"
             Margin="10"
-            HorizontalTextAlignment="End"
+            HorizontalTextAlignment="Center"
+            FontSize="Small"
+            Text="ADC Value"/>
+
+        <Label
+            Grid.Column="3"
+            Margin="10"
+            HorizontalTextAlignment="Center"
             FontSize="Small"
             Text="{Binding JPowerDevice.RawAdcValue}"/>
     </Grid>

@@ -11,6 +11,8 @@ namespace CalApp.Shared.Services
 
         IJPowerDevice? JPowerDevice { get; set; }
 
+        ICalibrationContext CalibrationContext { get; }
+
         event EventHandler<bool>? BusyStateChanged;
 
         event EventHandler<IBleDevice?>? BleDeviceChanged;

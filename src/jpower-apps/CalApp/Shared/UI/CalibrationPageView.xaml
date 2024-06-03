@@ -21,32 +21,30 @@
         <VerticalStackLayout
             IsEnabled="{Binding IsBusy, Converter={StaticResource InvertedBoolConverter}}">
             <ui:JPowerDeviceView
+                Margin="10"
                 JPowerDevice="{Binding CurrentJPowerDevice}"/>
 
-            <HorizontalStackLayout
-                HorizontalOptions="Center">
-                <Button
-                    x:Name="ZeroButton"
-                    Margin="10"
-                    WidthRequest="100"
-                    Command="{Binding ZeroCommand}"
-                    Text="Zero"/>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*"/>
+                    <ColumnDefinition Width="15*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="15*"/>
+                    <ColumnDefinition Width="2*"/>
+                </Grid.ColumnDefinitions>
 
-                <Button
-                    x:Name="CalibrateButton"
-                    Margin="10"
-                    WidthRequest="100"
-                    Command="{Binding PushCalibrationCommand}"
-                    Text="Calibrate"/>
-            </HorizontalStackLayout>
-
-            <HorizontalStackLayout
-                HorizontalOptions="Center">
                 <material:TextField
                     x:Name="WeightInput"
+                    Grid.Row="0"
+                    Grid.Column="1"
+                    Grid.ColumnSpan="3"
                     Margin="10"
-                    VerticalOptions="Start"
-                    WidthRequest="220"
+                    HorizontalOptions="FillAndExpand"
                     Icon="{mi:Material Scale}"
                     Title="Weight (kg)"
                     Keyboard="Numeric"
@@ -57,20 +55,40 @@
 
                 <Button
                     x:Name="MeasureButton"
+                    Grid.Row="1"
+                    Grid.Column="1"
                     Margin="10, 18, 10, 10"
-                    VerticalOptions="Start"
-                    WidthRequest="100"
+                    HorizontalOptions="FillAndExpand"
                     Command="{Binding TakeMeasurementCommand}"
                     Text="Measure"/>
 
                 <Button
                     x:Name="ResetButton"
+                    Grid.Row="1"
+                    Grid.Column="3"
                     Margin="10, 18, 10, 10"
-                    VerticalOptions="Start"
-                    WidthRequest="100"
+                    HorizontalOptions="FillAndExpand"
                     Command="{Binding ResetMeasurementsCommand}"
                     Text="Reset"/>
-            </HorizontalStackLayout>
+
+                <Button
+                    x:Name="ZeroButton"
+                    Grid.Row="2"
+                    Grid.Column="1"
+                    Margin="10"
+                    HorizontalOptions="FillAndExpand"
+                    Command="{Binding ZeroCommand}"
+                    Text="Zero"/>
+
+                <Button
+                    x:Name="CalibrateButton"
+                    Grid.Row="2"
+                    Grid.Column="3"
+                    Margin="10"
+                    HorizontalOptions="FillAndExpand"
+                    Command="{Binding PushCalibrationCommand}"
+                    Text="Calibrate"/>
+            </Grid>
 
             <ui:MeasurementsView
                 HorizontalOptions="Center"

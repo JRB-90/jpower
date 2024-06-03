@@ -10,6 +10,7 @@ namespace CalApp.Shared.Services
             IsBusy = false;
             BleDevice = null;
             JPowerDevice = null;
+            CalibrationContext = new CalibrationContext();
         }
 
         public bool IsBusy
@@ -41,6 +42,8 @@ namespace CalApp.Shared.Services
                 JPowerDeviceChanged?.Invoke(this, jPowerDevice);
             }
         }
+
+        public ICalibrationContext CalibrationContext { get; }
 
         public event EventHandler<bool>? BusyStateChanged;
 

@@ -5,6 +5,8 @@ using CommunityToolkit.Maui;
 using MauiIcons.Fluent;
 using MauiIcons.Material;
 using Microsoft.Extensions.Logging;
+using OxyPlot.Maui.Skia;
+using SkiaSharp.Views.Maui.Controls.Hosting;
 using UraniumUI;
 
 namespace CalApp
@@ -18,6 +20,8 @@ namespace CalApp
             var builder = MauiApp.CreateBuilder();
             builder
                 .UseMauiApp<App>()
+                .UseSkiaSharp()
+                .UseOxyPlotSkia()
                 .UseMauiCommunityToolkit()
                 .UseMaterialMauiIcons()
                 .UseFluentMauiIcons()
