@@ -33,6 +33,19 @@ macro(jpow_addCalibrate)
     )
 endmacro()
 
+# Add JPower State Library
+macro(jpow_addJPState)
+    jpow_addBLE()
+    list(APPEND INCLUDE_DIRS
+        "${CMAKE_SOURCE_DIR}/lib/state"
+    )
+
+    list(APPEND SOURCE_FILES
+        "${CMAKE_SOURCE_DIR}/lib/state/jp_state.c"
+        "${CMAKE_SOURCE_DIR}/lib/state/jp_state_srv.c"
+    )
+endmacro()
+
 # Add I2C Library
 macro(jpow_addI2C)
     list(APPEND INCLUDE_DIRS

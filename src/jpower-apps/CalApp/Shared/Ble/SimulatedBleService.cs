@@ -1,4 +1,5 @@
 ﻿using CalApp.Shared.Calibration;
+using CalApp.Shared.JPower;
 using CalApp.Shared.Services;
 
 namespace CalApp.Shared.Ble
@@ -72,13 +73,6 @@ namespace CalApp.Shared.Ble
             await Task.Delay(random.Next(100, 500));
 
             return new SimulatedJPowerDevice();
-        }
-
-        public async Task<Slope> CalculateSlope(IReadOnlyCollection<Measurement> measurements)
-        {
-            await Task.Delay(100);
-
-            return new Slope(13.5);
         }
 
         public async Task<bool> IsJPowerDevice(IBleDevice device)

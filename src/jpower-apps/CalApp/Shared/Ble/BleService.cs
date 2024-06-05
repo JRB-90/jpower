@@ -1,4 +1,5 @@
 ﻿using CalApp.Shared.Calibration;
+using CalApp.Shared.JPower;
 using CalApp.Shared.Services;
 using Plugin.BLE;
 using Plugin.BLE.Abstractions.Contracts;
@@ -83,7 +84,7 @@ namespace CalApp.Shared.Ble
 
         public Task<bool> IsJPowerDevice(IBleDevice device)
         {
-            return Task.FromResult(BleServiceUUIDs.IsJPowerDevice(device));
+            return Task.FromResult(JPowerBleUUIDs.IsJPowerDevice(device));
         }
 
         private BleScanningState scanningState;

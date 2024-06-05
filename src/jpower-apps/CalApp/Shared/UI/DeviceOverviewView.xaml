@@ -20,7 +20,7 @@
         </material:TabItem>
 
         <material:TabItem
-            Title="Device">
+            Title="Services">
             <ui:DeviceInfoPageView/>
         </material:TabItem>
 

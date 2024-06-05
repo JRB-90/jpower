@@ -10,8 +10,9 @@
 
 typedef struct
 {
-    uint32_t cal_id;
+    __uint128_t cal_id;
     float slope;
+    float intercept;
 } calibration_data_t;
 
 extern ret_code_t calibrate_init();

@@ -1,5 +1,5 @@
 ﻿using CalApp.Shared.Ble;
-using CalApp.Shared.Calibration;
+using CalApp.Shared.JPower;
 
 namespace CalApp.Shared.Services
 {
@@ -18,8 +18,6 @@ namespace CalApp.Shared.Services
         Task<IBleDevice> CreateBleDevice(BleDeviceInfo deviceInfo);
 
         Task<IJPowerDevice> CreateJPowerDevice(IBleDevice bleDevice);
-
-        Task<Slope> CalculateSlope(IReadOnlyCollection<Measurement> measurements);
 
         Task<bool> IsJPowerDevice(IBleDevice device);
     }

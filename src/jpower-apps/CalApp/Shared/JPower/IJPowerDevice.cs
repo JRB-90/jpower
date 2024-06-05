@@ -1,4 +1,6 @@
-﻿namespace CalApp.Shared.Calibration
+﻿using CalApp.Shared.Calibration;
+
+namespace CalApp.Shared.JPower
 {
     public interface IJPowerDevice
     {

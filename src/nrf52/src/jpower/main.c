@@ -25,6 +25,9 @@
 #include "strain.h"
 #include "storage_helper.h"
 #include "calibrate.h"
+#include "calibrate_srv.h"
+#include "jp_state.h"
+#include "jp_state_srv.h"
 
 #define DEVICE_NAME             "JPower"                // Name of device. Will be included in the advertising data
 #define IMU_SCL_PIN             I2C_SCL_INT_PIN         // The i2c scl pin that is on the imu i2c bus
@@ -33,16 +36,8 @@
 #define SPI_INSTANCE_ID         1                       // Internal SPI device to use
 #define ADVERTISING_LED         BSP_BOARD_LED_2         // Is on when device is advertising
 #define CONNECTED_LED           BSP_BOARD_LED_1         // Is on when device has connected
-#define HI_FREQ_CLK_HZ          1000                    // Frequency (Hz) of the high speed timer
+#define HI_FREQ_CLK_HZ          100                     // Frequency (Hz) of the high speed timer
 #define HI_FREQ_CLK_PERIOD_MS   1000 / HI_FREQ_CLK_HZ   // High speed timer period in ms
-
-typedef enum
-{
-    JPOWER_STATE_STARTUP,
-    JPOWER_STATE_IDLE,
-    JPOWER_STATE_CALIBRATING,
-    JPOWER_STATE_RUNNING
-} jpower_state_t;
 
 APP_TIMER_DEF(high_freq_timer);
 
@@ -55,10 +50,10 @@ static ble_subsystem_config_t ble_subsystem_config =
 
 static nrf_drv_twi_t twi                = NRF_DRV_TWI_INSTANCE(TWI_INSTANCE_ID);
 static nrf_drv_spi_t spi                = NRF_DRV_SPI_INSTANCE(SPI_INSTANCE_ID);
-static jpower_state_t current_state;
 
 static void board_init();
 static void softdevice_init();
+static void ble_init();
 static void start_timers();
 static bool app_shutdown_handler(nrf_pwr_mgmt_evt_t event);
 static void high_freq_callback(void* context);
@@ -67,16 +62,13 @@ static void enter_run_mode();
 
 int main()
 {
-    current_state = JPOWER_STATE_STARTUP;
-
     board_init();
     NRF_LOG_INFO("Board initialised");
 
     softdevice_init();
     NRF_LOG_INFO("Soft device initialised");
 
-    blesub_enable_ble_dfu();
-    blesub_init(&ble_subsystem_config);
+    ble_init();    
     NRF_LOG_INFO("BLE initialised");
 
     //antsub_init();
@@ -84,7 +76,7 @@ int main()
     
     start_timers();
 
-    current_state = JPOWER_STATE_IDLE;
+    jp_change_state(JP_STATE_INITIALISED);
     NRF_LOG_INFO("JPower fully initialised");
 
     if (!calibrate_get_is_calibrated())
@@ -116,6 +108,10 @@ static void board_init()
     APP_ERROR_CHECK(err_code);
 
     NRF_LOG_DEFAULT_BACKENDS_INIT();
+
+    // JPower State init
+    err_code = jp_state_init();
+    APP_ERROR_CHECK(err_code);
 
     // IO init
     err_code = ble_dfu_buttonless_async_svci_init();
@@ -189,6 +185,20 @@ static void softdevice_init()
     APP_ERROR_CHECK(err_code);
 }
 
+static void ble_init()
+{
+    ret_code_t err_code;
+
+    blesub_enable_ble_dfu();
+    blesub_init(&ble_subsystem_config);
+
+    err_code = calibrate_srv_init();
+    APP_ERROR_CHECK(err_code);
+
+    err_code = jp_state_srv_init();
+    APP_ERROR_CHECK(err_code);
+}
+
 static void start_timers()
 {
     ret_code_t err_code = 
@@ -222,21 +232,57 @@ static void high_freq_callback(void* context)
     NRF_TIMER1->TASKS_CAPTURE[1] = 1;
     //uint32_t interval_us = NRF_TIMER1->CC[1];
     NRF_TIMER1->TASKS_CLEAR = 1;
-
     //float time_delta = (float)interval_us / 1000000.0f;
+
+    switch (jp_get_current_state())
+    {
+    case JP_STATE_CALIBRATING:
+        calibrate_update();
+        break;
+
+    case JP_STATE_RUNNING:
+        // Update imu power calc
+        break;
+    
+    default:
+        break;
+    }
 }
 
 static void enter_calibrate_mode()
 {
+    jp_state_t current_state = jp_get_current_state();
+
+    if (current_state == JP_STATE_CALIBRATING ||
+        current_state == JP_STATE_STARTUP)
+    {
+        NRF_LOG_ERROR("Cannot enter calibrating state");
+
+        return;
+    }
+
     bsp_board_led_off(BSP_LED_0);
+    jp_change_state(JP_STATE_CALIBRATING);
     blesub_start_advertising();
     NRF_LOG_INFO("Entered calibration mode");
 }
 
 static void enter_run_mode()
 {
+    jp_state_t current_state = jp_get_current_state();
+
+    if (current_state == JP_STATE_RUNNING ||
+        current_state == JP_STATE_STARTUP)
+    {
+        NRF_LOG_ERROR("Cannot enter running state");
+
+        return;
+    }
+
     bsp_board_led_off(BSP_LED_1);
     bsp_board_led_off(BSP_LED_2);
     bsp_board_led_on(BSP_LED_0);
+    jp_change_state(JP_STATE_RUNNING);
+    // TODO - Start ANT plus profile
     NRF_LOG_INFO("Entered run mode");
 }

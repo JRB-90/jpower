@@ -1,5 +1,6 @@
 ﻿using CalApp.Shared.Ble;
 using CalApp.Shared.Calibration;
+using CalApp.Shared.JPower;
 
 namespace CalApp.Shared.Services
 {

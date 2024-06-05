@@ -18,82 +18,90 @@
     </ContentView.Resources>
 
     <Grid>
-        <VerticalStackLayout
+        <Grid
             IsEnabled="{Binding IsBusy, Converter={StaticResource InvertedBoolConverter}}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="15*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="15*"/>
+                <ColumnDefinition Width="2*"/>
+            </Grid.ColumnDefinitions>
+
             <ui:JPowerDeviceView
                 Margin="10"
+                Grid.Row="0"
+                Grid.Column="1"
+                Grid.ColumnSpan="3"
                 JPowerDevice="{Binding CurrentJPowerDevice}"/>
 
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="2*"/>
-                    <ColumnDefinition Width="15*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="15*"/>
-                    <ColumnDefinition Width="2*"/>
-                </Grid.ColumnDefinitions>
+            <material:TextField
+                x:Name="WeightInput"
+                Grid.Row="1"
+                Grid.Column="1"
+                Grid.ColumnSpan="3"
+                Margin="10"
+                HorizontalOptions="FillAndExpand"
+                Icon="{mi:Material Scale}"
+                Title="Weight (kg)"
+                Keyboard="Numeric"
+                Text="{Binding WeightInput}">
+                <validation:RequiredValidation />
+                <validation:NumericValidation />
+            </material:TextField>
 
-                <material:TextField
-                    x:Name="WeightInput"
-                    Grid.Row="0"
-                    Grid.Column="1"
-                    Grid.ColumnSpan="3"
-                    Margin="10"
-                    HorizontalOptions="FillAndExpand"
-                    Icon="{mi:Material Scale}"
-                    Title="Weight (kg)"
-                    Keyboard="Numeric"
-                    Text="{Binding WeightInput}">
-                    <validation:RequiredValidation />
-                    <validation:NumericValidation />
-                </material:TextField>
+            <Button
+                x:Name="MeasureButton"
+                Grid.Row="2"
+                Grid.Column="1"
+                Margin="10, 18, 10, 10"
+                HorizontalOptions="FillAndExpand"
+                Command="{Binding TakeMeasurementCommand}"
+                Text="Measure"/>
 
-                <Button
-                    x:Name="MeasureButton"
-                    Grid.Row="1"
-                    Grid.Column="1"
-                    Margin="10, 18, 10, 10"
-                    HorizontalOptions="FillAndExpand"
-                    Command="{Binding TakeMeasurementCommand}"
-                    Text="Measure"/>
+            <Button
+                x:Name="ResetButton"
+                Grid.Row="2"
+                Grid.Column="3"
+                Margin="10, 18, 10, 10"
+                HorizontalOptions="FillAndExpand"
+                Command="{Binding ResetMeasurementsCommand}"
+                Text="Reset"/>
 
-                <Button
-                    x:Name="ResetButton"
-                    Grid.Row="1"
-                    Grid.Column="3"
-                    Margin="10, 18, 10, 10"
-                    HorizontalOptions="FillAndExpand"
-                    Command="{Binding ResetMeasurementsCommand}"
-                    Text="Reset"/>
+            <Button
+                x:Name="ZeroButton"
+                Grid.Row="3"
+                Grid.Column="1"
+                Margin="10"
+                HorizontalOptions="FillAndExpand"
+                Command="{Binding ZeroCommand}"
+                Text="Zero"/>
 
-                <Button
-                    x:Name="ZeroButton"
-                    Grid.Row="2"
-                    Grid.Column="1"
-                    Margin="10"
-                    HorizontalOptions="FillAndExpand"
-                    Command="{Binding ZeroCommand}"
-                    Text="Zero"/>
-
-                <Button
-                    x:Name="CalibrateButton"
-                    Grid.Row="2"
-                    Grid.Column="3"
-                    Margin="10"
-                    HorizontalOptions="FillAndExpand"
-                    Command="{Binding PushCalibrationCommand}"
-                    Text="Calibrate"/>
-            </Grid>
+            <Button
+                x:Name="CalibrateButton"
+                Grid.Row="3"
+                Grid.Column="3"
+                Margin="10"
+                HorizontalOptions="FillAndExpand"
+                Command="{Binding PushCalibrationCommand}"
+                Text="Calibrate"/>
+            
 
             <ui:MeasurementsView
+                Grid.Row="4"
+                Grid.Column="1"
+                Grid.ColumnSpan="3"
                 HorizontalOptions="Center"
                 Measurements="{Binding Measurements}"/>
-        </VerticalStackLayout>
+
+        </Grid>
 
         <ActivityIndicator
             IsRunning="{Binding IsBusy}"/>

@@ -1,7 +1,8 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CalApp.Shared.Calibration;
+using CommunityToolkit.Mvvm.ComponentModel;
 using System.Reactive.Subjects;
 
-namespace CalApp.Shared.Calibration
+namespace CalApp.Shared.JPower
 {
     public class SimulatedJPowerDevice : ObservableObject, IJPowerDevice
     {
@@ -63,7 +64,7 @@ namespace CalApp.Shared.Calibration
             return true;
         }
 
-        private void Timer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
+        private void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
             lock (syncObj)
             {

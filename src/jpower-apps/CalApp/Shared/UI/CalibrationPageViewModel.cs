@@ -1,5 +1,6 @@
 ﻿using CalApp.Shared.Ble;
 using CalApp.Shared.Calibration;
+using CalApp.Shared.JPower;
 using CalApp.Shared.Mvvm;
 using CalApp.Shared.Services;
 using System.Collections.ObjectModel;
@@ -161,7 +162,7 @@ namespace CalApp.Shared.UI
                     throw new InvalidOperationException("JPower device not connected");
                 }
 
-                var slope = await bleService.CalculateSlope(Measurements);
+                var slope = appContext.CalibrationContext.CalculateSlope();
                 var wasSuccessful = await appContext.JPowerDevice.PushSlope(slope);
 
                 if (!wasSuccessful)

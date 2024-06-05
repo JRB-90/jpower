@@ -1,4 +1,5 @@
-﻿using CalApp.Shared.Mvvm;
+﻿using CalApp.Shared.Calibration;
+using CalApp.Shared.Mvvm;
 using CalApp.Shared.Services;
 using OxyPlot;
 using OxyPlot.Axes;
@@ -13,6 +14,7 @@ namespace CalApp.Shared.UI
             this.appContext = appContext;
             calibrationContext = appContext.CalibrationContext;
             slopePlotModel = new PlotModel();
+            calculatedSlope = null;
 
             appContext.BusyStateChanged += AppContext_BusyStateChanged;
             calibrationContext.Measurements.CollectionChanged += Measurements_CollectionChanged;
@@ -26,6 +28,12 @@ namespace CalApp.Shared.UI
         {
             get => slopePlotModel;
             set => SetProperty(ref slopePlotModel, value);
+        }
+
+        public Slope? CalculatedSlope
+        {
+            get => calculatedSlope;
+            set => SetProperty(ref calculatedSlope, value);
         }
 
         private void BuildChartFromMeasurements()
@@ -57,6 +65,7 @@ namespace CalApp.Shared.UI
                 {
                     Title = "ADC Value",
                     Position = AxisPosition.Left,
+                    StringFormat = "0",
                     AxislineColor = OxyColor.FromRgb(255, 255, 255),
                     TitleColor = OxyColor.FromRgb(255, 255, 255),
                     TextColor = OxyColor.FromRgb(255, 255, 255),
@@ -80,6 +89,39 @@ namespace CalApp.Shared.UI
 
             model.Series.Add(dataSeries);
 
+            if (calibrationContext.Measurements.Count > 0)
+            {
+                CalculatedSlope = calibrationContext.CalculateSlope();
+
+                var fitLineSeries = new LineSeries();
+
+                var biggestX =
+                    calibrationContext
+                    .Measurements
+                    .Select(x => x.Weight)
+                    .Max();
+
+                fitLineSeries.Points.Add(
+                    new DataPoint(
+                        0.0,
+                        CalculatedSlope.Intercept
+                    )
+                );
+
+                fitLineSeries.Points.Add(
+                    new DataPoint(
+                        biggestX,
+                        CalculatedSlope.Intercept + (biggestX * CalculatedSlope.SlopeValue)
+                    )
+                );
+
+                model.Series.Add(fitLineSeries);
+            }
+            else
+            {
+                CalculatedSlope = new Slope(0, 0);
+            }
+
             SlopePlotModel = model;
         }
 
@@ -96,5 +138,6 @@ namespace CalApp.Shared.UI
         private readonly IAppContext appContext;
         private readonly ICalibrationContext calibrationContext;
         private PlotModel slopePlotModel;
+        private Slope? calculatedSlope;
     }
 }

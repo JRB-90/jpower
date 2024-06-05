@@ -5,6 +5,7 @@
 #include "nrf_sdh_ble.h"
 #include "ble_srv_common.h"
 #include "ble_srv_helper.h"
+#include "ble_gatts.h"
 #include "ble_subsystem.h"
 
 static void on_connect();
@@ -16,17 +17,6 @@ static ble_uuid_t srv_uuid =
 {
     .uuid = BLE_CAL_SRV_SERVICE_UUID,
     .type = BLE_UUID_TYPE_UNKNOWN,
-};
-
-static ble_srv_char_desc_t adc_char_desc =
-{
-    .char_description = "Raw ADC Stream",
-    .char_uuid = BLE_CAL_SRV_ADC_RAW_CHAR_UUID,
-    .char_access_rights = (BLE_SRV_READ | BLE_SRV_WRITE | BLE_SRV_NOTIFY),
-    .char_data_len = sizeof(uint32_t),
-    .char_data_init = { 0x00, 0x00, 0x00, 0x00 },
-    .on_read = NULL,
-    .on_write = NULL,
 };
 
 static ble_srv_desc_t cal_service_desc =
@@ -46,6 +36,17 @@ static ble_srv_dyn_desc_t cal_service =
     .conn_handle = 0,
 };
 
+static ble_srv_char_desc_t adc_char_desc =
+{
+    .char_description = "Raw ADC Stream",
+    .char_uuid = BLE_CAL_SRV_ADC_RAW_CHAR_UUID,
+    .char_access_rights = (BLE_SRV_READ | BLE_SRV_NOTIFY),
+    .char_data_len = sizeof(uint32_t),
+    .char_data_init = { 0x00, 0x00, 0x00, 0x00 },
+    .on_read = NULL,
+    .on_write = NULL,
+};
+
 NRF_SDH_BLE_OBSERVER(
     calibrate_srv_observer,
     APP_BLE_OBSERVER_PRIO,
@@ -53,7 +54,7 @@ NRF_SDH_BLE_OBSERVER(
     &cal_service
 );
 
-void calibrate_srv_init()
+ret_code_t calibrate_srv_init()
 {
     ret_code_t err_code;
 
@@ -72,9 +73,11 @@ void calibrate_srv_init()
             &cal_service
         );
     APP_ERROR_CHECK(err_code);
+
+    return NRF_SUCCESS;
 }
 
-void calibrate_srv_update_raw_adc(int32_t value)
+ret_code_t calibrate_srv_update_raw_adc(int32_t value)
 {
     ret_code_t err_code =
         ble_srv_update_dyn_char(
@@ -83,14 +86,14 @@ void calibrate_srv_update_raw_adc(int32_t value)
             (uint8_t*)&value
         );
     APP_ERROR_CHECK(err_code);
+
+    return NRF_SUCCESS;
 }
 
 static void on_connect()
 {
-
 }
 
 static void on_disconnect()
 {
-
 }

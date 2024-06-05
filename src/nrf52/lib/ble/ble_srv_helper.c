@@ -67,7 +67,7 @@ ret_code_t ble_srv_init_dyn_service(ble_srv_dyn_desc_t* srv_desc)
         dyn_char_desc->char_attr.vlen = 0;
 
         dyn_char_desc->char_attr.rd_auth = (char_desc->on_read != NULL) ? 1 : 0;
-        dyn_char_desc->char_attr.wr_auth = 0;
+        dyn_char_desc->char_attr.wr_auth = (char_desc->on_write != NULL) ? 1 : 0;;
 
         BLE_UUID_BLE_ASSIGN(
             dyn_char_desc->char_uuid,
