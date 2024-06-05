@@ -18,6 +18,7 @@
 #include "nrf_drv_clock.h"
 #include "nrf_drv_twi.h"
 #include "nrf_drv_spi.h"
+#include "nrf_drv_rng.h"
 #include "ble_subsystem.h"
 #include "ant_subsystem.h"
 #include "jpow_math.h"
@@ -111,6 +112,9 @@ static void board_init()
 
     // JPower State init
     err_code = jp_state_init();
+    APP_ERROR_CHECK(err_code);
+
+    err_code = nrf_drv_rng_init(NULL);
     APP_ERROR_CHECK(err_code);
 
     // IO init

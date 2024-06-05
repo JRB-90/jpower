@@ -4,13 +4,14 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "app_error.h"
+#include "jp_utils.h"
 
 #define CAL_FILE_ID     0x8020
 #define CAL_RECORD_KEY  0x7020
 
 typedef struct
 {
-    __uint128_t cal_id;
+    guid_t cal_id;
     float slope;
     float intercept;
 } calibration_data_t;

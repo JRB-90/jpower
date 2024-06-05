@@ -9,6 +9,18 @@ macro(jpow_addJPowMath)
     )
 endmacro()
 
+# Add JPower Utils Library
+macro(jpow_addJPUtils)
+    nRF5_addHWRNGLegacy()
+    list(APPEND INCLUDE_DIRS
+        "${CMAKE_SOURCE_DIR}/lib/utils"
+    )
+
+    list(APPEND SOURCE_FILES
+        "${CMAKE_SOURCE_DIR}/lib/utils/jp_utils.c"
+    )
+endmacro()
+
 # Add Storage Library
 macro(jpow_addStorage)
     list(APPEND INCLUDE_DIRS
@@ -22,6 +34,7 @@ endmacro()
 
 # Add Calibrate Library
 macro(jpow_addCalibrate)
+    jpow_addJPUtils()
     jpow_addBLE()
     list(APPEND INCLUDE_DIRS
         "${CMAKE_SOURCE_DIR}/lib/calibrate"
