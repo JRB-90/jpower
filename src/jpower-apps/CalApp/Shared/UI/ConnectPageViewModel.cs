@@ -19,7 +19,6 @@ namespace CalApp.Shared.UI
             this.navigation = navigation;
             this.alertService = alertService;
             this.bleService = bleService;
-            isBusy = false;
             DiscoveredDevices = new ObservableCollection<BleDeviceInfo>();
             
             ScanCommand = 
@@ -125,6 +124,15 @@ namespace CalApp.Shared.UI
             }
             catch (Exception ex)
             {
+                if (appContext.BleDevice != null &&
+                    appContext.BleDevice.DeviceState == BleDeviceState.Connected)
+                {
+                    await appContext.BleDevice.Disconnect();
+                }
+
+                appContext.JPowerDevice = null;
+                appContext.BleDevice = null;
+
                 await alertService.DisplayAlert(
                     "Error",
                     ex.Message,
@@ -161,6 +169,5 @@ namespace CalApp.Shared.UI
         private readonly IAlertService alertService;
         private readonly IBleService bleService;
         private BleDeviceInfo? selectedDevice;
-        private bool isBusy;
     }
 }

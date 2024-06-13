@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using Plugin.BLE.Abstractions;
 using Plugin.BLE.Abstractions.Contracts;
 
 namespace CalApp.Shared.Ble
@@ -19,6 +20,12 @@ namespace CalApp.Shared.Ble
                 ? characteristic.Name
                 : "Unknown characteristic";
 
+            CanRead = characteristic.CanRead;
+            CanWrite = characteristic.CanWrite;
+            IsNotifying = characteristic.CanUpdate;
+            characteristic.WriteType = CanWrite ? CharacteristicWriteType.WithResponse : CharacteristicWriteType.Default;
+            WriteWithResponse = characteristic.WriteType == CharacteristicWriteType.WithResponse;
+
             characteristic.ValueUpdated += Characteristic_ValueUpdated;
         }
 
@@ -30,6 +37,8 @@ namespace CalApp.Shared.Ble
 
         public bool CanWrite { get; }
 
+        public bool WriteWithResponse { get; }
+
         public bool IsNotifying { get; }
 
         public byte[] CurrentValue
@@ -37,6 +46,8 @@ namespace CalApp.Shared.Ble
             get => currentValue;
             private set => SetProperty(ref currentValue, value);
         }
+
+        public ICharacteristic Characteristic => characteristic;
 
         public event EventHandler<byte[]>? ValueUpdated;
 
@@ -48,6 +59,11 @@ namespace CalApp.Shared.Ble
         public async Task StopListening()
         {
             await characteristic.StopUpdatesAsync();
+        }
+
+        public async Task<bool> WriteValue(byte[] value)
+        {
+            return await characteristic.WriteAsync(value) == 0;
         }
 
         private void Characteristic_ValueUpdated(

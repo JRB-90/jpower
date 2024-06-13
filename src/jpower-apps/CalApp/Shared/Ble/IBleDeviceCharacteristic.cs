@@ -12,6 +12,8 @@
 
         bool IsNotifying { get; }
 
+        bool WriteWithResponse { get; }
+
         byte[] CurrentValue { get; }
 
         event EventHandler<byte[]>? ValueUpdated;
@@ -19,5 +21,7 @@
         Task StartListening();
 
         Task StopListening();
+
+        Task<bool> WriteValue(byte[] value);
     }
 }

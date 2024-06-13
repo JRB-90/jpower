@@ -15,6 +15,8 @@ namespace CalApp.Shared.JPower
 
             rawAdcValues = new Subject<uint>();
             RawAdcValues = rawAdcValues;
+            stateValues = new Subject<JPowerState>();
+            StateValues = stateValues;
 
             timer = new System.Timers.Timer();
             timer.Interval = 500;
@@ -31,7 +33,19 @@ namespace CalApp.Shared.JPower
             }
         }
 
+        public JPowerState State
+        {
+            get => state;
+            set
+            {
+                SetProperty(ref state, value);
+                stateValues.OnNext(value);
+            }
+        }
+
         public IObservable<uint> RawAdcValues { get; }
+
+        public IObservable<JPowerState> StateValues { get; }
 
         public async Task StartStreaming()
         {
@@ -43,6 +57,27 @@ namespace CalApp.Shared.JPower
         {
             timer.Stop();
             await Task.Delay(100);
+        }
+
+        public async Task<bool> SwitchToCalMode()
+        {
+            await Task.Delay(random.Next(500, 1500));
+
+            return true;
+        }
+
+        public async Task<bool> SwitchToRunMode()
+        {
+            await Task.Delay(random.Next(500, 1500));
+
+            return true;
+        }
+
+        public async Task<bool> StateRequest(JPowerStateRequest stateRequest)
+        {
+            await Task.Delay(100);
+
+            return true;
         }
 
         public async Task<bool> ZeroOffset()
@@ -64,7 +99,7 @@ namespace CalApp.Shared.JPower
             return true;
         }
 
-        private void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        private void Timer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
         {
             lock (syncObj)
             {
@@ -73,12 +108,21 @@ namespace CalApp.Shared.JPower
             }
         }
 
+        public async Task<Slope> PullSlope()
+        {
+            await Task.Delay(random.Next(1000, 2000));
+
+            return new Slope(123.456, 4242);
+        }
+
         private uint rawAdcValue;
         private Subject<uint> rawAdcValues;
+        private JPowerState state;
+        private Subject<JPowerState> stateValues;
         private System.Timers.Timer timer;
         private Random random;
         private int offset;
 
-        private static object syncObj = new object();
+        private object syncObj = new object();
     }
 }

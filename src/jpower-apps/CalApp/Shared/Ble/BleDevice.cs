@@ -13,12 +13,11 @@ namespace CalApp.Shared.Ble
         public const int ConnectTimeoutMs = 5000;
         public const int DisconnectTimeoutMs = 5000;
 
-        public BleDevice(BleDeviceInfo deviceInfo)
+        public BleDevice(IDevice device)
         {
+            this.device = device;
             deviceState = BleDeviceState.Disconnected;
             services = new List<BleDeviceService>();
-
-            device = null; // deviceInfo.Device; TODO - FIX!
             
             connectResetEvent = new AsyncManualResetEvent(false);
             disconnectResetEvent = new AsyncManualResetEvent(false);
@@ -49,6 +48,8 @@ namespace CalApp.Shared.Ble
                 DevicePropertiesUpdated?.Invoke(this, new EventArgs());
             }
         }
+
+        public IDevice Device => device;
 
         public BleDeviceInfo BleDeviceInfo => throw new NotImplementedException();
 

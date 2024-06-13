@@ -12,13 +12,15 @@ namespace CalApp.Shared.Ble
             string name,
             bool canRead,
             bool canWrite,
-            bool isNotifying)
+            bool isNotifying,
+            bool writeWithResponse)
         {
             UUID = uuid;
             Name = name;
             CanRead = canRead;
             CanWrite = canWrite;
             IsNotifying = isNotifying;
+            WriteWithResponse = writeWithResponse;
             currentValue = new byte[0];
         }
 
@@ -31,6 +33,8 @@ namespace CalApp.Shared.Ble
         public bool CanWrite { get; }
 
         public bool IsNotifying { get; }
+
+        public bool WriteWithResponse { get; }
 
         public byte[] CurrentValue
         {
@@ -52,6 +56,13 @@ namespace CalApp.Shared.Ble
         public async Task StopListening()
         {
             await Task.Delay(100);
+        }
+
+        public async Task<bool> WriteValue(byte[] value)
+        {
+            await Task.Delay(100);
+
+            return true;
         }
 
         private byte[] currentValue;

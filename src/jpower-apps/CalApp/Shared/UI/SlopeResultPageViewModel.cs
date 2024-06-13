@@ -89,7 +89,7 @@ namespace CalApp.Shared.UI
 
             model.Series.Add(dataSeries);
 
-            if (calibrationContext.Measurements.Count > 0)
+            if (calibrationContext.Measurements.Count > 1)
             {
                 CalculatedSlope = calibrationContext.CalculateSlope();
 

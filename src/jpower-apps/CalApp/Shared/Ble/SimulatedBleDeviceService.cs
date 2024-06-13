@@ -42,7 +42,8 @@
                         $"Characteristic {i}",
                         true,
                         false,
-                        true
+                        true,
+                        false
                     )
                 );
             }

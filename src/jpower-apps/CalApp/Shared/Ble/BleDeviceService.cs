@@ -26,6 +26,7 @@ namespace CalApp.Shared.Ble
             }
 
             Characteristics = characteristics;
+            Service = service;
         }
 
         public Guid UUID { get; }
@@ -33,5 +34,7 @@ namespace CalApp.Shared.Ble
         public string Name { get; }
 
         public IReadOnlyCollection<IBleDeviceCharacteristic> Characteristics { get; }
+
+        public IService Service { get; }
     }
 }

@@ -1,5 +1,4 @@
-﻿using CalApp.Shared.Calibration;
-using CalApp.Shared.JPower;
+﻿using CalApp.Shared.JPower;
 using CalApp.Shared.Services;
 using Plugin.BLE;
 using Plugin.BLE.Abstractions.Contracts;
@@ -12,6 +11,7 @@ namespace CalApp.Shared.Ble
         public BleService()
         {
             scanningState = BleScanningState.Idle;
+            knownDevices = new Dictionary<Guid, IDevice>();
             adapter = CrossBluetoothLE.Current.Adapter;
             adapter.DeviceDiscovered += Adapter_DeviceDiscovered;
             adapter.ScanTimeoutElapsed += Adapter_ScanTimeoutElapsed;
@@ -49,22 +49,29 @@ namespace CalApp.Shared.Ble
             }
         }
 
-        public async Task<IJPowerDevice> CreateJPowerDevice(IBleDevice bleDevice)
+        public Task<IJPowerDevice> CreateJPowerDevice(IBleDevice bleDevice)
         {
-            // TODO
-            throw new NotImplementedException();
-        }
+            if (bleDevice is BleDevice device)
+            {
+                IJPowerDevice jPowerDevice = new JPowerDevice(device);
 
-        public async Task<Slope> CalculateSlope(IReadOnlyCollection<Measurement> measurements)
-        {
-            // TODO
-            throw new NotImplementedException();
+                return Task.FromResult(jPowerDevice);
+            }
+            else
+            {
+                throw new ArgumentException("Cannot create JPower device");
+            }
         }
 
         private void Adapter_DeviceDiscovered(object? sender, DeviceEventArgs e)
         {
             if (e.Device.IsConnectable)
             {
+                if (!knownDevices.ContainsKey(e.Device.Id))
+                {
+                    knownDevices.Add(e.Device.Id, e.Device);
+                }
+                
                 var device = new BleDeviceInfo(e.Device.Id, e.Device.Name);
                 BleDeviceDiscovered?.Invoke(this, device);
             }
@@ -77,9 +84,18 @@ namespace CalApp.Shared.Ble
 
         public Task<IBleDevice> CreateBleDevice(BleDeviceInfo deviceInfo)
         {
-            IBleDevice bleDevice = new BleDevice(deviceInfo);
+            if (knownDevices.TryGetValue(deviceInfo.UUID, out var device))
+            {
+                IBleDevice bleDevice = new BleDevice(device);
 
-            return Task.FromResult(bleDevice);
+                return Task.FromResult(bleDevice);
+            }
+            else
+            {
+                throw new ArgumentException(
+                    $"BLE Device not found with UUID: {deviceInfo.UUID}"
+                );
+            }
         }
 
         public Task<bool> IsJPowerDevice(IBleDevice device)
@@ -89,5 +105,6 @@ namespace CalApp.Shared.Ble
 
         private BleScanningState scanningState;
         private IAdapter adapter;
+        private Dictionary<Guid, IDevice> knownDevices;
     }
 }

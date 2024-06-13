@@ -29,6 +29,20 @@ namespace CalApp.Shared.UI
             calibrationContext = appContext.CalibrationContext;
             calibrationContext.Measurements.CollectionChanged += Measurements_CollectionChanged;
 
+            SwitchCalCommand =
+                new Command(
+                    async () => await SwitchToCalMode(),
+                    () => appContext.JPowerDevice != null &&
+                          appContext.JPowerDevice.State != JPowerState.JP_STATE_CALIBRATING
+                );
+
+            SwitchRunCommand =
+                new Command(
+                    async () => await SwitchToRunMode(),
+                    () => appContext.JPowerDevice != null &&
+                          appContext.JPowerDevice.State != JPowerState.JP_STATE_RUNNING
+                );
+
             ZeroCommand =
                 new Command(
                     async () => await Zero(),
@@ -78,6 +92,11 @@ namespace CalApp.Shared.UI
                 appContext.BleDevice.DeviceStateChanged += BleDevice_DeviceStateChanged;
             }
 
+            if (appContext.JPowerDevice != null)
+            {
+                appContext.JPowerDevice.StateValues.Subscribe(_ => OnJPowerStateChanged());
+            }
+
             calibrationContext.Measurements.Add(new Measurement(1.0,   8000000, 10));
             calibrationContext.Measurements.Add(new Measurement(10.0,  8800000, 10));
             calibrationContext.Measurements.Add(new Measurement(25.0,  9500000, 10));
@@ -86,6 +105,22 @@ namespace CalApp.Shared.UI
         }
 
         public bool IsBusy => appContext.IsBusy;
+
+        public bool CanCalibrate
+        {
+            get
+            {
+                if (appContext.JPowerDevice != null &&
+                    appContext.JPowerDevice.State == JPowerState.JP_STATE_CALIBRATING)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
 
         public string WeightInput
         {
@@ -103,6 +138,10 @@ namespace CalApp.Shared.UI
 
         public ObservableCollection<Measurement> Measurements => calibrationContext.Measurements;
 
+        public Command SwitchCalCommand { get; }
+
+        public Command SwitchRunCommand { get; }
+
         public Command ZeroCommand { get; }
 
         public Command PushCalibrationCommand { get; }
@@ -112,6 +151,82 @@ namespace CalApp.Shared.UI
         public Command ResetMeasurementsCommand { get; }
 
         public Command DisconnectCommand { get; }
+
+        private async Task SwitchToCalMode()
+        {
+            appContext.IsBusy = true;
+
+            try
+            {
+                if (appContext.JPowerDevice == null)
+                {
+                    throw new InvalidOperationException("JPower device not connected");
+                }
+
+                var wasSuccessful = await appContext.JPowerDevice.SwitchToCalMode();
+
+                if (!wasSuccessful)
+                {
+                    throw new InvalidOperationException("Failed to switch to calibration mode");
+                }
+
+                await alertService.DisplayAlert(
+                    "JPower",
+                    "Deviced switched to calibration mode",
+                    "OK"
+                );
+            }
+            catch (Exception ex)
+            {
+                await alertService.DisplayAlert(
+                    "Error",
+                    ex.Message,
+                    "OK"
+                );
+            }
+            finally
+            {
+                appContext.IsBusy = false;
+            }
+        }
+
+        private async Task SwitchToRunMode()
+        {
+            appContext.IsBusy = true;
+
+            try
+            {
+                if (appContext.JPowerDevice == null)
+                {
+                    throw new InvalidOperationException("JPower device not connected");
+                }
+
+                var wasSuccessful = await appContext.JPowerDevice.SwitchToRunMode();
+
+                if (!wasSuccessful)
+                {
+                    throw new InvalidOperationException("Failed to switch to running mode");
+                }
+
+                await alertService.DisplayAlert(
+                    "JPower",
+                    "Deviced switched to running mode",
+                    "OK"
+                );
+            }
+            catch (Exception ex)
+            {
+                await alertService.DisplayAlert(
+                    "Error",
+                    ex.Message,
+                    "OK"
+                );
+            }
+            finally
+            {
+                appContext.IsBusy = false;
+            }
+        }
 
         private async Task Zero()
         {
@@ -271,6 +386,8 @@ namespace CalApp.Shared.UI
 
         private void RefreshCommandEnables()
         {
+            SwitchCalCommand.ChangeCanExecute();
+            SwitchRunCommand.ChangeCanExecute();
             ZeroCommand.ChangeCanExecute();
             PushCalibrationCommand.ChangeCanExecute();
             TakeMeasurementCommand.ChangeCanExecute();
@@ -296,6 +413,11 @@ namespace CalApp.Shared.UI
         private void AppContext_JPowerDeviceChanged(object? sender, IJPowerDevice? e)
         {
             OnPropertyChanged(nameof(CurrentJPowerDevice));
+
+            if (appContext.JPowerDevice != null)
+            {
+                appContext.JPowerDevice.StateValues.Subscribe(_ => OnJPowerStateChanged());
+            }
         }
 
         private void Measurements_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -306,18 +428,24 @@ namespace CalApp.Shared.UI
         private async void BleDevice_DeviceStateChanged(object? sender, BleDeviceState newState)
         {
             OnPropertyChanged(nameof(BleDevice));
-            RefreshCommandEnables();
 
             if (newState == BleDeviceState.Disconnected)
             {
-                await alertService.DisplayAlert(
-                    "Error",
-                    "Device disconnected",
-                    "OK"
-                );
+                //await alertService.DisplayAlert(
+                //    "Error",
+                //    "Device disconnected",
+                //    "OK"
+                //);
 
                 await navigationService.NavigateToConnectPage();
             }
+
+            RefreshCommandEnables();
+        }
+
+        private void OnJPowerStateChanged()
+        {
+            OnPropertyChanged(nameof(CanCalibrate));
         }
 
         private readonly IAppContext appContext;
