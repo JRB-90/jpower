@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "boards.h"
-#include "seeed_xiao_sense.h"
+#include "jpower_v1.h"
 #include "nrf_delay.h"
 
 int main()

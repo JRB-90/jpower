@@ -4,7 +4,8 @@ cmake_minimum_required(VERSION 3.19)
 # must be set as cache strings to ensure they are not overwritten in mesh SDK
 set(IC "nRF52840" CACHE STRING "IC")
 set(PLATFORM "nrf52840_xxAA"  CACHE STRING "Platform")
-set(BOARD "SEEED_XIAO_SENSE" CACHE STRING "Board type")
+#set(BOARD "SEEED_XIAO_SENSE" CACHE STRING "Board type")
+set(BOARD "JPOWER_V1" CACHE STRING "Board type")
 set(SOFTDEVICE_TYPE "s340" CACHE STRING "SoftDevice type")
 set(SOFTDEVICE_VERSION "6.1.1" CACHE STRING "SoftDevice version")
 

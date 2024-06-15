@@ -1,0 +1,10 @@
+set(JPOWER_V1_DEFINES
+    -DBOARD_JPOWER_V1
+    -DCONFIG_GPIO_AS_PINRESET
+    -DCUSTOM_BOARD_INC=jpower_v1
+)
+
+set(JPOWER_V1_INCLUDE_DIRS
+    "${SDK_ROOT}/components/boards"
+    "${CMAKE_SOURCE_DIR}/board"
+)
