@@ -6,6 +6,7 @@
 
 extern ret_code_t storage_init();
 extern ret_code_t storage_write(const fds_record_t* record);
+extern ret_code_t storage_write_async(const fds_record_t* record);
 extern ret_code_t storage_read(
     uint16_t file_id, 
     uint16_t record_key,

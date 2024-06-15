@@ -12,4 +12,4 @@ typedef struct
 
 extern guid_t jp_utils_gen_new_guid();
 
-#endif JP_UTILS_H__
+#endif // JP_UTILS_H__

@@ -6,18 +6,18 @@
 #include "app_error.h"
 #include "ble_srv_common.h"
 
-#define BLE_SRV_MAX_SERVICES            10  // Maximum defineable services
-#define BLE_SRV_MAX_CHARACTERISTICS	    5   // Maximum characteristics per service
-#define BLE_SRV_MAX_TOTAL_CHARACT		20  // Maximum characteristics definable overall
+#define BLE_SRV_MAX_SERVICES            16   // Maximum defineable services
+#define BLE_SRV_MAX_CHARACTERISTICS	    16  // Maximum characteristics per service
+#define BLE_SRV_MAX_TOTAL_CHARACT		32  // Maximum characteristics definable overall
 #define BLE_SRV_MAX_STRING_SIZE			64	// Maximum size of the String type structures
-#define BLE_SRV_MAX_DATA_SIZE			16  // Maximum size of the service data type
+#define BLE_SRV_MAX_DATA_SIZE			32  // Maximum size of the service data type
 
 typedef enum
 {
-    BLE_SRV_NONE    = 0b0000,
-    BLE_SRV_READ    = 0b0001,
-    BLE_SRV_WRITE   = 0b0010,
-    BLE_SRV_NOTIFY  = 0b0100,
+    BLE_SRV_NONE                        = 0b0000,
+    BLE_SRV_READ                        = 0b0001,
+    BLE_SRV_WRITE                       = 0b0010,
+    BLE_SRV_NOTIFY                      = 0b0100,
 } ble_srv_char_access_t;
 
 typedef struct

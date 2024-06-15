@@ -2,6 +2,7 @@
 
 #include "nrf_log.h"
 #include "nrf_sdh.h"
+#include "nrf_fstorage_sd.h"
 
 /* Array to map FDS return values to strings. */
 static char const* err_str[] =
@@ -40,6 +41,7 @@ static bool fds_delete_finished = false;
 
 static const char* fds_err_str(ret_code_t ret);
 static void fds_evt_handler(const fds_evt_t* fds_event);
+static void wait_for_fds_initialised();
 static void wait_for_fds_ready();
 static void wait_for_fds_write();
 static void wait_for_fds_delete();
@@ -52,13 +54,15 @@ ret_code_t storage_init()
     err_code = fds_init();
     APP_ERROR_CHECK(err_code);
 
-    wait_for_fds_ready();
+    wait_for_fds_initialised();
 
     return err_code;
 }
 
 ret_code_t storage_write(const fds_record_t* record)
 {
+    wait_for_fds_ready();
+
     fds_write_finished = false;
     fds_record_desc_t desc = {0};
 
@@ -78,11 +82,33 @@ ret_code_t storage_write(const fds_record_t* record)
     return err_code;
 }
 
+ret_code_t storage_write_async(const fds_record_t* record)
+{
+    wait_for_fds_ready();
+
+    fds_record_desc_t desc = {0};
+
+    ret_code_t err_code = 
+        fds_record_write(
+            &desc, 
+            record
+        );
+
+    if (err_code == FDS_ERR_NO_SPACE_IN_FLASH)
+    {
+        NRF_LOG_ERROR("No space in flash, delete some records first");
+    }
+
+    return err_code;
+}
+
 ret_code_t storage_read(
     uint16_t file_id,
     uint16_t record_key,
     fds_flash_record_t* read_record)
 {
+    wait_for_fds_ready();
+
     fds_record_desc_t desc = {0};
     fds_find_token_t tok = {0};
 
@@ -96,7 +122,6 @@ ret_code_t storage_read(
 
     if (err_code == NRF_SUCCESS)
     {
-        
         err_code = fds_record_open(&desc, read_record);
         APP_ERROR_CHECK(err_code);
     }
@@ -108,6 +133,8 @@ ret_code_t storage_delete(
     uint16_t file_id,
     uint16_t record_key)
 {
+    wait_for_fds_ready();
+
     fds_delete_finished = false;
     fds_record_desc_t desc = {0};
     fds_find_token_t tok = {0};
@@ -139,14 +166,7 @@ static const char* fds_err_str(ret_code_t ret)
 
 static void fds_evt_handler(const fds_evt_t* fds_event)
 {
-    if (fds_event->result == NRF_SUCCESS)
-    {
-        NRF_LOG_INFO(
-            "Event: %s received (NRF_SUCCESS)",
-            fds_evt_str[fds_event->id]
-        );
-    }
-    else
+    if (fds_event->result != NRF_SUCCESS)
     {
         NRF_LOG_INFO(
             "Event: %s received (%s)",
@@ -185,9 +205,17 @@ static void fds_evt_handler(const fds_evt_t* fds_event)
     }
 }
 
-static void wait_for_fds_ready()
+static void wait_for_fds_initialised()
 {
     while (!fds_initialized)
+    {
+        sd_app_evt_wait();
+    }
+}
+
+static void wait_for_fds_ready()
+{
+    while (nrf_fstorage_is_busy(NULL))
     {
         sd_app_evt_wait();
     }

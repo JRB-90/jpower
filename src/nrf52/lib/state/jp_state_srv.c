@@ -14,7 +14,7 @@
 
 static void on_connect();
 static void on_disconnect();
-static void on_enter_state_write(uint8_t* data);
+static void on_state_request_write(uint8_t* data);
 
 static ble_uuid128_t base_uuid = { JP_STATE_SRV_BASE_UUID };
 
@@ -41,26 +41,26 @@ static ble_srv_dyn_desc_t jp_state_service =
     .conn_handle = 0,
 };
 
-static ble_srv_char_desc_t get_state_char_desc =
+static ble_srv_char_desc_t state_req_char_desc =
 {
-    .char_description = "Raw ADC Stream",
-    .char_uuid = JP_STATE_SRV_GET_STATE_CHAR_UUID,
-    .char_access_rights = (BLE_SRV_READ),
+    .char_description = "State Service Request",
+    .char_uuid = JP_STATE_SRV_STATE_REQ_CHAR_UUID,
+    .char_access_rights = (BLE_SRV_WRITE),
+    .char_data_len = sizeof(jp_state_request_t),
+    .char_data_init = { JP_STATE_REQUEST_NONE },
+    .on_read = NULL,
+    .on_write = on_state_request_write,
+};
+
+static ble_srv_char_desc_t current_state_char_desc =
+{
+    .char_description = "Current State",
+    .char_uuid = JP_STATE_SRV_CURRENT_STATE_CHAR_UUID,
+    .char_access_rights = (BLE_SRV_READ | BLE_SRV_NOTIFY),
     .char_data_len = sizeof(jp_state_t),
     .char_data_init = { JP_STATE_STARTUP },
     .on_read = NULL,
     .on_write = NULL,
-};
-
-static ble_srv_char_desc_t enter_state_char_desc =
-{
-    .char_description = "Enter State Request",
-    .char_uuid = JP_STATE_SRV_ENTER_STATE_CHAR_UUID,
-    .char_access_rights = (BLE_SRV_WRITE),
-    .char_data_len = sizeof(jp_enter_state_request_t),
-    .char_data_init = { JP_STATE_ENTER_CALIBRATING },
-    .on_read = NULL,
-    .on_write = on_enter_state_write,
 };
 
 NRF_SDH_BLE_OBSERVER(
@@ -70,15 +70,17 @@ NRF_SDH_BLE_OBSERVER(
     &jp_state_service
 );
 
+static jp_state_request_cb on_state_request = NULL;
+
 ret_code_t jp_state_srv_init()
 {
     ret_code_t err_code;
 
-    jp_state_service.chars_handler[JP_STATE_SRV_GET_STATE_INDEX].char_descriptor = &get_state_char_desc;
-    jp_state_service_desc.srv_chars[JP_STATE_SRV_GET_STATE_INDEX] = get_state_char_desc;
+    jp_state_service.chars_handler[JP_STATE_SRV_STATE_REQ_INDEX].char_descriptor = &state_req_char_desc;
+    jp_state_service_desc.srv_chars[JP_STATE_SRV_STATE_REQ_INDEX] = state_req_char_desc;
 
-    jp_state_service.chars_handler[JP_STATE_SRV_ENTER_STATE_INDEX].char_descriptor = &enter_state_char_desc;
-    jp_state_service_desc.srv_chars[JP_STATE_SRV_ENTER_STATE_INDEX] = enter_state_char_desc;
+    jp_state_service.chars_handler[JP_STATE_SRV_CURRENT_STATE_INDEX].char_descriptor = &current_state_char_desc;
+    jp_state_service_desc.srv_chars[JP_STATE_SRV_CURRENT_STATE_INDEX] = current_state_char_desc;
 
     err_code =
         sd_ble_uuid_vs_add(
@@ -96,12 +98,17 @@ ret_code_t jp_state_srv_init()
     return NRF_SUCCESS;
 }
 
+void jp_state_srv_register_enter_state_cb(jp_state_request_cb callback)
+{
+    on_state_request = callback;
+}
+
 ret_code_t jp_state_srv_update_current_state(jp_state_t state)
 {
     ret_code_t err_code =
         ble_srv_update_dyn_char(
             &jp_state_service,
-            &jp_state_service.chars_handler[JP_STATE_SRV_GET_STATE_INDEX],
+            &jp_state_service.chars_handler[JP_STATE_SRV_CURRENT_STATE_INDEX],
             (uint8_t*)&state
         );
     APP_ERROR_CHECK(err_code);
@@ -117,10 +124,29 @@ static void on_disconnect()
 {
 }
 
-static void on_enter_state_write(uint8_t* data)
+static void on_state_request_write(uint8_t* data)
 {
-    jp_enter_state_request_t enter_state_request;
-    memcpy(&enter_state_request, data, sizeof(jp_enter_state_request_t));
+    jp_state_request_t state_request;
+    memcpy(&state_request, data, sizeof(jp_state_request_t));
 
-    NRF_LOG_INFO("Enter state %i requested", (int)enter_state_request);
+    if (on_state_request == NULL)
+    {
+        return;        
+    }
+
+    if (state_request == JP_STATE_REQUEST_NONE)
+    {
+        return;
+    }
+    else if (state_request == JP_STATE_REQUEST_PUBLISH_STATE)
+    {
+        jp_state_srv_update_current_state(jp_state_get_current_state());
+        return;
+    }
+    else if (state_request == JP_STATE_REQUEST_SWITCH_TO_RUNNING ||
+             state_request == JP_STATE_REQUEST_SWITCH_TO_CALIBRATE)
+    {
+        on_state_request(state_request);
+        return;
+    }
 }

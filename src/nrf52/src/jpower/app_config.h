@@ -5,6 +5,9 @@
 
 #define NRF_QUEUE_ENABLED 1
 
+#define RNG_ENABLED 1
+#define NRFX_RNG_ENABLED 1
+
 #define TWI_ENABLED 1
 #define TWI0_ENABLED 1
 #define NRFX_TWI_ENABLED 1

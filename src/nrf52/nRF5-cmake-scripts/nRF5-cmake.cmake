@@ -254,6 +254,12 @@ macro(nRF5_setup)
             VERBATIM
             )
 
+    add_custom_target(RESET_CHIP ALL
+            COMMAND ${NRFJPROG} --reset -f nrf52
+            COMMENT "resetting chip"
+            VERBATIM
+            )
+
     if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Darwin")
         set(TERMINAL "open")
         set(COMMAND_SUFFIX "")
