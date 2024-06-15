@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
+             xmlns:validation="clr-namespace:InputKit.Shared.Validations;assembly=InputKit.Maui"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:ui="clr-namespace:CalApp.Shared.UI"
+             xmlns:ble="clr-namespace:CalApp.Shared.Ble"
+             xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
+             xmlns:mi="http://www.aathifmahir.com/dotnet/2022/maui/icons"
+             x:Class="CalApp.Shared.UI.CalibrationPageView"
+             x:DataType="ui:CalibrationPageViewModel">
+
+    <ContentView.Resources>
+        <ResourceDictionary>
+            <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter"/>
+        </ResourceDictionary>
+    </ContentView.Resources>
+
+    <Grid>
+        <Grid
+            IsEnabled="{Binding IsBusy, Converter={StaticResource InvertedBoolConverter}}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="15*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="15*"/>
+                <ColumnDefinition Width="2*"/>
+            </Grid.ColumnDefinitions>
+
+            <ui:JPowerDeviceView
+                Margin="10"
+                Grid.Row="0"
+                Grid.Column="1"
+                Grid.ColumnSpan="3"
+                JPowerDevice="{Binding CurrentJPowerDevice}"
+                SwitchCalCommand="{Binding SwitchCalCommand}"
+                SwitchRunCommand="{Binding SwitchRunCommand}"/>
+
+            <material:TextField
+                IsEnabled="{Binding CanCalibrate}"
+                x:Name="WeightInput"
+                Grid.Row="1"
+                Grid.Column="1"
+                Grid.ColumnSpan="3"
+                Margin="10"
+                HorizontalOptions="FillAndExpand"
+                Icon="{mi:Material Scale}"
+                Title="Weight (kg)"
+                Keyboard="Numeric"
+                Text="{Binding WeightInput}">
+                <validation:RequiredValidation />
+                <validation:NumericValidation />
+            </material:TextField>
+
+            <Button
+                IsEnabled="{Binding CanCalibrate}"
+                x:Name="MeasureButton"
+                Grid.Row="2"
+                Grid.Column="1"
+                Margin="10, 18, 10, 10"
+                HorizontalOptions="FillAndExpand"
+                Command="{Binding TakeMeasurementCommand}"
+                Text="Measure"/>
+
+            <Button
+                IsEnabled="{Binding CanCalibrate}"
+                x:Name="ResetButton"
+                Grid.Row="2"
+                Grid.Column="3"
+                Margin="10, 18, 10, 10"
+                HorizontalOptions="FillAndExpand"
+                Command="{Binding ResetMeasurementsCommand}"
+                Text="Reset"/>
+
+            <Button
+                IsEnabled="{Binding CanCalibrate}"
+                x:Name="ZeroButton"
+                Grid.Row="3"
+                Grid.Column="1"
+                Margin="10"
+                HorizontalOptions="FillAndExpand"
+                Command="{Binding ZeroCommand}"
+                Text="Zero"/>
+
+            <Button
+                IsEnabled="{Binding CanCalibrate}"
+                x:Name="CalibrateButton"
+                Grid.Row="3"
+                Grid.Column="3"
+                Margin="10"
+                HorizontalOptions="FillAndExpand"
+                Command="{Binding PushCalibrationCommand}"
+                Text="Calibrate"/>
+
+            <ui:MeasurementsView
+                IsEnabled="{Binding CanCalibrate}"
+                Grid.Row="4"
+                Grid.Column="1"
+                Grid.ColumnSpan="3"
+                HorizontalOptions="Center"
+                Measurements="{Binding Measurements}"/>
+
+        </Grid>
+
+        <ActivityIndicator
+            IsRunning="{Binding IsBusy}"/>
+    </Grid>
+</ContentView>

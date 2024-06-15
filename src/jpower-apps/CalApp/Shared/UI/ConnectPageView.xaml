@@ -6,7 +6,7 @@
              xmlns:mi="http://www.aathifmahir.com/dotnet/2022/maui/icons"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:ui="clr-namespace:CalApp.Shared.UI"
-             xmlns:models="clr-namespace:CalApp.Shared.Models"
+             xmlns:ble="clr-namespace:CalApp.Shared.Ble"
              Title="Connect"
              x:DataType="ui:ConnectPageViewModel">
 
@@ -24,91 +24,50 @@
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="15*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="15*"/>
+                <ColumnDefinition Width="2*"/>
+            </Grid.ColumnDefinitions>
 
             <Label
                 x:Name="TitleLabel"
                 Grid.Row="0"
+                Grid.Column="1"
+                Grid.ColumnSpan="3"
                 HorizontalOptions="Center"
                 Margin="20"
-                FontSize="Medium"
-                Text="Connect to JPower Device"/>
+                FontSize="Large"
+                Text="Connect to Device"/>
 
-            <CollectionView
-                x:Name="DeviceListView"
+            <ui:BleDeviceInfoView
+                x:Name="DeviceInfoView"
                 Grid.Row="1"
+                Grid.Column="1"
+                Grid.ColumnSpan="3"
                 HorizontalOptions="Center"
-                SelectionMode="Single"
-                ItemSizingStrategy="MeasureAllItems"
-                ItemsSource="{Binding DiscoveredDevices}"
-                SelectedItem="{Binding SelectedDevice}">
+                BleDeviceInfo="{Binding DiscoveredDevices}"
+                SelectedDevice="{Binding SelectedDevice, Mode=OneWayToSource}"/>
 
-                <CollectionView.ItemTemplate>
-                    <DataTemplate
-                        x:DataType="models:BleDeviceInfo">
-                        <Grid
-                            Margin="20">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-
-                            <mi:MauiIcon
-                                Grid.Column="0"
-                                Margin="10"
-                                VerticalOptions="Center"
-                                HorizontalOptions="Center"
-                                Icon="{mi:Material Bluetooth}"/>
-
-                            <Grid
-                                Grid.Column="1">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
-
-                                <Label
-                                    Grid.Row="0"
-                                    Margin="5"
-                                    VerticalOptions="Center"
-                                    HorizontalOptions="Center"
-                                    FontSize="Small"
-                                    Text="{Binding Name}"/>
-
-                                <Label 
-                                    Grid.Row="1"
-                                    Margin="5"
-                                    VerticalOptions="Center"
-                                    HorizontalOptions="Center"
-                                    FontAttributes="Italic"
-                                    FontSize="Micro"
-                                    Text="{Binding ID}"/>
-                            </Grid>
-                        </Grid>
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
-
-            <StackLayout
+            <Button
+                x:Name="ScanButton"
                 Grid.Row="2"
-                HorizontalOptions="Center"
-                Orientation="Horizontal">
+                Grid.Column="1"
+                HorizontalOptions="FillAndExpand"
+                Margin="0, 10, 5, 10"
+                Command="{Binding ScanCommand}"
+                Text="Scan"/>
 
-                <Button
-                    x:Name="ScanButton"
-                    HorizontalOptions="Center"
-                    Margin="0, 10, 5, 10"
-                    WidthRequest="100"
-                    Command="{Binding ScanCommand}"
-                    Text="Scan"/>
-
-                <Button
-                    x:Name="ConnectButton"
-                    HorizontalOptions="Center"
-                    Margin="5, 10, 0, 10"
-                    WidthRequest="100"
-                    Command="{Binding ConnectCommand}"
-                    Text="Connect"/>
-            </StackLayout>
+            <Button
+                x:Name="ConnectButton"
+                Grid.Row="2"
+                Grid.Column="3"
+                HorizontalOptions="FillAndExpand"
+                Margin="5, 10, 0, 10"
+                Command="{Binding ConnectCommand}"
+                Text="Connect"/>
         </Grid>
 
         <ActivityIndicator

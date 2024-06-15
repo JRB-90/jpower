@@ -1,4 +1,4 @@
-﻿using CalApp.Shared.Models;
+﻿using CalApp.Shared.Ble;
 using CalApp.Shared.Mvvm;
 using CalApp.Shared.UI;
 using System.Diagnostics;
@@ -39,9 +39,9 @@ namespace CalApp.Shared.Services
             return NavigateToPage<ConnectPageView>();
         }
 
-        public Task NavigateToCalibratePage(BleDevice bleDevice)
+        public Task NavigateToDeviceOverviewPage()
         {
-            return NavigateToPage<CalibratePageView>(bleDevice);
+            return NavigateToPage<DeviceOverviewView>();
         }
 
         public Task NavigateBack()

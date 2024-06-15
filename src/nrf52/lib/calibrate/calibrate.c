@@ -4,54 +4,63 @@
 #include "nrf_log.h"
 #include "fds.h"
 #include "ble_subsystem.h"
-#include "calibrate_srv.h"
 
 static bool is_calibrated = false;
-static calibration_data_t calibration_data;
+static bool is_cal_write_pending = false;
+static calibration_data_t calibration_data = { 0 };
 static uint32_t adc_value = 0;
+static on_adc_value_updated_t adc_value_updated_cb = NULL;
 
-// static void calibrate_srv_on_event(
-//     ble_evt_t const* ble_evt, 
-//     void* context
-// );
+static ret_code_t read_calibration_data_from_disk();
+static ret_code_t write_calibration_data_to_disk();
 
 ret_code_t calibrate_init()
 {
-    calibrate_srv_init();
-
-    // NRF_SDH_BLE_OBSERVER(
-    //     calibrate_srv_observer,
-    //     APP_BLE_OBSERVER_PRIO, 
-    //     calibrate_srv_on_event, 
-    //     (void*)&calibrate_srv
-    // );
-
-    fds_flash_record_t read_record;
-
-    ret_code_t err_code =
-        storage_read(
-            CAL_FILE_ID,
-            CAL_RECORD_KEY,
-            &read_record
-        );
+    ret_code_t err_code = read_calibration_data_from_disk();
 
     if (err_code == NRF_SUCCESS)
     {
-        memcpy(&calibration_data, read_record.p_data, sizeof(calibration_data_t));
         is_calibrated = true;
         NRF_LOG_INFO("Calibration data loaded");
     }
     else
     {
+        is_calibrated = false;
         NRF_LOG_INFO("No calibration data found");
     }
 
     return NRF_SUCCESS;
 }
 
-void calibrate_update()
+void calibrate_register_adc_value_updated_cb(on_adc_value_updated_t callback)
 {
-    calibrate_srv_update_raw_adc(adc_value);
+    adc_value_updated_cb = callback;
+}
+
+void calibrate_update()
+{    
+    ret_code_t err_code;
+
+    if (is_cal_write_pending)
+    {
+        err_code = write_calibration_data_to_disk();
+
+        if (err_code == NRF_SUCCESS)
+        {
+            NRF_LOG_INFO("Calibration data saved");
+        }
+        else
+        {
+            NRF_LOG_ERROR("Calibration data failed to save");
+        }
+
+        is_cal_write_pending = false;
+    }
+
+    if (adc_value_updated_cb != NULL)
+    {
+        adc_value_updated_cb(adc_value);
+    }
     adc_value++;
 }
 
@@ -69,33 +78,52 @@ ret_code_t calibrate_set_calibration(const calibration_data_t calibration)
 {
     calibration_data = calibration;
 
+    return write_calibration_data_to_disk();
+}
+
+ret_code_t calibrate_set_calibration_async(const calibration_data_t calibration)
+{
+    calibration_data = calibration;
+    is_cal_write_pending = true;
+
+    return NRF_SUCCESS;
+}
+
+ret_code_t calibrate_zero_offset()
+{
+    adc_value = 0;
+
+    return NRF_SUCCESS;
+}
+
+static ret_code_t read_calibration_data_from_disk()
+{
+    fds_flash_record_t read_record;
+
+    ret_code_t err_code =
+        storage_read(
+            CAL_FILE_ID,
+            CAL_RECORD_KEY,
+            &read_record
+        );
+
+    if (err_code == NRF_SUCCESS)
+    {
+        memcpy(&calibration_data, read_record.p_data, sizeof(calibration_data_t));
+    }
+
+    return err_code;
+}
+
+static ret_code_t write_calibration_data_to_disk()
+{
     fds_record_t record =
     {
         .file_id = CAL_FILE_ID,
         .key = CAL_RECORD_KEY,
-        .data.p_data = &calibration,
-        .data.length_words = (sizeof(calibration) + 3) / sizeof(uint32_t),
+        .data.p_data = &calibration_data,
+        .data.length_words = (sizeof(calibration_data_t) + 3) / sizeof(uint32_t),
     };
 
-    return storage_write(&record);
+    return storage_write_async(&record);
 }
-
-// static void calibrate_srv_on_event(
-//     ble_evt_t const* ble_evt, 
-//     void* context)
-// {
-//     calibrate_srv_t* service = (calibrate_srv_t*) context;
-	
-//     switch (ble_evt->header.evt_id)
-//     {
-//         case BLE_GAP_EVT_CONNECTED:
-//             service->conn_handle = ble_evt->evt.gap_evt.conn_handle;
-//             break;
-//         case BLE_GAP_EVT_DISCONNECTED:
-//             service->conn_handle = BLE_CONN_HANDLE_INVALID;
-//             break;
-//         default:
-//             // No implementation needed.
-//             break;
-//     }
-// }

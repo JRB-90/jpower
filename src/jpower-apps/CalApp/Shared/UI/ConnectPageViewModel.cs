@@ -1,4 +1,4 @@
-﻿using CalApp.Shared.Models;
+﻿using CalApp.Shared.Ble;
 using CalApp.Shared.Mvvm;
 using CalApp.Shared.Services;
 using System.Collections.ObjectModel;
@@ -8,22 +8,23 @@ namespace CalApp.Shared.UI
     public class ConnectPageViewModel : ViewModelBase
     {
         public ConnectPageViewModel(
+            IAppContext appContext,
             IPermissionsService permissionsService,
             INavigationService navigation,
             IAlertService alertService,
-            IJPowerDiscoveryService jpowerDiscovery)
+            IBleService bleService)
         {
+            this.appContext = appContext;
             this.permissionsService = permissionsService;
             this.navigation = navigation;
             this.alertService = alertService;
-            this.jpowerDiscovery = jpowerDiscovery;
-            isBusy = false;
+            this.bleService = bleService;
             DiscoveredDevices = new ObservableCollection<BleDeviceInfo>();
             
             ScanCommand = 
                 new Command(
                     async () => await Scan(),
-                    () => jpowerDiscovery.ScanState != BleScanState.Scanning
+                    () => bleService.ScanningState != BleScanningState.Scanning
                 );
             
             ConnectCommand = 
@@ -32,9 +33,12 @@ namespace CalApp.Shared.UI
                     () => SelectedDevice != null
                 );
 
-            jpowerDiscovery.ScanStateChanged += JpowerDiscovery_ScanStateChanged;
-            jpowerDiscovery.BleDeviceDiscovered += JpowerDiscovery_BleDeviceDiscovered;
+            appContext.BusyStateChanged += AppContext_BusyStateChanged;
+            bleService.ScanningStateChanged += JpowerDiscovery_ScanStateChanged;
+            bleService.BleDeviceDiscovered += JpowerDiscovery_BleDeviceDiscovered;
         }
+
+        public bool IsBusy => appContext.IsBusy;
 
         public ObservableCollection<BleDeviceInfo> DiscoveredDevices { get; }
 
@@ -46,12 +50,6 @@ namespace CalApp.Shared.UI
                 selectedDevice = value;
                 ConnectCommand.ChangeCanExecute();
             }
-        }
-
-        public bool IsBusy
-        {
-            get => isBusy;
-            set => SetProperty(ref isBusy, value);
         }
 
         public Command ScanCommand { get; }
@@ -73,7 +71,7 @@ namespace CalApp.Shared.UI
 
             SelectedDevice = null;
             DiscoveredDevices.Clear();
-            await jpowerDiscovery.ScanForDevices();
+            await bleService.ScanForDevices();
         }
 
         private async Task Connect()
@@ -91,20 +89,29 @@ namespace CalApp.Shared.UI
 
             try
             {
-                IsBusy = true;
+                appContext.IsBusy = true;
 
-                await jpowerDiscovery.StopScan();
-                var bleDevice = new BleDevice(SelectedDevice);
-                var isConnected = await bleDevice.Connect();
+                await bleService.StopScan();
+                appContext.BleDevice = await bleService.CreateBleDevice(SelectedDevice);
+                var isConnected = await appContext.BleDevice.Connect();
 
                 if (isConnected)
                 {
-                    //if (!bleDevice.IsJPowerDevice())
-                    //{
-                    //    throw new InvalidOperationException("Not a JPower device");
-                    //}
+                    if (!await bleService.IsJPowerDevice(appContext.BleDevice))
+                    {
+                        throw new InvalidOperationException("Not a JPower device");
+                    }
 
-                    await navigation.NavigateToCalibratePage(bleDevice);
+                    appContext.JPowerDevice = await bleService.CreateJPowerDevice(appContext.BleDevice);
+                    
+                    if (appContext.JPowerDevice == null)
+                    {
+                        throw new InvalidOperationException("Failed to create JPower device");
+                    }
+
+                    await appContext.JPowerDevice.StartStreaming();
+
+                    await navigation.NavigateToDeviceOverviewPage();
                 }
                 else
                 {
@@ -117,6 +124,15 @@ namespace CalApp.Shared.UI
             }
             catch (Exception ex)
             {
+                if (appContext.BleDevice != null &&
+                    appContext.BleDevice.DeviceState == BleDeviceState.Connected)
+                {
+                    await appContext.BleDevice.Disconnect();
+                }
+
+                appContext.JPowerDevice = null;
+                appContext.BleDevice = null;
+
                 await alertService.DisplayAlert(
                     "Error",
                     ex.Message,
@@ -125,11 +141,16 @@ namespace CalApp.Shared.UI
             }
             finally
             {
-                IsBusy = false;
+                appContext.IsBusy = false;
             }
         }
 
-        private void JpowerDiscovery_ScanStateChanged(object? sender, BleScanState e)
+        private void AppContext_BusyStateChanged(object? sender, bool e)
+        {
+            OnPropertyChanged(nameof(IsBusy));
+        }
+
+        private void JpowerDiscovery_ScanStateChanged(object? sender, BleScanningState e)
         {
             ScanCommand.ChangeCanExecute();
         }
@@ -142,11 +163,11 @@ namespace CalApp.Shared.UI
             });
         }
 
+        private readonly IAppContext appContext;
         private readonly IPermissionsService permissionsService;
         private readonly INavigationService navigation;
         private readonly IAlertService alertService;
-        private readonly IJPowerDiscoveryService jpowerDiscovery;
+        private readonly IBleService bleService;
         private BleDeviceInfo? selectedDevice;
-        private bool isBusy;
     }
 }
