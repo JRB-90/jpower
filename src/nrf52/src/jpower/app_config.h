@@ -3,6 +3,15 @@
 // The BLE advertising device name
 #define DEVICE_NAME "JPower"
 
+
+
+#define NRF_SDH_CLOCK_LF_SRC 0
+#define NRF_SDH_CLOCK_LF_RC_CTIV 16
+#define NRF_SDH_CLOCK_LF_RC_TEMP_CTIV 2
+#define NRF_SDH_CLOCK_LF_ACCURACY 1
+
+
+
 #define NRF_QUEUE_ENABLED 1
 
 #define RNG_ENABLED 1

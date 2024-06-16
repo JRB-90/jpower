@@ -147,10 +147,10 @@ typedef struct
 
 extern ret_code_t ad779x_init(
     nrf_drv_spi_t* spi_instance,
-    const uint32_t adc_pwr_pin,
     const uint8_t sck_pin,
     const uint8_t mosi_pin,
-    const uint8_t miso_pin
+    const uint8_t miso_pin,
+    const uint8_t ss_pin
 );
 
 extern void ad779x_reset();
