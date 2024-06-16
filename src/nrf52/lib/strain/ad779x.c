@@ -94,24 +94,24 @@ static ad779x_conf_reg_t default_conf =
 
 ret_code_t ad779x_init(
     nrf_drv_spi_t* spi_instance,
-    const uint32_t adc_pwr_pin,
     const uint8_t sck_pin,
     const uint8_t mosi_pin,
-    const uint8_t miso_pin)
+    const uint8_t miso_pin,
+    const uint8_t ss_pin)
 {
     ret_code_t err_code;
 
     spi = spi_instance;
 
-    nrf_gpio_cfg(
-        adc_pwr_pin,
-        NRF_GPIO_PIN_DIR_OUTPUT,
-        NRF_GPIO_PIN_INPUT_DISCONNECT,
-        NRF_GPIO_PIN_NOPULL,
-        NRF_GPIO_PIN_H0H1,
-        NRF_GPIO_PIN_NOSENSE
-    );
-    nrf_gpio_pin_clear(adc_pwr_pin);
+    // nrf_gpio_cfg(
+    //     adc_pwr_pin,
+    //     NRF_GPIO_PIN_DIR_OUTPUT,
+    //     NRF_GPIO_PIN_INPUT_DISCONNECT,
+    //     NRF_GPIO_PIN_NOPULL,
+    //     NRF_GPIO_PIN_H0H1,
+    //     NRF_GPIO_PIN_NOSENSE
+    // );
+    // nrf_gpio_pin_clear(adc_pwr_pin);
     nrf_delay_ms(AD779X_BOOT_TIME_MS); // Let ADC Boot
 
     nrf_drv_spi_config_t spi_config =
@@ -123,7 +123,7 @@ ret_code_t ad779x_init(
             .sck_pin = sck_pin,
             .mosi_pin = mosi_pin,
             .miso_pin = miso_pin,
-            .ss_pin = NRF_DRV_SPI_PIN_NOT_USED,
+            .ss_pin = ss_pin,
         };
 
     err_code =

@@ -2,7 +2,7 @@
 #include <string.h>
 #include <math.h>
 #include "boards.h"
-#include "seeed_xiao_sense.h"
+#include "jpower_v1.h"
 #include "nordic_common.h"
 #include "app_error.h"
 #include "app_timer.h"
@@ -32,12 +32,10 @@
 #include "jp_utils.h"
 
 #define DEVICE_NAME             "JPower"                // Name of device. Will be included in the advertising data
-#define IMU_SCL_PIN             I2C_SCL_INT_PIN         // The i2c scl pin that is on the imu i2c bus
-#define IMU_SDA_PIN             I2C_SDA_INT_PIN         // The i2c sda pin that is on the imu i2c bus
 #define TWI_INSTANCE_ID         0                       // Internal TWI device to use
 #define SPI_INSTANCE_ID         1                       // Internal SPI device to use
-#define ADVERTISING_LED         BSP_BOARD_LED_2         // Is on when device is advertising
-#define CONNECTED_LED           BSP_BOARD_LED_1         // Is on when device has connected
+#define ADVERTISING_LED         BSP_BOARD_LED_0         // Is on when device is advertising
+#define CONNECTED_LED           BSP_BOARD_LED_0         // Is on when device has connected
 #define HI_FREQ_CLK_HZ          100                     // Frequency (Hz) of the high speed timer
 #define HI_FREQ_CLK_PERIOD_MS   1000 / HI_FREQ_CLK_HZ   // High speed timer period in ms
 
@@ -130,19 +128,18 @@ static void board_init()
     err_code =
         imu_init(
             &twi,
-            IMU_PWR_PIN,
-            IMU_SCL_PIN,
-            IMU_SDA_PIN
+            I2C_SCL_PIN,
+            I2C_SDA_PIN
         );
     APP_ERROR_CHECK(err_code);
 
     err_code =
         strain_init(
             &spi,
-            ADC_PWR_PIN,
             SPI_SCK_PIN,
             SPI_MOSI_PIN,
-            SPI_MISO_PIN
+            SPI_MISO_PIN,
+            SPI_CS_PIN
         );
     APP_ERROR_CHECK(err_code);
 
@@ -242,6 +239,8 @@ static bool app_shutdown_handler(nrf_pwr_mgmt_evt_t event)
     return true;
 }
 
+static uint64_t counter = 0;
+
 static void high_freq_callback(void* context)
 {
     NRF_TIMER1->TASKS_CAPTURE[1] = 1;
@@ -262,6 +261,31 @@ static void high_freq_callback(void* context)
     default:
         break;
     }
+
+    char buf[128];
+    float accel, gyro;
+    ret_code_t err_code = imu_take_reading_raw(&accel, &gyro);
+    APP_ERROR_CHECK(err_code);
+
+    uint32_t adc;
+    err_code = strain_get_raw_adc_value(&adc);
+    APP_ERROR_CHECK(err_code);
+
+    sprintf(
+        buf,
+        "Accel: %.6f, Gyro: %.6f, Adc: %ul", 
+        accel,
+        gyro,
+        adc
+    );
+
+    if ((counter % 10) == 0)
+    {
+        NRF_LOG_INFO("%s", buf);
+        NRF_LOG_FLUSH();
+    }
+
+    counter++;
 }
 
 static void enter_calibrate_mode()
@@ -295,9 +319,8 @@ static void enter_run_mode()
         return;
     }
 
-    bsp_board_led_off(BSP_LED_1);
-    bsp_board_led_off(BSP_LED_2);
-    bsp_board_led_on(BSP_LED_0);
+    bsp_board_led_off(ADVERTISING_LED);
+    bsp_board_led_off(CONNECTED_LED);
     jp_state_change_state(JP_STATE_RUNNING);
     // TODO - Start ANT plus profile
     NRF_LOG_INFO("Entered run mode");
