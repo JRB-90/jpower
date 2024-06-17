@@ -17,6 +17,8 @@ static void on_cal_pull_requested(uint8_t* data);
 static void on_new_cal_pushed(uint8_t* data);
 static void on_adc_value_updated(uint32_t value);
 
+static bool isConnected = false;
+
 static ble_uuid128_t base_uuid = { BLE_CAL_SRV_BASE_UUID };
 
 static ble_uuid_t srv_uuid =
@@ -169,10 +171,12 @@ ret_code_t calibrate_srv_send_cal(calibration_data_t calibration)
 
 static void on_connect()
 {
+    isConnected = true;
 }
 
 static void on_disconnect()
 {
+    isConnected = false;
 }
 
 static void on_zero_requested(uint8_t* data)

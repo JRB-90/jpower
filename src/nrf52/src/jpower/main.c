@@ -23,6 +23,7 @@
 #include "ant_subsystem.h"
 #include "jpow_math.h"
 #include "imu.h"
+#include "imu_srv.h"
 #include "strain.h"
 #include "storage_helper.h"
 #include "calibrate.h"
@@ -199,6 +200,9 @@ static void ble_init()
 
     blesub_enable_ble_dfu();
     blesub_init(&ble_subsystem_config);
+
+    err_code = imu_srv_init();
+    APP_ERROR_CHECK(err_code);
 
     err_code = calibrate_srv_init();
     APP_ERROR_CHECK(err_code);
