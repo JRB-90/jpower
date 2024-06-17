@@ -13,6 +13,7 @@
 #define BLE_CAL_SRV_PULL_CAL_REQ_CHAR_UUID  0xAA03
 #define BLE_CAL_SRV_PULL_CAL_CHAR_UUID      0xAA04
 #define BLE_CAL_SRV_PUSH_CAL_CHAR_UUID      0xAA05
+
 #define BLE_CAL_SRV_CHAR_COUNT              5
 #define BLE_CAL_SRV_ADC_INDEX               0
 #define BLE_CAL_SRV_ZERO_INDEX              1

@@ -10,6 +10,8 @@ static stmdev_ctx_t dev_ctx;
 static nrf_drv_twi_t* twi = NULL;
 static lsm6dso_fs_xl_t accel_range = LSM6DSO_16g;
 static lsm6dso_fs_g_t gyro_range = LSM6DSO_2000dps;
+static on_accel_value_updated_t accel_value_updated_cb = NULL;
+static on_gyro_value_updated_t gyro_value_updated_cb = NULL;
 
 static int32_t platform_write(
     void* handle, 
@@ -36,22 +38,6 @@ ret_code_t imu_init(
     twi = twi_instance; 
     dev_ctx.write_reg = platform_write;
     dev_ctx.read_reg = platform_read;
-
-    //nrf_gpio_cfg_output(imu_pwr_pin);
-
-    // For some reason, we have to configure some pins as below
-    // I don't know exactly why, but i2c init can fail if this 
-    // isn't in place. I took it from the seeed arduino library
-    // for the lsm6ds3
-    // https://github.com/Seeed-Studio/Seeed_Arduino_LSM6DS3/blob/master/LSM6DS3.cpp
-    // NRF_P1->PIN_CNF[8] = 
-    //     ((uint32_t)NRF_GPIO_PIN_DIR_OUTPUT << GPIO_PIN_CNF_DIR_Pos) |
-    //     ((uint32_t)NRF_GPIO_PIN_INPUT_DISCONNECT << GPIO_PIN_CNF_INPUT_Pos) |
-    //     ((uint32_t)NRF_GPIO_PIN_NOPULL << GPIO_PIN_CNF_PULL_Pos) |
-    //     ((uint32_t)NRF_GPIO_PIN_H0H1 << GPIO_PIN_CNF_DRIVE_Pos) |
-    //     ((uint32_t)NRF_GPIO_PIN_NOSENSE << GPIO_PIN_CNF_SENSE_Pos);
-
-    //nrf_gpio_pin_set(imu_pwr_pin);
 
     nrf_delay_ms(LSM6DS3TR_BOOT_TIME_MS);
 
@@ -88,6 +74,33 @@ ret_code_t imu_init(
     nrf_delay_ms(LSM6DS3TR_BOOT_TIME_MS);
 
     return NRF_SUCCESS;
+}
+
+void imu_register_accel_value_updated_cb(on_accel_value_updated_t callback)
+{
+    accel_value_updated_cb = callback;
+}
+
+void imu_register_gyro_value_updated_cb(on_gyro_value_updated_t callback)
+{
+    gyro_value_updated_cb = callback;
+}
+
+void imu_update()
+{
+    if (accel_value_updated_cb != NULL)
+    {
+        float values[3];
+        imu_read_accel(values);
+        accel_value_updated_cb(values[0]);
+    }
+
+    if (gyro_value_updated_cb != NULL)
+    {
+        float values[3];
+        imu_read_gyro(values);
+        gyro_value_updated_cb(values[0]);
+    }
 }
 
 ret_code_t imu_read_accel(float* const data)
