@@ -13,6 +13,7 @@ extern ret_code_t strain_init(
     const uint8_t ss_pin
 );
 
+extern ret_code_t strain_zero_offset();
 extern ret_code_t strain_get_raw_adc_value(uint32_t* value);
 
 #endif // STRAIN_H__

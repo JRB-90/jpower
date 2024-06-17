@@ -4,11 +4,11 @@
 #include "nrf_log.h"
 #include "fds.h"
 #include "ble_subsystem.h"
+#include "strain.h"
 
 static bool is_calibrated = false;
 static bool is_cal_write_pending = false;
 static calibration_data_t calibration_data = { 0 };
-static uint32_t adc_value = 0;
 static on_adc_value_updated_t adc_value_updated_cb = NULL;
 
 static ret_code_t read_calibration_data_from_disk();
@@ -59,9 +59,10 @@ void calibrate_update()
 
     if (adc_value_updated_cb != NULL)
     {
-        adc_value_updated_cb(adc_value);
+        uint32_t value = 0;
+        strain_get_raw_adc_value(&value);
+        adc_value_updated_cb(value);
     }
-    adc_value++;
 }
 
 bool calibrate_get_is_calibrated()
@@ -91,7 +92,7 @@ ret_code_t calibrate_set_calibration_async(const calibration_data_t calibration)
 
 ret_code_t calibrate_zero_offset()
 {
-    adc_value = 0;
+    strain_zero_offset();
 
     return NRF_SUCCESS;
 }

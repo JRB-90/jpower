@@ -27,6 +27,13 @@ ret_code_t strain_init(
     return NRF_SUCCESS;
 }
 
+ret_code_t strain_zero_offset()
+{
+    ad779x_system_zeroscale_calibration();
+
+    return NRF_SUCCESS;
+}
+
 ret_code_t strain_get_raw_adc_value(uint32_t* value)
 {
     *value = ad7799_read_raw_data_single();
