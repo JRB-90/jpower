@@ -24,7 +24,29 @@ protocol CoreService {
     |_ CoreRequest <- core_request_t
 }
 
+struct cal_data_t {
+    Uint128 guid
+    float slope
+    float intercept
+}
+
+enum state_t {
+    STARTUP
+    INITIALISED
+    AWAITING_CAL
+    SIM_MODE
+    RUNNING
+}
+
+enum core_request_t {
+    ENTER_SIM_MODE
+    ENTER_REAL_MODE
+}
+
 SensorService -[hidden] CalibrationService
 CalibrationService -[hidden] CoreService
+
+cal_data_t -[hidden] state_t
+state_t -[hidden] core_request_t
 
 @enduml
