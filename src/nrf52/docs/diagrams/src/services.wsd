@@ -1,0 +1,52 @@
+@startuml
+!pragma teoz true
+
+protocol SensorService {
+    ** Sensor **
+    |_ Zero Offset <- void
+    |_ ADC Raw -> Uint32
+    |_ Power -> Uint16
+    |_ Accel Raw -> float[3]
+    |_ Gyro Raw -> float[3]
+    |_ Orientation -> float[4]
+    |_ Cadence -> Uint16
+}
+
+protocol CalibrationService {
+    ** Calibration **
+    |_ GetCalibration -> cal_data_t
+    |_ SetCalibration <- cal_data_t
+}
+
+protocol CoreService {
+    ** Core **
+    |_ GetState -> state_t
+    |_ CoreRequest <- core_request_t
+}
+
+struct cal_data_t {
+    Uint128 guid
+    float slope
+    float intercept
+}
+
+enum state_t {
+    STARTUP
+    INITIALISED
+    AWAITING_CAL
+    SIM_MODE
+    RUNNING
+}
+
+enum core_request_t {
+    ENTER_SIM_MODE
+    ENTER_REAL_MODE
+}
+
+SensorService -[hidden] CalibrationService
+CalibrationService -[hidden] CoreService
+
+cal_data_t -[hidden] state_t
+state_t -[hidden] core_request_t
+
+@enduml
