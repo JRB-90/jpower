@@ -85,7 +85,7 @@ static ad779x_conf_reg_t default_conf =
     .gain = AD779X_CONF_GAIN_128,
     .ref_detect = AD779X_CONF_REF_DET_DISABLED,
     .buffer_mode = AD779X_CONF_BUFFERED,
-    .channel_select = AD779X_CONF_CHAN_AIN1_POS,
+    .channel_select = AD779X_CONF_CHAN_AIN2_POS,
 };
 
 // #endregion

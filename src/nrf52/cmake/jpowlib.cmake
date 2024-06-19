@@ -61,6 +61,7 @@ endmacro()
 
 # Add I2C Library
 macro(jpow_addI2C)
+    nRF5_addTWILegacy()
     list(APPEND INCLUDE_DIRS
         "${CMAKE_SOURCE_DIR}/lib/i2c"
     )
@@ -72,6 +73,7 @@ endmacro()
 
 # Add SPI Library
 macro(jpow_addSPI)
+    nRF5_addQueue()
     nRF5_addLegacySpi()
     list(APPEND INCLUDE_DIRS
         "${CMAKE_SOURCE_DIR}/lib/spi"
@@ -122,6 +124,19 @@ macro(jpow_addStrain)
     list(APPEND SOURCE_FILES
         "${CMAKE_SOURCE_DIR}/lib/strain/strain.c"
         "${CMAKE_SOURCE_DIR}/lib/strain/ad779x.c"
+    )
+endmacro()
+
+# Add Sensor Library
+macro(jpow_addSensor)
+    jpow_addI2C()
+    jpow_addSPI()
+    list(APPEND INCLUDE_DIRS
+        "${CMAKE_SOURCE_DIR}/lib/sensor"
+    )
+
+    list(APPEND SOURCE_FILES
+        "${CMAKE_SOURCE_DIR}/lib/sensor/sensor_subsystem.c"
     )
 endmacro()
 
