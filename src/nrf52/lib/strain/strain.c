@@ -1,5 +1,8 @@
 #include "strain.h"
+
 #include "ad779x.h"
+#include "nrf_log.h"
+#include "nrf_log_ctrl.h"
 
 static nrf_drv_spi_t* spi = NULL;
 
@@ -27,16 +30,24 @@ ret_code_t strain_init(
     return NRF_SUCCESS;
 }
 
+void strain_update(float delta_time_s)
+{
+    uint32_t value = ad7799_read_raw_data_single();
+
+    char str_buf[128];
+    sprintf(
+        str_buf,
+        "T %.3fs [ %u ]",
+        delta_time_s, value
+    );
+
+    NRF_LOG_INFO("%s", str_buf);
+    NRF_LOG_FLUSH();
+}
+
 ret_code_t strain_zero_offset()
 {
     ad779x_system_zeroscale_calibration();
-
-    return NRF_SUCCESS;
-}
-
-ret_code_t strain_get_raw_adc_value(uint32_t* value)
-{
-    *value = ad7799_read_raw_data_single();
 
     return NRF_SUCCESS;
 }

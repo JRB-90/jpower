@@ -90,13 +90,13 @@ macro(jpow_addIMU)
     nRF5_addTWILegacy()
     jpow_addJPowMath()
     jpow_addI2C()
+    jpow_addFusion()
     list(APPEND INCLUDE_DIRS
         "${CMAKE_SOURCE_DIR}/lib/imu"
     )
 
     list(APPEND SOURCE_FILES
         "${CMAKE_SOURCE_DIR}/lib/imu/imu.c"
-        "${CMAKE_SOURCE_DIR}/lib/imu/imu_srv.c"
         "${CMAKE_SOURCE_DIR}/lib/imu/lsm6dso_reg.c"
     )
 endmacro()
@@ -131,6 +131,8 @@ endmacro()
 macro(jpow_addSensor)
     jpow_addI2C()
     jpow_addSPI()
+    jpow_addIMU()
+    jpow_addStrain()
     list(APPEND INCLUDE_DIRS
         "${CMAKE_SOURCE_DIR}/lib/sensor"
     )

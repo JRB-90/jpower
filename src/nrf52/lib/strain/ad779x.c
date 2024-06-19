@@ -103,15 +103,6 @@ ret_code_t ad779x_init(
 
     spi = spi_instance;
 
-    // nrf_gpio_cfg(
-    //     adc_pwr_pin,
-    //     NRF_GPIO_PIN_DIR_OUTPUT,
-    //     NRF_GPIO_PIN_INPUT_DISCONNECT,
-    //     NRF_GPIO_PIN_NOPULL,
-    //     NRF_GPIO_PIN_H0H1,
-    //     NRF_GPIO_PIN_NOSENSE
-    // );
-    // nrf_gpio_pin_clear(adc_pwr_pin);
     nrf_delay_ms(AD779X_BOOT_TIME_MS); // Let ADC Boot
 
     nrf_drv_spi_config_t spi_config =
@@ -146,8 +137,6 @@ ret_code_t ad779x_init(
     }
 
     ad779x_set_default_settings();
-
-    ad779x_internal_fullscale_calibration();
 
     return NRF_SUCCESS;
 }

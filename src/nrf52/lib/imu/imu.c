@@ -1,6 +1,8 @@
 #include "imu.h"
 
 #include <string.h>
+#include "nrf_log.h"
+#include "nrf_log_ctrl.h"
 #include "nrf_delay.h"
 #include "nrf_gpio.h"
 #include "i2c_helper.h"
@@ -10,9 +12,9 @@ static stmdev_ctx_t dev_ctx;
 static nrf_drv_twi_t* twi = NULL;
 static lsm6dso_fs_xl_t accel_range = LSM6DSO_16g;
 static lsm6dso_fs_g_t gyro_range = LSM6DSO_2000dps;
-static on_accel_value_updated_t accel_value_updated_cb = NULL;
-static on_gyro_value_updated_t gyro_value_updated_cb = NULL;
 
+static ret_code_t imu_read_accel(float* const data);
+static ret_code_t imu_read_gyro(float* const data);
 static int32_t platform_write(
     void* handle, 
     uint8_t reg, 
@@ -76,66 +78,29 @@ ret_code_t imu_init(
     return NRF_SUCCESS;
 }
 
-void imu_register_accel_value_updated_cb(on_accel_value_updated_t callback)
+void imu_update(float time_delta_S)
 {
-    accel_value_updated_cb = callback;
+    // TODO - Calculate cadence
+
+    ret_code_t err_code;
+
+    imu_reading_t imu_data;
+    err_code = imu_take_reading(&imu_data);
+    APP_ERROR_CHECK(err_code);
+
+    char str_buf[128];
+    sprintf(
+        str_buf,
+        "A [%.3f, %.3f, %.3f], G [%.3f, %.3f, %.3f]",
+        imu_data.accel[0], imu_data.accel[1], imu_data.accel[2],
+        imu_data.gyro[0], imu_data.gyro[1], imu_data.gyro[2]
+    );
+
+    NRF_LOG_INFO("%s", str_buf);
+    NRF_LOG_FLUSH();
 }
 
-void imu_register_gyro_value_updated_cb(on_gyro_value_updated_t callback)
-{
-    gyro_value_updated_cb = callback;
-}
-
-void imu_update()
-{
-    if (accel_value_updated_cb != NULL)
-    {
-        float values[3];
-        imu_read_accel(values);
-        accel_value_updated_cb(values[0]);
-    }
-
-    if (gyro_value_updated_cb != NULL)
-    {
-        float values[3];
-        imu_read_gyro(values);
-        gyro_value_updated_cb(values[0]);
-    }
-}
-
-ret_code_t imu_read_accel(float* const data)
-{
-    int16_t raw_data[3];
-    if (lsm6dso_acceleration_raw_get(&dev_ctx, raw_data))
-    {
-        return NRF_ERROR_INVALID_DATA;
-    }
-
-    data[0] = convert_accel_data(raw_data[0]) / 1000.0f;
-    data[1] = convert_accel_data(raw_data[1]) / 1000.0f;
-    data[2] = convert_accel_data(raw_data[2]) / 1000.0f;
-
-    return NRF_SUCCESS;
-}
-
-ret_code_t imu_read_gyro(float* const data)
-{
-    int16_t raw_data[3];
-    if (lsm6dso_angular_rate_raw_get(&dev_ctx, raw_data))
-    {
-        return NRF_ERROR_INVALID_DATA;
-    }
-
-    data[0] = convert_gyro_data(raw_data[0]) / 1000.0f;
-    data[1] = convert_gyro_data(raw_data[1]) / 1000.0f;
-    data[2] = convert_gyro_data(raw_data[2]) / 1000.0f;
-
-    return NRF_SUCCESS;
-}
-
-ret_code_t imu_take_reading_raw(
-    float* const accel,
-    float* const gyro)
+ret_code_t imu_take_reading(imu_reading_t* reading)
 {
     uint8_t buff[12];
     int16_t accelValues[3];
@@ -161,9 +126,9 @@ ret_code_t imu_take_reading_raw(
     gyroValues[2] = (int16_t)buff[5];
     gyroValues[2] = (gyroValues[2] * 256) + (int16_t)buff[4];
 
-    gyro[0] = convert_gyro_data(gyroValues[0]) / 1000.0f;
-    gyro[1] = convert_gyro_data(gyroValues[1]) / 1000.0f;
-    gyro[2] = convert_gyro_data(gyroValues[2]) / 1000.0f;
+    reading->gyro[0] = convert_gyro_data(gyroValues[0]) / 1000.0f;
+    reading->gyro[1] = convert_gyro_data(gyroValues[1]) / 1000.0f;
+    reading->gyro[2] = convert_gyro_data(gyroValues[2]) / 1000.0f;
 
     accelValues[0] = (int16_t)buff[7];
     accelValues[0] = (accelValues[0] * 256) + (int16_t)buff[6];
@@ -172,9 +137,39 @@ ret_code_t imu_take_reading_raw(
     accelValues[2] = (int16_t)buff[11];
     accelValues[2] = (accelValues[2] * 256) + (int16_t)buff[10];
 
-    accel[0] = convert_accel_data(accelValues[0]) / 1000.0f;
-    accel[1] = convert_accel_data(accelValues[1]) / 1000.0f;
-    accel[2] = convert_accel_data(accelValues[2]) / 1000.0f;
+    reading->accel[0] = convert_accel_data(accelValues[0]) / 1000.0f;
+    reading->accel[1] = convert_accel_data(accelValues[1]) / 1000.0f;
+    reading->accel[2] = convert_accel_data(accelValues[2]) / 1000.0f;
+
+    return NRF_SUCCESS;
+}
+
+static ret_code_t imu_read_accel(float* const data)
+{
+    int16_t raw_data[3];
+    if (lsm6dso_acceleration_raw_get(&dev_ctx, raw_data))
+    {
+        return NRF_ERROR_INVALID_DATA;
+    }
+
+    data[0] = convert_accel_data(raw_data[0]) / 1000.0f;
+    data[1] = convert_accel_data(raw_data[1]) / 1000.0f;
+    data[2] = convert_accel_data(raw_data[2]) / 1000.0f;
+
+    return NRF_SUCCESS;
+}
+
+static ret_code_t imu_read_gyro(float* const data)
+{
+    int16_t raw_data[3];
+    if (lsm6dso_angular_rate_raw_get(&dev_ctx, raw_data))
+    {
+        return NRF_ERROR_INVALID_DATA;
+    }
+
+    data[0] = convert_gyro_data(raw_data[0]) / 1000.0f;
+    data[1] = convert_gyro_data(raw_data[1]) / 1000.0f;
+    data[2] = convert_gyro_data(raw_data[2]) / 1000.0f;
 
     return NRF_SUCCESS;
 }

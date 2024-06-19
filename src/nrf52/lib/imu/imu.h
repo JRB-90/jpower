@@ -13,22 +13,19 @@
 #define LSM6DSR_BOOT_TIME_MS    10
 #define LSM6DSR_I2C_ADDR        0x6A
 
-typedef void (*on_accel_value_updated_t)(float value);
-typedef void (*on_gyro_value_updated_t)(float value);
+typedef struct
+{
+    float accel[3];
+    float gyro[3];
+} imu_reading_t;
+
 
 extern ret_code_t imu_init(
     nrf_drv_twi_t* twi_instance,
     const uint32_t scl_pin,
     const uint32_t sda_pin
 );
-extern void imu_register_accel_value_updated_cb(on_accel_value_updated_t callback);
-extern void imu_register_gyro_value_updated_cb(on_gyro_value_updated_t callback);
-extern void imu_update();
-extern ret_code_t imu_read_accel(float* const data);
-extern ret_code_t imu_read_gyro(float* const data);
-extern ret_code_t imu_take_reading_raw(
-    float* const accel,
-    float* const gyro
-);
+extern void imu_update(float time_delta_S);
+extern ret_code_t imu_take_reading(imu_reading_t* reading);
 
 #endif // IMU_H__

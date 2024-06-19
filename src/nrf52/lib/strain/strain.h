@@ -14,6 +14,7 @@ extern ret_code_t strain_init(
 );
 
 extern ret_code_t strain_zero_offset();
-extern ret_code_t strain_get_raw_adc_value(uint32_t* value);
+extern void strain_update(float delta_time_s);
+extern ret_code_t strain_zero_offset();
 
 #endif // STRAIN_H__

@@ -16,18 +16,22 @@
 #include "nrf_sdh.h"
 #include "nrf_pwr_mgmt.h"
 #include "nrf_drv_clock.h"
-#include "nrf_drv_twi.h"
-#include "nrf_drv_spi.h"
+#include "sensor_subsystem.h"
 
-#define TWI_INSTANCE_ID         0                       // Internal TWI device to use
-#define SPI_INSTANCE_ID         1                       // Internal SPI device to use
-#define HI_FREQ_CLK_HZ          100                     // Frequency (Hz) of the high speed timer
+#define HI_FREQ_CLK_HZ          1                       // Frequency (Hz) of the high speed timer
 #define HI_FREQ_CLK_PERIOD_MS   1000 / HI_FREQ_CLK_HZ   // High speed timer period in ms
 
 APP_TIMER_DEF(high_freq_timer);
 
-static nrf_drv_twi_t twi        = NRF_DRV_TWI_INSTANCE(TWI_INSTANCE_ID);
-static nrf_drv_spi_t spi        = NRF_DRV_SPI_INSTANCE(SPI_INSTANCE_ID);
+static const sensor_config_t sensor_config =
+{
+    .i2c_scl_pin = I2C_SCL_PIN,
+    .i2c_sda_pin = I2C_SDA_PIN,
+    .spi_sck_pin = SPI_SCK_PIN,
+    .spi_mosi_pin = SPI_MOSI_PIN,
+    .spi_miso_pin = SPI_MISO_PIN,
+    .spi_cs_pin = SPI_CS_PIN,
+};
 
 static void board_init();
 static void softdevice_init();
@@ -44,7 +48,7 @@ int main()
     NRF_LOG_INFO("Soft device initialised");
     
     start_timers();
-
+    bsp_board_led_on(LED_RED);
     NRF_LOG_INFO("JPower fully initialised");
 
     while (true)
@@ -69,7 +73,11 @@ static void board_init()
     // IO init
     bsp_board_init(BSP_INIT_LEDS);
 
-    // Timers init
+    // Sensors init
+    err_code = sensor_subsystem_init(&sensor_config);
+    APP_ERROR_CHECK(err_code);
+
+    // Clock + timers init
     err_code = app_timer_init();
     APP_ERROR_CHECK(err_code);
 
@@ -138,12 +146,11 @@ static bool app_shutdown_handler(nrf_pwr_mgmt_evt_t event)
     return true;
 }
 
-static uint64_t counter = 0;
-
 static void high_freq_callback(void* context)
 {
     NRF_TIMER1->TASKS_CAPTURE[1] = 1;
     uint32_t interval_us = NRF_TIMER1->CC[1];
     NRF_TIMER1->TASKS_CLEAR = 1;
     float time_delta = (float)interval_us / 1000000.0f;
+    sensor_subsystem_update(time_delta);
 }
