@@ -58,7 +58,7 @@ static FusionAhrs ahrs                      = { 0 };
 static timestamped_reading_t last_hi_speed  = { 0.0f, {{ 1.0f, 0.0f, 0.0f, 0.0f }}};
 static timestamped_reading_t last_lo_speed  = { 0.0f, {{ 1.0f, 0.0f, 0.0f, 0.0f }}};
 static pedal_state_t pedal_state            = { 0.0f, 0 };
-static float time_in_s                      = 0;
+static float total_time_s                      = 0;
 static uint16_t callback_count              = 0;
 
 static FusionAhrsSettings settings =
@@ -236,7 +236,7 @@ static void high_freq_callback(void* context)
     NRF_TIMER1->TASKS_CLEAR = 1;
 
     float time_delta = (float)interval_us / 1000000.0f;
-    time_in_s += time_delta;
+    total_time_s += time_delta;
 
     read_imu(time_delta);
 
@@ -270,14 +270,14 @@ static void read_imu(float time_delta)
     );
 
     last_hi_speed.attitude = FusionAhrsGetQuaternion(&ahrs);
-    last_hi_speed.time = time_in_s;
+    last_hi_speed.time = total_time_s;
 }
 
 static void update_power()
 {
     pedal_state =
         calculate_pedal_state(
-            time_in_s - last_lo_speed.time,
+            total_time_s - last_lo_speed.time,
             last_lo_speed.attitude,
             last_hi_speed.attitude
         );

@@ -18,7 +18,7 @@
 #include "nrf_drv_clock.h"
 #include "sensor_subsystem.h"
 
-#define HI_FREQ_CLK_HZ          1                       // Frequency (Hz) of the high speed timer
+#define HI_FREQ_CLK_HZ          10                      // Frequency (Hz) of the high speed timer
 #define HI_FREQ_CLK_PERIOD_MS   1000 / HI_FREQ_CLK_HZ   // High speed timer period in ms
 
 APP_TIMER_DEF(high_freq_timer);

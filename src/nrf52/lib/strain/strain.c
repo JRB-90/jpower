@@ -5,6 +5,7 @@
 #include "nrf_log_ctrl.h"
 
 static nrf_drv_spi_t* spi = NULL;
+static uint32_t counter = 0;
 
 ret_code_t strain_init(
     nrf_drv_spi_t* spi_instance,
@@ -34,15 +35,24 @@ void strain_update(float delta_time_s)
 {
     uint32_t value = ad7799_read_raw_data_single();
 
-    char str_buf[128];
-    sprintf(
-        str_buf,
-        "T %.3fs [ %u ]",
-        delta_time_s, value
-    );
+    if (counter >= 10)
+    {
+        counter = 0;
+        
+        char str_buf[128];
+        sprintf(
+            str_buf,
+            "T %.3fs [ %u ]",
+            delta_time_s, value
+        );
 
-    NRF_LOG_INFO("%s", str_buf);
-    NRF_LOG_FLUSH();
+        NRF_LOG_INFO("%s", str_buf);
+        NRF_LOG_FLUSH();
+    }
+    else
+    {
+        counter++;
+    }
 }
 
 ret_code_t strain_zero_offset()

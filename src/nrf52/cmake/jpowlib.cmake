@@ -97,6 +97,7 @@ macro(jpow_addIMU)
 
     list(APPEND SOURCE_FILES
         "${CMAKE_SOURCE_DIR}/lib/imu/imu.c"
+        "${CMAKE_SOURCE_DIR}/lib/imu/cadence.c"
         "${CMAKE_SOURCE_DIR}/lib/imu/lsm6dso_reg.c"
     )
 endmacro()

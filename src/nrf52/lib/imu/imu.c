@@ -7,11 +7,13 @@
 #include "nrf_gpio.h"
 #include "i2c_helper.h"
 #include "lsm6dso_reg.h"
+#include "cadence.h"
 
 static stmdev_ctx_t dev_ctx;
 static nrf_drv_twi_t* twi = NULL;
 static lsm6dso_fs_xl_t accel_range = LSM6DSO_16g;
 static lsm6dso_fs_g_t gyro_range = LSM6DSO_2000dps;
+static uint32_t counter = 0;
 
 static ret_code_t imu_read_accel(float* const data);
 static ret_code_t imu_read_gyro(float* const data);
@@ -75,29 +77,47 @@ ret_code_t imu_init(
 
     nrf_delay_ms(LSM6DS3TR_BOOT_TIME_MS);
 
+    err_code = cadence_init();
+    APP_ERROR_CHECK(err_code);
+
     return NRF_SUCCESS;
 }
 
-void imu_update(float time_delta_S)
+void imu_update(float time_delta_s)
 {
-    // TODO - Calculate cadence
-
     ret_code_t err_code;
 
     imu_reading_t imu_data;
     err_code = imu_take_reading(&imu_data);
     APP_ERROR_CHECK(err_code);
 
-    char str_buf[128];
-    sprintf(
-        str_buf,
-        "A [%.3f, %.3f, %.3f], G [%.3f, %.3f, %.3f]",
-        imu_data.accel[0], imu_data.accel[1], imu_data.accel[2],
-        imu_data.gyro[0], imu_data.gyro[1], imu_data.gyro[2]
-    );
+    pedal_state_t pedal_state;
+    FusionQuaternion attitude;
+    cadence_update(time_delta_s, &imu_data);
+    cadence_get_attitude(&attitude);
+    cadence_get_pedal_state(&pedal_state);
 
-    NRF_LOG_INFO("%s", str_buf);
-    NRF_LOG_FLUSH();
+    if (counter >= 10)
+    {
+        counter = 0;
+
+        char str_buf[128];
+        sprintf(
+            str_buf,
+            "A [%.3f, %.3f, %.3f, %.3f], C [%u, %.3f]",
+            attitude.array[0], attitude.array[1],
+            attitude.array[2], attitude.array[3],
+            pedal_state.cadence,
+            pedal_state.angular_velocity
+        );
+
+        NRF_LOG_INFO("%s", str_buf);
+        NRF_LOG_FLUSH();
+    }
+    else
+    {
+        counter++;
+    }
 }
 
 ret_code_t imu_take_reading(imu_reading_t* reading)
