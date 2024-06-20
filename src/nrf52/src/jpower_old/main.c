@@ -90,7 +90,7 @@ static void power_management_init();
 static void idle_state_handler();
 static void softdevice_init();
 static void start_timers();
-static void high_freq_callback(void* context);
+static void callback_10ms(void* context);
 static void read_imu(float time_delta);
 static void update_power();
 static pedal_state_t calculate_pedal_state(
@@ -171,7 +171,7 @@ static void timers_init()
         app_timer_create(
             &high_freq_timer,
             APP_TIMER_MODE_REPEATED,
-            high_freq_callback
+            callback_10ms
         );
 
     APP_ERROR_CHECK(err_code);
@@ -229,7 +229,7 @@ static void idle_state_handler()
     }
 }
 
-static void high_freq_callback(void* context)
+static void callback_10ms(void* context)
 {
     NRF_TIMER1->TASKS_CAPTURE[1] = 1;
     uint32_t interval_us = NRF_TIMER1->CC[1];

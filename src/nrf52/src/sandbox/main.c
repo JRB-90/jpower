@@ -17,27 +17,28 @@
 #include "nrf_pwr_mgmt.h"
 #include "nrf_drv_clock.h"
 #include "sensor_subsystem.h"
+#include "led_control.h"
 
-#define HI_FREQ_CLK_HZ          10                      // Frequency (Hz) of the high speed timer
+#define HI_FREQ_CLK_HZ          100                     // Frequency (Hz) of the high speed timer
 #define HI_FREQ_CLK_PERIOD_MS   1000 / HI_FREQ_CLK_HZ   // High speed timer period in ms
 
-APP_TIMER_DEF(high_freq_timer);
+APP_TIMER_DEF(timer_10ms);
 
 static const sensor_config_t sensor_config =
 {
-    .i2c_scl_pin = I2C_SCL_PIN,
-    .i2c_sda_pin = I2C_SDA_PIN,
-    .spi_sck_pin = SPI_SCK_PIN,
-    .spi_mosi_pin = SPI_MOSI_PIN,
-    .spi_miso_pin = SPI_MISO_PIN,
-    .spi_cs_pin = SPI_CS_PIN,
+    .i2c_scl_pin    = I2C_SCL_PIN,
+    .i2c_sda_pin    = I2C_SDA_PIN,
+    .spi_sck_pin    = SPI_SCK_PIN,
+    .spi_mosi_pin   = SPI_MOSI_PIN,
+    .spi_miso_pin   = SPI_MISO_PIN,
+    .spi_cs_pin     = SPI_CS_PIN,
 };
 
 static void board_init();
 static void softdevice_init();
 static void start_timers();
 static bool app_shutdown_handler(nrf_pwr_mgmt_evt_t event);
-static void high_freq_callback(void* context);
+static void callback_10ms(void* context);
 
 int main()
 {
@@ -48,7 +49,7 @@ int main()
     NRF_LOG_INFO("Soft device initialised");
     
     start_timers();
-    bsp_board_led_on(LED_RED);
+    led_control_set(LED_STATE_SLOW_PULSE);
     NRF_LOG_INFO("JPower fully initialised");
 
     while (true)
@@ -83,9 +84,9 @@ static void board_init()
 
     err_code = 
         app_timer_create(
-            &high_freq_timer,
+            &timer_10ms,
             APP_TIMER_MODE_REPEATED,
-            high_freq_callback
+            callback_10ms
         );
 
     APP_ERROR_CHECK(err_code);
@@ -122,7 +123,7 @@ static void start_timers()
 {
     ret_code_t err_code = 
         app_timer_start(
-            high_freq_timer, 
+            timer_10ms, 
             APP_TIMER_TICKS(HI_FREQ_CLK_PERIOD_MS),
             NULL
         );
@@ -146,11 +147,13 @@ static bool app_shutdown_handler(nrf_pwr_mgmt_evt_t event)
     return true;
 }
 
-static void high_freq_callback(void* context)
+static void callback_10ms(void* context)
 {
     NRF_TIMER1->TASKS_CAPTURE[1] = 1;
     uint32_t interval_us = NRF_TIMER1->CC[1];
     NRF_TIMER1->TASKS_CLEAR = 1;
     float time_delta = (float)interval_us / 1000000.0f;
-    sensor_subsystem_update(time_delta);
+
+    led_control_update_10ms();
+    //sensor_subsystem_update_10ms(time_delta);
 }

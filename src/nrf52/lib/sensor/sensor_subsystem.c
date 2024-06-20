@@ -32,8 +32,8 @@ ret_code_t sensor_subsystem_init(const sensor_config_t* const config)
     return NRF_SUCCESS;
 }
 
-void sensor_subsystem_update(float time_delta_s)
+void sensor_subsystem_update_10ms(float time_delta_s)
 {
-    strain_update(time_delta_s);
-    imu_update(time_delta_s);
+    strain_update_10ms(time_delta_s);
+    imu_update_10ms(time_delta_s);
 }

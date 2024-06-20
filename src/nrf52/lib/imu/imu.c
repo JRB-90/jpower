@@ -9,6 +9,9 @@
 #include "lsm6dso_reg.h"
 #include "cadence.h"
 
+#define DESIRED_HZ          10
+#define COUNTER_TRIGGER     100 / DESIRED_HZ
+
 static stmdev_ctx_t dev_ctx;
 static nrf_drv_twi_t* twi = NULL;
 static lsm6dso_fs_xl_t accel_range = LSM6DSO_16g;
@@ -83,7 +86,7 @@ ret_code_t imu_init(
     return NRF_SUCCESS;
 }
 
-void imu_update(float time_delta_s)
+void imu_update_10ms(float time_delta_s)
 {
     ret_code_t err_code;
 
@@ -97,7 +100,7 @@ void imu_update(float time_delta_s)
     cadence_get_attitude(&attitude);
     cadence_get_pedal_state(&pedal_state);
 
-    if (counter >= 10)
+    if (counter >= COUNTER_TRIGGER)
     {
         counter = 0;
 

@@ -18,6 +18,7 @@ macro(jpow_addJPUtils)
 
     list(APPEND SOURCE_FILES
         "${CMAKE_SOURCE_DIR}/lib/utils/jp_utils.c"
+        "${CMAKE_SOURCE_DIR}/lib/utils/led_control.c"
     )
 endmacro()
 
@@ -118,6 +119,7 @@ endmacro()
 # Add Strain Library
 macro(jpow_addStrain)
     jpow_addSPI()
+    jpow_addJPUtils()
     list(APPEND INCLUDE_DIRS
         "${CMAKE_SOURCE_DIR}/lib/strain"
     )

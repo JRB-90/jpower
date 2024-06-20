@@ -20,6 +20,6 @@ typedef struct
 } sensor_config_t;
 
 extern ret_code_t sensor_subsystem_init(const sensor_config_t* const config);
-extern void sensor_subsystem_update(float time_delta_s);
+extern void sensor_subsystem_update_10ms(float time_delta_s);
 
 #endif // JPOW_SENSOR_H__

@@ -1,7 +1,6 @@
 ﻿using CalApp.Shared.Ble;
 using CalApp.Shared.Calibration;
 using CommunityToolkit.Mvvm.ComponentModel;
-using System;
 using System.Reactive.Subjects;
 
 namespace CalApp.Shared.JPower

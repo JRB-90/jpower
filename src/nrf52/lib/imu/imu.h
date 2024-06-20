@@ -19,7 +19,7 @@ extern ret_code_t imu_init(
     const uint32_t scl_pin,
     const uint32_t sda_pin
 );
-extern void imu_update(float time_delta_s);
+extern void imu_update_10ms(float time_delta_s);
 extern ret_code_t imu_take_reading(imu_reading_t* reading);
 
 #endif // IMU_H__
