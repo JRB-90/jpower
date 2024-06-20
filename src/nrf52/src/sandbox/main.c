@@ -49,7 +49,7 @@ int main()
     NRF_LOG_INFO("Soft device initialised");
     
     start_timers();
-    led_control_set(LED_STATE_SLOW_PULSE);
+    led_control_set(LED_STATE_SOLID);
     NRF_LOG_INFO("JPower fully initialised");
 
     while (true)
@@ -152,8 +152,8 @@ static void callback_10ms(void* context)
     NRF_TIMER1->TASKS_CAPTURE[1] = 1;
     uint32_t interval_us = NRF_TIMER1->CC[1];
     NRF_TIMER1->TASKS_CLEAR = 1;
-    float time_delta = (float)interval_us / 1000000.0f;
+    float time_delta_s = (float)interval_us / 1000000.0f;
 
     led_control_update_10ms();
-    //sensor_subsystem_update_10ms(time_delta);
+    sensor_subsystem_update_10ms(time_delta_s);
 }

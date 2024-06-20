@@ -1,23 +1,18 @@
 #include "imu.h"
 
-#include <string.h>
-#include "nrf_log.h"
-#include "nrf_log_ctrl.h"
 #include "nrf_delay.h"
 #include "nrf_gpio.h"
 #include "i2c_helper.h"
 #include "lsm6dso_reg.h"
 #include "cadence.h"
 
-#define DESIRED_HZ          10
-#define COUNTER_TRIGGER     100 / DESIRED_HZ
-
 static stmdev_ctx_t dev_ctx;
 static nrf_drv_twi_t* twi = NULL;
 static lsm6dso_fs_xl_t accel_range = LSM6DSO_16g;
 static lsm6dso_fs_g_t gyro_range = LSM6DSO_2000dps;
-static uint32_t counter = 0;
+static imu_reading_t current_reading = { 0 };
 
+static ret_code_t imu_take_reading();
 static ret_code_t imu_read_accel(float* const data);
 static ret_code_t imu_read_gyro(float* const data);
 static int32_t platform_write(
@@ -90,40 +85,22 @@ void imu_update_10ms(float time_delta_s)
 {
     ret_code_t err_code;
 
-    imu_reading_t imu_data;
-    err_code = imu_take_reading(&imu_data);
+    err_code = imu_take_reading();
     APP_ERROR_CHECK(err_code);
 
     pedal_state_t pedal_state;
     FusionQuaternion attitude;
-    cadence_update(time_delta_s, &imu_data);
+    cadence_update(time_delta_s, &current_reading);
     cadence_get_attitude(&attitude);
     cadence_get_pedal_state(&pedal_state);
-
-    if (counter >= COUNTER_TRIGGER)
-    {
-        counter = 0;
-
-        char str_buf[128];
-        sprintf(
-            str_buf,
-            "A [%.3f, %.3f, %.3f, %.3f], C [%u, %.3f]",
-            attitude.array[0], attitude.array[1],
-            attitude.array[2], attitude.array[3],
-            pedal_state.cadence,
-            pedal_state.angular_velocity
-        );
-
-        NRF_LOG_INFO("%s", str_buf);
-        NRF_LOG_FLUSH();
-    }
-    else
-    {
-        counter++;
-    }
 }
 
-ret_code_t imu_take_reading(imu_reading_t* reading)
+void imu_get_current_reading(imu_reading_t* const reading)
+{
+    *reading = current_reading;
+}
+
+static ret_code_t imu_take_reading()
 {
     uint8_t buff[12];
     int16_t accelValues[3];
@@ -149,9 +126,9 @@ ret_code_t imu_take_reading(imu_reading_t* reading)
     gyroValues[2] = (int16_t)buff[5];
     gyroValues[2] = (gyroValues[2] * 256) + (int16_t)buff[4];
 
-    reading->gyro[0] = convert_gyro_data(gyroValues[0]) / 1000.0f;
-    reading->gyro[1] = convert_gyro_data(gyroValues[1]) / 1000.0f;
-    reading->gyro[2] = convert_gyro_data(gyroValues[2]) / 1000.0f;
+    current_reading.gyro[0] = convert_gyro_data(gyroValues[0]) / 1000.0f;
+    current_reading.gyro[1] = convert_gyro_data(gyroValues[1]) / 1000.0f;
+    current_reading.gyro[2] = convert_gyro_data(gyroValues[2]) / 1000.0f;
 
     accelValues[0] = (int16_t)buff[7];
     accelValues[0] = (accelValues[0] * 256) + (int16_t)buff[6];
@@ -160,9 +137,9 @@ ret_code_t imu_take_reading(imu_reading_t* reading)
     accelValues[2] = (int16_t)buff[11];
     accelValues[2] = (accelValues[2] * 256) + (int16_t)buff[10];
 
-    reading->accel[0] = convert_accel_data(accelValues[0]) / 1000.0f;
-    reading->accel[1] = convert_accel_data(accelValues[1]) / 1000.0f;
-    reading->accel[2] = convert_accel_data(accelValues[2]) / 1000.0f;
+    current_reading.accel[0] = convert_accel_data(accelValues[0]) / 1000.0f;
+    current_reading.accel[1] = convert_accel_data(accelValues[1]) / 1000.0f;
+    current_reading.accel[2] = convert_accel_data(accelValues[2]) / 1000.0f;
 
     return NRF_SUCCESS;
 }

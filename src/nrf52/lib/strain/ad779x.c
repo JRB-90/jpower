@@ -75,7 +75,7 @@ static ad779x_mode_reg_t default_mode =
 {
     .mode = AD779X_MODE_IDLE,
     .psw_state = AD779X_PSW_OPEN,
-    .filter_rate = AD779X_FILTER_RATE_50HZ,
+    .filter_rate = AD779X_FILTER_RATE_242HZ,
 };
 
 static ad779x_conf_reg_t default_conf =
@@ -107,7 +107,7 @@ ret_code_t ad779x_init(
 
     nrf_drv_spi_config_t spi_config =
         {
-            .frequency = NRF_DRV_SPI_FREQ_500K,
+            .frequency = NRF_DRV_SPI_FREQ_1M,
             .mode = NRF_DRV_SPI_MODE_3,
             .bit_order = NRF_DRV_SPI_BIT_ORDER_MSB_FIRST,
             .irq_priority = 3,
