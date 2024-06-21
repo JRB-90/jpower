@@ -18,6 +18,7 @@
 #include "nrf_drv_clock.h"
 #include "sensor_subsystem.h"
 #include "led_control.h"
+#include "battery.h"
 
 #define HI_FREQ_CLK_HZ          100                     // Frequency (Hz) of the high speed timer
 #define HI_FREQ_CLK_PERIOD_MS   1000 / HI_FREQ_CLK_HZ   // High speed timer period in ms
@@ -33,6 +34,8 @@ static const sensor_config_t sensor_config =
     .spi_miso_pin   = SPI_MISO_PIN,
     .spi_cs_pin     = SPI_CS_PIN,
 };
+
+static uint32_t counter_10ms = 0;
 
 static void board_init();
 static void softdevice_init();
@@ -73,6 +76,9 @@ static void board_init()
 
     // IO init
     bsp_board_init(BSP_INIT_LEDS);
+
+    err_code = battery_init();
+    APP_ERROR_CHECK(err_code);
 
     // Sensors init
     err_code = sensor_subsystem_init(&sensor_config);
@@ -155,5 +161,15 @@ static void callback_10ms(void* context)
     float time_delta_s = (float)interval_us / 1000000.0f;
 
     led_control_update_10ms();
-    sensor_subsystem_update_10ms(time_delta_s);
+    battery_update();
+    //sensor_subsystem_update_10ms(time_delta_s);
+
+    if ((counter_10ms % 100) == 0)
+    {
+        NRF_LOG_INFO("%imv", battery_get_level_mv());
+        NRF_LOG_INFO("" NRF_LOG_FLOAT_MARKER "v", NRF_LOG_FLOAT(battery_get_level_v()));
+        NRF_LOG_INFO("%i%%", battery_get_level_percentage());
+    }
+
+    counter_10ms++;
 }

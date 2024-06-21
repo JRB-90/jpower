@@ -12,12 +12,14 @@ endmacro()
 # Add JPower Utils Library
 macro(jpow_addJPUtils)
     nRF5_addHWRNGLegacy()
+    nRF5_addSAADC()
     list(APPEND INCLUDE_DIRS
         "${CMAKE_SOURCE_DIR}/lib/utils"
     )
 
     list(APPEND SOURCE_FILES
         "${CMAKE_SOURCE_DIR}/lib/utils/jp_utils.c"
+        "${CMAKE_SOURCE_DIR}/lib/utils/battery.c"
         "${CMAKE_SOURCE_DIR}/lib/utils/led_control.c"
     )
 endmacro()

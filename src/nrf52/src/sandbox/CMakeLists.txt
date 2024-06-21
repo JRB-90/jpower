@@ -20,6 +20,7 @@ nRF5_addPowerMgmt()
 nRF5_addBSP(FALSE TRUE FALSE)
 nRF5_addSoftDeviceSupport()
 
+jpow_addJPUtils()
 jpow_addSensor()
 
 list(APPEND SOURCE_FILES
@@ -40,7 +41,7 @@ nRF5_addExecutable(${target}
 target_compile_definitions(${target} PRIVATE 
     USE_APP_CONFIG
     DEBUG
-    DEBUG_PRINT
+    #DEBUG_PRINT
 )
 
 target_link_libraries(${target} PRIVATE
