@@ -1,7 +1,9 @@
 #include "imu.h"
 
+#include "nrf_log.h"
 #include "nrf_delay.h"
 #include "nrf_gpio.h"
+#include "nrf_drv_gpiote.h"
 #include "i2c_helper.h"
 #include "lsm6dso_reg.h"
 #include "cadence.h"
@@ -12,9 +14,9 @@ static lsm6dso_fs_xl_t accel_range = LSM6DSO_16g;
 static lsm6dso_fs_g_t gyro_range = LSM6DSO_2000dps;
 static imu_reading_t current_reading = { 0 };
 
+static activity_event_cb activity_event_callback;
+
 static ret_code_t imu_take_reading();
-static ret_code_t imu_read_accel(float* const data);
-static ret_code_t imu_read_gyro(float* const data);
 static int32_t platform_write(
     void* handle, 
     uint8_t reg, 
@@ -29,11 +31,16 @@ static int32_t platform_read(
 );
 static float convert_accel_data(int32_t raw_value);
 static float convert_gyro_data(int32_t raw_value);
+static void wake_handler(
+    nrf_drv_gpiote_pin_t pin, 
+    nrf_gpiote_polarity_t action
+);
 
 ret_code_t imu_init(
     nrf_drv_twi_t* twi_instance, 
     const uint32_t scl_pin,
-    const uint32_t sda_pin)
+    const uint32_t sda_pin,
+    const uint32_t wake_pin)
 {
     ret_code_t err_code;
 
@@ -63,6 +70,14 @@ ret_code_t imu_init(
 
     // Restore default configuration
     lsm6dso_reset_set(&dev_ctx, PROPERTY_ENABLE);
+    
+    uint8_t reset_complete;
+
+    do {
+        lsm6dso_reset_get(&dev_ctx, &reset_complete);
+    } while (reset_complete);
+
+    lsm6dso_i3c_disable_set(&dev_ctx, LSM6DSO_I3C_DISABLE);
     lsm6dso_block_data_update_set(&dev_ctx, PROPERTY_ENABLE);
 
     lsm6dso_xl_data_rate_set(&dev_ctx, LSM6DSO_XL_ODR_104Hz);
@@ -73,12 +88,47 @@ ret_code_t imu_init(
     accel_range = LSM6DSO_16g;
     gyro_range = LSM6DSO_2000dps;
 
+    // TODO - Set up wake interupt
+    err_code = nrf_drv_gpiote_init();
+    APP_ERROR_CHECK(err_code);
+
+    nrf_drv_gpiote_in_config_t in_config = GPIOTE_CONFIG_IN_SENSE_HITOLO(true);
+    in_config.pull = NRF_GPIO_PIN_PULLUP;
+
+    err_code = nrf_drv_gpiote_in_init(wake_pin, &in_config, wake_handler);
+    APP_ERROR_CHECK(err_code);
+
+    nrf_drv_gpiote_in_event_enable(wake_pin, true);
+
+    // ODR_XL = 104
+
+    // Set duration for Activity detection to 9.62 ms (= 0x01 * 1 / ODR_XL)
+    lsm6dso_wkup_dur_set(&dev_ctx, 0x01);
+
+    // Set duration for Inactivity detection to 4.92 s (= 0x01 * 512 / ODR_XL)
+    lsm6dso_act_sleep_dur_set(&dev_ctx, 0x01);
+
+    // Set Activity/Inactivity threshold to 62.5 mg
+    lsm6dso_wkup_threshold_set(&dev_ctx, 0x02);
+
+    lsm6dso_act_mode_set(&dev_ctx, LSM6DSO_XL_12Hz5_GY_PD);
+    lsm6dso_pin_int1_route_t int1_route;
+    lsm6dso_pin_int1_route_get(&dev_ctx, &int1_route);
+    int1_route.sleep_change = PROPERTY_ENABLE;
+    int1_route.wake_up = PROPERTY_ENABLE;
+    lsm6dso_pin_int1_route_set(&dev_ctx, int1_route);
+
     nrf_delay_ms(LSM6DS3TR_BOOT_TIME_MS);
 
     err_code = cadence_init();
     APP_ERROR_CHECK(err_code);
 
     return NRF_SUCCESS;
+}
+
+void imu_register_activity_event_cb(activity_event_cb callback)
+{
+    activity_event_callback = callback;
 }
 
 void imu_update_10ms(float time_delta_s)
@@ -140,36 +190,6 @@ static ret_code_t imu_take_reading()
     current_reading.accel[0] = convert_accel_data(accelValues[0]) / 1000.0f;
     current_reading.accel[1] = convert_accel_data(accelValues[1]) / 1000.0f;
     current_reading.accel[2] = convert_accel_data(accelValues[2]) / 1000.0f;
-
-    return NRF_SUCCESS;
-}
-
-static ret_code_t imu_read_accel(float* const data)
-{
-    int16_t raw_data[3];
-    if (lsm6dso_acceleration_raw_get(&dev_ctx, raw_data))
-    {
-        return NRF_ERROR_INVALID_DATA;
-    }
-
-    data[0] = convert_accel_data(raw_data[0]) / 1000.0f;
-    data[1] = convert_accel_data(raw_data[1]) / 1000.0f;
-    data[2] = convert_accel_data(raw_data[2]) / 1000.0f;
-
-    return NRF_SUCCESS;
-}
-
-static ret_code_t imu_read_gyro(float* const data)
-{
-    int16_t raw_data[3];
-    if (lsm6dso_angular_rate_raw_get(&dev_ctx, raw_data))
-    {
-        return NRF_ERROR_INVALID_DATA;
-    }
-
-    data[0] = convert_gyro_data(raw_data[0]) / 1000.0f;
-    data[1] = convert_gyro_data(raw_data[1]) / 1000.0f;
-    data[2] = convert_gyro_data(raw_data[2]) / 1000.0f;
 
     return NRF_SUCCESS;
 }
@@ -248,5 +268,23 @@ static float convert_gyro_data(int32_t raw_value)
 
         default:
             return NAN;
+    }
+}
+
+static void wake_handler(
+    nrf_drv_gpiote_pin_t pin, 
+    nrf_gpiote_polarity_t action)
+{
+    lsm6dso_all_sources_t all_source;
+    lsm6dso_all_sources_get(&dev_ctx, &all_source);
+
+    if (all_source.sleep_state)
+    {
+        activity_event_callback(IMU_ACTIVITY_EVENT_SLEEP);
+    }
+
+    if (all_source.wake_up)
+    {
+        activity_event_callback(IMU_ACTIVITY_EVENT_SLEEP);
     }
 }

@@ -17,8 +17,10 @@
 extern ret_code_t imu_init(
     nrf_drv_twi_t* twi_instance,
     const uint32_t scl_pin,
-    const uint32_t sda_pin
+    const uint32_t sda_pin,
+    const uint32_t wake_pin
 );
+extern void imu_register_activity_event_cb(activity_event_cb callback);
 extern void imu_update_10ms(float time_delta_s);
 extern void imu_get_current_reading(imu_reading_t* const reading);
 

@@ -3,7 +3,6 @@
 #include <string.h>
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
-#include "imu_types.h"
 #include "imu.h"
 #include "cadence.h"
 #include "strain.h"
@@ -23,7 +22,8 @@ ret_code_t sensor_subsystem_init(const sensor_config_t* const config)
         imu_init(
             &twi,
             config->i2c_scl_pin,
-            config->i2c_sda_pin
+            config->i2c_sda_pin,
+            config->wake_pin
         );
     APP_ERROR_CHECK(err_code);
 
@@ -38,6 +38,11 @@ ret_code_t sensor_subsystem_init(const sensor_config_t* const config)
     APP_ERROR_CHECK(err_code);
 
     return NRF_SUCCESS;
+}
+
+void sensor_subsystem_register_activity_event_cb(activity_event_cb callback)
+{
+    imu_register_activity_event_cb(callback);
 }
 
 void sensor_subsystem_update_10ms(float time_delta_s)

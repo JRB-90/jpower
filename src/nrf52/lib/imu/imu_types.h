@@ -22,4 +22,12 @@ typedef struct
     FusionQuaternion attitude;
 } timestamped_reading_t;
 
+typedef enum
+{
+    IMU_ACTIVITY_EVENT_SLEEP,
+    IMU_ACTIVITY_EVENT_WAKE_UP,
+} imu_activity_event_t;
+
+typedef void (*activity_event_cb)(imu_activity_event_t event);
+
 #endif // IMU_TYPES_H__

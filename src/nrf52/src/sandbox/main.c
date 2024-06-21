@@ -17,6 +17,7 @@
 #include "nrf_pwr_mgmt.h"
 #include "nrf_drv_clock.h"
 #include "sensor_subsystem.h"
+#include "imu_types.h"
 #include "led_control.h"
 #include "battery.h"
 
@@ -33,6 +34,7 @@ static const sensor_config_t sensor_config =
     .spi_mosi_pin   = SPI_MOSI_PIN,
     .spi_miso_pin   = SPI_MISO_PIN,
     .spi_cs_pin     = SPI_CS_PIN,
+    .wake_pin       = WAKE_PIN,
 };
 
 static uint32_t counter_10ms = 0;
@@ -41,6 +43,7 @@ static void board_init();
 static void softdevice_init();
 static void start_timers();
 static bool app_shutdown_handler(nrf_pwr_mgmt_evt_t event);
+static void on_activity_event(imu_activity_event_t event);
 static void callback_10ms(void* context);
 
 int main()
@@ -137,6 +140,8 @@ static void start_timers()
     APP_ERROR_CHECK(err_code);
 
     NRF_TIMER1->TASKS_START = 1;
+
+    sensor_subsystem_register_activity_event_cb(on_activity_event);
 }
 
 static bool app_shutdown_handler(nrf_pwr_mgmt_evt_t event)
@@ -153,6 +158,21 @@ static bool app_shutdown_handler(nrf_pwr_mgmt_evt_t event)
     return true;
 }
 
+static void on_activity_event(imu_activity_event_t event)
+{
+    if (event == IMU_ACTIVITY_EVENT_SLEEP)
+    {
+        NRF_LOG_INFO("Sleep");
+        led_control_set(LED_STATE_OFF);
+    }
+    
+    if (event == IMU_ACTIVITY_EVENT_WAKE_UP)
+    {
+        NRF_LOG_INFO("Wake up");
+        led_control_set(LED_STATE_SOLID);
+    }
+}
+
 static void callback_10ms(void* context)
 {
     NRF_TIMER1->TASKS_CAPTURE[1] = 1;
@@ -164,12 +184,14 @@ static void callback_10ms(void* context)
     battery_update();
     //sensor_subsystem_update_10ms(time_delta_s);
 
+#ifdef DEBUG_PRINT
     if ((counter_10ms % 100) == 0)
     {
         NRF_LOG_INFO("%imv", battery_get_level_mv());
         NRF_LOG_INFO("" NRF_LOG_FLOAT_MARKER "v", NRF_LOG_FLOAT(battery_get_level_v()));
         NRF_LOG_INFO("%i%%", battery_get_level_percentage());
     }
+#endif
 
     counter_10ms++;
 }
