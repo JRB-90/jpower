@@ -12,8 +12,8 @@ typedef struct
 
 typedef struct
 {
-    float angular_velocity;
-    uint16_t cadence;
+    float angular_velocity_dps;
+    uint16_t cadence_rpm;
 } pedal_state_t;
 
 typedef struct

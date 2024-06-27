@@ -118,12 +118,12 @@ static pedal_state_t calculate_pedal_state(
         angle = 2.0f * acosf(relative.element.w);
     }
 
-    float angular_velocity = FusionRadiansToDegrees(angle) / time_delta_s;
+    float angular_velocity_dps = FusionRadiansToDegrees(angle) / time_delta_s;
 
     pedal_state_t state =
     {
-        .angular_velocity = angular_velocity,
-        .cadence = (uint16_t)fabsf(angular_velocity * ANG_TO_RPM_RATIO)
+        .angular_velocity_dps = angular_velocity_dps,
+        .cadence_rpm = (uint16_t)fabsf(angular_velocity_dps * ANG_TO_RPM_RATIO)
     };
 
     return state;

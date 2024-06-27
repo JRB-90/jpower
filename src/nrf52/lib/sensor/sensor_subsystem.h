@@ -24,5 +24,7 @@ typedef struct
 extern ret_code_t sensor_subsystem_init(const sensor_config_t* const config);
 extern void sensor_subsystem_register_activity_event_cb(activity_event_cb callback);
 extern void sensor_subsystem_update_10ms(float time_delta_s);
+extern void sensor_enable_activity_tracking();
+extern void sensor_disable_activity_tracking();
 
 #endif // JPOW_SENSOR_H__

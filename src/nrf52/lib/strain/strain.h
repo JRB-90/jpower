@@ -25,6 +25,7 @@ extern void strain_update_10ms(float delta_time_s);
 extern void strain_get_calibration(calibration_data_t* const calibration);
 extern void strain_set_calibration(calibration_data_t* const calibration);
 extern uint32_t strain_get_current_adv_value();
+extern float strain_get_current_torque_nm();
 extern ret_code_t strain_zero_offset();
 
 #endif // STRAIN_H__

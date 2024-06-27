@@ -23,5 +23,7 @@ extern ret_code_t imu_init(
 extern void imu_register_activity_event_cb(activity_event_cb callback);
 extern void imu_update_10ms(float time_delta_s);
 extern void imu_get_current_reading(imu_reading_t* const reading);
+extern void imu_enable_activity_tracking();
+extern void imu_disable_activity_tracking();
 
 #endif // IMU_H__

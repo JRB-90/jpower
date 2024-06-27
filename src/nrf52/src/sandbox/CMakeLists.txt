@@ -41,7 +41,7 @@ nRF5_addExecutable(${target}
 target_compile_definitions(${target} PRIVATE 
     USE_APP_CONFIG
     DEBUG
-    #DEBUG_PRINT
+    DEBUG_PRINT
 )
 
 target_link_libraries(${target} PRIVATE

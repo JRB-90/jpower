@@ -182,16 +182,7 @@ static void callback_10ms(void* context)
 
     led_control_update_10ms();
     battery_update();
-    //sensor_subsystem_update_10ms(time_delta_s);
-
-#ifdef DEBUG_PRINT
-    if ((counter_10ms % 100) == 0)
-    {
-        NRF_LOG_INFO("%imv", battery_get_level_mv());
-        NRF_LOG_INFO("" NRF_LOG_FLOAT_MARKER "v", NRF_LOG_FLOAT(battery_get_level_v()));
-        NRF_LOG_INFO("%i%%", battery_get_level_percentage());
-    }
-#endif
+    sensor_subsystem_update_10ms(time_delta_s);
 
     counter_10ms++;
 }

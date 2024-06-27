@@ -100,32 +100,7 @@ ret_code_t imu_init(
 
     nrf_drv_gpiote_in_event_enable(wake_pin, true);
 
-    // ODR_XL = 104hz
-    // FS_XL = 16g
-
-    // Set duration for Activity detection to 9.62 ms (= 0x01 * 1 / ODR_XL)
-    lsm6dso_wkup_dur_set(&dev_ctx, 0x01);
-
-    // Set threshold calc to div by 2^8 (256)
-    lsm6dso_wkup_ths_weight_set(&dev_ctx, LSM6DSO_LSb_FS_DIV_256);
-
-    // Set Activity/Inactivity threshold to 62.5 mg (= 0x01 * FS_XL / 256)
-    lsm6dso_wkup_threshold_set(&dev_ctx, 0x01);
-
-    // Use hi pass filter on Wake-up monitor
-    lsm6dso_xl_hp_path_internal_set(&dev_ctx, LSM6DSO_USE_SLOPE);
-
-    // Set duration for Inactivity detection to 4.92 s (= 0x01 * 512 / ODR_XL)
-    lsm6dso_act_sleep_dur_set(&dev_ctx, 0x01);
-
-    // Set gyro to switch to 12.5Hz when in sleep mode
-    lsm6dso_act_mode_set(&dev_ctx, LSM6DSO_XL_12Hz5_GY_PD);
-
-    lsm6dso_pin_int1_route_t int1_route;
-    lsm6dso_pin_int1_route_get(&dev_ctx, &int1_route);
-    int1_route.sleep_change = PROPERTY_ENABLE;
-    int1_route.wake_up = PROPERTY_ENABLE;
-    lsm6dso_pin_int1_route_set(&dev_ctx, int1_route);
+    //imu_enable_activity_tracking();
 
     nrf_delay_ms(LSM6DS3TR_BOOT_TIME_MS);
 
@@ -157,6 +132,47 @@ void imu_update_10ms(float time_delta_s)
 void imu_get_current_reading(imu_reading_t* const reading)
 {
     *reading = current_reading;
+}
+
+void imu_enable_activity_tracking()
+{
+    // TODO - Have this as a configurable time?
+
+    // ODR_XL = 104hz
+    // FS_XL = 16g
+
+    // Set duration for Activity detection to 9.62 ms (= 0x01 * 1 / ODR_XL)
+    lsm6dso_wkup_dur_set(&dev_ctx, 0x01);
+
+    // Set threshold calc to div by 2^8 (256)
+    lsm6dso_wkup_ths_weight_set(&dev_ctx, LSM6DSO_LSb_FS_DIV_256);
+
+    // Set Activity/Inactivity threshold to 62.5 mg (= 0x01 * FS_XL / 256)
+    lsm6dso_wkup_threshold_set(&dev_ctx, 0x01);
+
+    // Use hi pass filter on Wake-up monitor
+    lsm6dso_xl_hp_path_internal_set(&dev_ctx, LSM6DSO_USE_SLOPE);
+
+    // Set duration for Inactivity detection to 4.92 s (= 0x01 * 512 / ODR_XL)
+    lsm6dso_act_sleep_dur_set(&dev_ctx, 0x01);
+
+    // Set gyro to switch to 12.5Hz when in sleep mode
+    lsm6dso_act_mode_set(&dev_ctx, LSM6DSO_XL_12Hz5_GY_PD);
+
+    lsm6dso_pin_int1_route_t int1_route;
+    lsm6dso_pin_int1_route_get(&dev_ctx, &int1_route);
+    int1_route.sleep_change = PROPERTY_ENABLE;
+    int1_route.wake_up = PROPERTY_ENABLE;
+    lsm6dso_pin_int1_route_set(&dev_ctx, int1_route);
+}
+
+void imu_disable_activity_tracking()
+{
+    lsm6dso_pin_int1_route_t int1_route;
+    lsm6dso_pin_int1_route_get(&dev_ctx, &int1_route);
+    int1_route.sleep_change = PROPERTY_DISABLE;
+    int1_route.wake_up = PROPERTY_DISABLE;
+    lsm6dso_pin_int1_route_set(&dev_ctx, int1_route);
 }
 
 static ret_code_t imu_take_reading()
