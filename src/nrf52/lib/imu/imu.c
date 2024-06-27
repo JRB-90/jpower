@@ -13,6 +13,7 @@ static nrf_drv_twi_t* twi = NULL;
 static lsm6dso_fs_xl_t accel_range = LSM6DSO_16g;
 static lsm6dso_fs_g_t gyro_range = LSM6DSO_2000dps;
 static imu_reading_t current_reading = { 0 };
+static float current_temp_c = 0.0f;
 
 static activity_event_cb activity_event_callback;
 
@@ -88,7 +89,6 @@ ret_code_t imu_init(
     accel_range = LSM6DSO_16g;
     gyro_range = LSM6DSO_2000dps;
 
-    // TODO - Set up wake interupt
     err_code = nrf_drv_gpiote_init();
     APP_ERROR_CHECK(err_code);
 
@@ -120,6 +120,10 @@ void imu_update_10ms(float time_delta_s)
     err_code = imu_take_reading();
     APP_ERROR_CHECK(err_code);
 
+    int16_t temp_value_raw;
+    lsm6dso_temperature_raw_get(&dev_ctx, &temp_value_raw);
+    current_temp_c = convert_temp_data(temp_value_raw);
+
     pedal_state_t pedal_state;
     FusionQuaternion attitude;
     cadence_update(time_delta_s, &current_reading);
@@ -130,6 +134,11 @@ void imu_update_10ms(float time_delta_s)
 void imu_get_current_reading(imu_reading_t* const reading)
 {
     *reading = current_reading;
+}
+
+float imu_get_current_temp_c()
+{
+    return current_temp_c;
 }
 
 void imu_enable_activity_tracking()
@@ -166,6 +175,15 @@ void imu_enable_activity_tracking()
 
 void imu_disable_activity_tracking()
 {
+    // Set duration for Activity detection to 0 ms
+    lsm6dso_wkup_dur_set(&dev_ctx, 0x00);
+
+    // Set Activity/Inactivity threshold to 0 mg 
+    lsm6dso_wkup_threshold_set(&dev_ctx, 0x00);
+
+    // Set duration for Inactivity detection to 0 s
+    lsm6dso_act_sleep_dur_set(&dev_ctx, 0x00);
+
     lsm6dso_pin_int1_route_t int1_route;
     lsm6dso_pin_int1_route_get(&dev_ctx, &int1_route);
     int1_route.sleep_change = PROPERTY_DISABLE;
@@ -292,6 +310,11 @@ static float convert_gyro_data(int32_t raw_value)
         default:
             return NAN;
     }
+}
+
+static float convert_temp_data(int32_t raw_value)
+{
+    return lsm6dso_from_lsb_to_celsius(raw_value);
 }
 
 static void wake_handler(

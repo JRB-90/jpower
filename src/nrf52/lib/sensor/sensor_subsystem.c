@@ -75,6 +75,8 @@ void sensor_disable_activity_tracking()
 
 static void calculate_cadence_power(float time_delta_s)
 {
+    float temp = imu_get_current_temp_c();
+
     FusionQuaternion attitude;
     cadence_get_attitude(&attitude);
 
@@ -90,11 +92,12 @@ static void calculate_cadence_power(float time_delta_s)
     char imu_str[128];
     sprintf(
         imu_str,
-        "A [%.3f, %.3f, %.3f, %.3f], C [%u, %.3f]",
+        "A [%.3f, %.3f, %.3f, %.3f], C [%u, %.3f], T [%.3f]",
         attitude.array[0], attitude.array[1],
         attitude.array[2], attitude.array[3],
         pedal_state.cadence_rpm,
-        pedal_state.angular_velocity_dps
+        pedal_state.angular_velocity_dps,
+        temp
     );
     
     char strain_str[128];

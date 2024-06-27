@@ -200,6 +200,7 @@ void on_ble_conn_state_changed(bool is_connected)
     }
     else
     {
+        sensor_disable_activity_tracking();
         sensor_enable_activity_tracking();
         led_control_set(LED_STATE_FAST_PULSE);
     }
