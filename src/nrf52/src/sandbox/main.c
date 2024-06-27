@@ -17,14 +17,24 @@
 #include "nrf_pwr_mgmt.h"
 #include "nrf_drv_clock.h"
 #include "sensor_subsystem.h"
+#include "sensor_ble_srv.h"
 #include "imu_types.h"
 #include "led_control.h"
 #include "battery.h"
+#include "ble_subsystem.h"
 
+#define DEVICE_NAME             "JPower"                // Name of device. Will be included in the advertising data
 #define HI_FREQ_CLK_HZ          100                     // Frequency (Hz) of the high speed timer
 #define HI_FREQ_CLK_PERIOD_MS   1000 / HI_FREQ_CLK_HZ   // High speed timer period in ms
 
-APP_TIMER_DEF(timer_10ms);
+static void board_init();
+static void softdevice_init();
+static void ble_init();
+static void start_timers();
+static bool app_shutdown_handler(nrf_pwr_mgmt_evt_t event);
+static void on_ble_conn_state_changed(bool is_connected);
+static void on_activity_event(imu_activity_event_t event);
+static void callback_10ms(void* context);
 
 static const sensor_config_t sensor_config =
 {
@@ -37,14 +47,21 @@ static const sensor_config_t sensor_config =
     .wake_pin       = WAKE_PIN,
 };
 
+static ble_subsystem_config_t ble_subsystem_config =
+{
+    .device_name = DEVICE_NAME,
+    .standard_services =
+    {
+        .with_dfu_enabled = true,
+        .with_nus_enabled = false,
+        .with_bas_enabled = true,
+    },
+    .conn_state_handler = on_ble_conn_state_changed,
+};
+
 static uint32_t counter_10ms = 0;
 
-static void board_init();
-static void softdevice_init();
-static void start_timers();
-static bool app_shutdown_handler(nrf_pwr_mgmt_evt_t event);
-static void on_activity_event(imu_activity_event_t event);
-static void callback_10ms(void* context);
+APP_TIMER_DEF(timer_10ms);
 
 int main()
 {
@@ -53,9 +70,11 @@ int main()
 
     softdevice_init();
     NRF_LOG_INFO("Soft device initialised");
+
+    ble_init();
+    NRF_LOG_INFO("BLE initialised");
     
     start_timers();
-    led_control_set(LED_STATE_SOLID);
     NRF_LOG_INFO("JPower fully initialised");
 
     while (true)
@@ -128,6 +147,16 @@ static void softdevice_init()
     ASSERT(nrf_sdh_is_enabled());
 }
 
+static void ble_init()
+{
+    ret_code_t err_code;
+
+    blesub_init(&ble_subsystem_config);
+
+    err_code = sensor_ble_srv_init();
+    APP_ERROR_CHECK(err_code);
+}
+
 static void start_timers()
 {
     ret_code_t err_code = 
@@ -142,6 +171,10 @@ static void start_timers()
     NRF_TIMER1->TASKS_START = 1;
 
     sensor_subsystem_register_activity_event_cb(on_activity_event);
+    sensor_enable_activity_tracking();
+
+    blesub_start_advertising();
+    led_control_set(LED_STATE_FAST_PULSE);
 }
 
 static bool app_shutdown_handler(nrf_pwr_mgmt_evt_t event)
@@ -158,18 +191,34 @@ static bool app_shutdown_handler(nrf_pwr_mgmt_evt_t event)
     return true;
 }
 
+void on_ble_conn_state_changed(bool is_connected)
+{
+    if (is_connected)
+    {
+        sensor_disable_activity_tracking();
+        led_control_set(LED_STATE_SOLID);
+    }
+    else
+    {
+        sensor_enable_activity_tracking();
+        led_control_set(LED_STATE_FAST_PULSE);
+    }
+}
+
 static void on_activity_event(imu_activity_event_t event)
 {
     if (event == IMU_ACTIVITY_EVENT_SLEEP)
     {
-        NRF_LOG_INFO("Sleep");
+        blesub_stop_advertising();
         led_control_set(LED_STATE_OFF);
+        NRF_LOG_INFO("Sleep");
     }
     
     if (event == IMU_ACTIVITY_EVENT_WAKE_UP)
     {
+        blesub_start_advertising();
+        led_control_set(LED_STATE_FAST_PULSE);
         NRF_LOG_INFO("Wake up");
-        led_control_set(LED_STATE_SOLID);
     }
 }
 
@@ -182,6 +231,7 @@ static void callback_10ms(void* context)
 
     led_control_update_10ms();
     battery_update();
+    blesub_bas_update_battery_level(battery_get_level_percentage());
     sensor_subsystem_update_10ms(time_delta_s);
 
     counter_10ms++;

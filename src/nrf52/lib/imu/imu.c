@@ -100,8 +100,6 @@ ret_code_t imu_init(
 
     nrf_drv_gpiote_in_event_enable(wake_pin, true);
 
-    //imu_enable_activity_tracking();
-
     nrf_delay_ms(LSM6DS3TR_BOOT_TIME_MS);
 
     err_code = cadence_init();
@@ -153,8 +151,8 @@ void imu_enable_activity_tracking()
     // Use hi pass filter on Wake-up monitor
     lsm6dso_xl_hp_path_internal_set(&dev_ctx, LSM6DSO_USE_SLOPE);
 
-    // Set duration for Inactivity detection to 4.92 s (= 0x01 * 512 / ODR_XL)
-    lsm6dso_act_sleep_dur_set(&dev_ctx, 0x01);
+    // Set duration for Inactivity detection to ~10 s (= 0x02 * 512 / ODR_XL)
+    lsm6dso_act_sleep_dur_set(&dev_ctx, 0x02);
 
     // Set gyro to switch to 12.5Hz when in sleep mode
     lsm6dso_act_mode_set(&dev_ctx, LSM6DSO_XL_12Hz5_GY_PD);

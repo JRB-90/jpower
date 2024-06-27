@@ -7,31 +7,42 @@
 #include "nrf_pwr_mgmt.h"
 #include "nrf_log.h"
 #include "nrf_sdh.h"
+#include "ble_gap.h"
 #include "ble_advertising.h"
 #include "ble_srv_helper.h"
+#include "ble_dfu.h"
+#include "ble_nus.h"
+#include "ble_bas.h"
+#include "led_control.h"
+#include "battery.h"
 
-// ======== BLE Data ========
+#pragma region BLE Settings
 
-NRF_BLE_GATT_DEF(m_gatt);                                               // GATT module instance
-NRF_BLE_QWR_DEF(m_qwr);                                                 // Context for the Queued Write module
+#define APP_BLE_OBSERVER_PRIO           3                                       // Application's BLE observer priority
+#define APP_BLE_CONN_CFG_TAG            1                                       // A tag identifying the SoftDevice BLE configuration
+#define APP_ADV_INTERVAL                64                                      // The advertising interval (in units of 0.625 ms; this value corresponds to 40 ms)
+#define APP_ADV_DURATION                BLE_GAP_ADV_TIMEOUT_GENERAL_UNLIMITED   // The advertising time-out (in units of seconds). When set to 0, we will never time out
 
-static ble_subsystem_config_t* ble_config = {0};                        // Configuration params of the ble subsystem
+#define MIN_CONN_INTERVAL               MSEC_TO_UNITS(100, UNIT_1_25_MS)        // Minimum acceptable connection interval (0.5 seconds)
+#define MAX_CONN_INTERVAL               MSEC_TO_UNITS(200, UNIT_1_25_MS)        // Maximum acceptable connection interval (1 second)
+#define SLAVE_LATENCY                   0                                       // Slave latency. */
+#define CONN_SUP_TIMEOUT                MSEC_TO_UNITS(1000, UNIT_10_MS)         // Connection supervisory time-out (1 seconds)
+#define FIRST_CONN_PARAMS_UPDATE_DELAY  APP_TIMER_TICKS(20000)                  // Time from initiating event (connect or start of notification) to first time sd_ble_gap_conn_param_update is called (15 seconds)
+#define NEXT_CONN_PARAMS_UPDATE_DELAY   APP_TIMER_TICKS(5000)                   // Time between each call to sd_ble_gap_conn_param_update after the first call (5 seconds)
+#define MAX_CONN_PARAMS_UPDATE_COUNT    3                                       // Number of attempts before giving up the connection parameter negotiation
+
+#pragma endregion
+
+#pragma region Private Data
+
+static bool is_advertising = false;
+static bool is_connected = false;
+static ble_subsystem_config_t ble_config = {0};                         // Configuration params of the ble subsystem
+static ble_nus_data_handler_t ble_nus_data_handler;                     // Data handler for the nus service
 static uint16_t m_conn_handle = BLE_CONN_HANDLE_INVALID;                // Handle of the current connection
 static uint8_t m_adv_handle = BLE_GAP_ADV_SET_HANDLE_NOT_SET;           // Advertising handle used to identify an advertising set
 static uint8_t m_enc_advdata[BLE_GAP_ADV_SET_DATA_SIZE_MAX];            // Buffer for storing an encoded advertising set
 static uint8_t m_enc_scan_response_data[BLE_GAP_ADV_SET_DATA_SIZE_MAX]; // Buffer for storing an encoded scan data
-
-static ble_subsystem_config_t default_ble_subsystem_config =
-{
-    .device_name = DEVICE_NAME,
-    .advertising_led_idx = BSP_BOARD_LED_2,
-    .connected_led_idx = BSP_BOARD_LED_1,
-};
-
-static ble_srv_nus_config_t default_ble_srv_nus_config =
-{
-    .data_handler = blesub_nus_default_data_handler,
-};
 
 static ble_gap_adv_data_t m_adv_data =
 {
@@ -47,22 +58,20 @@ static ble_gap_adv_data_t m_adv_data =
     }
 };
 
-// ======== Services ========
-
-static uint32_t enabled_services = 0;                                   // Enabled services bitmask
-static ble_srv_lbs_config_t* lbs_config = NULL;                         // Configuration params of the lbs service
-static ble_srv_nus_config_t* nus_config = NULL;                         // Configuration params of the nus service
-
+NRF_BLE_GATT_DEF(m_gatt);                                               // GATT module instance
+NRF_BLE_QWR_DEF(m_qwr);                                                 // Context for the Queued Write module
 BLE_ADVERTISING_DEF(m_advertising);                                     // Advertising instance
-BLE_LBS_DEF(m_lbs);                                                     // LED Button Service instance
 BLE_NUS_DEF(m_nus, NRF_SDH_BLE_TOTAL_LINK_COUNT);                       // BLE NUS service instance
+BLE_BAS_DEF(m_bas);                                                     // Battery service instance
 
-// ======== Function Defs ========
+#pragma endregion
+
+#pragma region Private Function Defs
 
 static void init_ble_stack();
 static void init_gap_params();
 static void init_gatt();
-static void init_services();
+static void init_standard_services();
 static void init_advertising();
 static void init_conn_params();
 static void ble_event_handler(
@@ -72,10 +81,6 @@ static void ble_event_handler(
 static void conn_params_event_handler(ble_conn_params_evt_t * p_evt);
 static void conn_params_error_handler(uint32_t nrf_error);
 static void nrf_qwr_error_handler(uint32_t nrf_error);
-static void button_handler(
-    uint8_t pin_no, 
-    uint8_t button_action
-);
 static void ble_dfu_buttonless_evt_handler(ble_dfu_buttonless_evt_type_t event);
 static void buttonless_dfu_sdh_state_observer(
     nrf_sdh_state_evt_t state, 
@@ -87,40 +92,68 @@ NRF_SDH_STATE_OBSERVER(buttonless_dfu_state_obs, 0) =
     .handler = buttonless_dfu_sdh_state_observer,
 };
 
-// ======== Functions Impl ========
+#pragma endregion
 
-void blesub_enable_lbs(ble_srv_lbs_config_t* ble_srv_lbs_config)
+#pragma region Public Function Impl
+
+ret_code_t blesub_init(ble_subsystem_config_t* ble_subsystem_config)
 {
-    lbs_config = ble_srv_lbs_config;
-    enabled_services |= BLE_SRV_LBS;
+    ble_config = *ble_subsystem_config;
 
-    NRF_LOG_INFO("BLE enabled LBS service");
+    init_ble_stack();
+    init_gap_params();
+    init_gatt();
+    init_standard_services();
+    init_conn_params();
+    init_advertising();
+
+    return NRF_SUCCESS;
 }
 
-void blesub_enable_nus(ble_srv_nus_config_t* ble_srv_nus_config)
+bool blesub_is_advertising()
 {
-    if (ble_srv_nus_config == NULL)
+    return is_advertising;
+}
+
+bool blesub_is_connected()
+{
+    return is_connected;
+}
+
+void blesub_start_advertising()
+{
+    if (is_advertising)
     {
-        nus_config = &default_ble_srv_nus_config;
-    }
-    else
-    {
-        nus_config = ble_srv_nus_config;
+        return;
     }
 
-    enabled_services |= BLE_SRV_NUS;
+    ret_code_t err_code = 
+        sd_ble_gap_adv_start(
+            m_adv_handle, 
+            APP_BLE_CONN_CFG_TAG
+        );
+    APP_ERROR_CHECK(err_code);
 
-    NRF_LOG_INFO("BLE enabled NUS service");
+    is_advertising = true;
 }
 
-void blesub_enable_ble_dfu()
+void blesub_stop_advertising()
 {
-    enabled_services |= BLE_SRV_BLE_DFU;
+    if (!is_advertising)
+    {
+        return;
+    }
 
-    NRF_LOG_INFO("BLE enabled BLE DFU service");
+    ret_code_t err_code = 
+        sd_ble_gap_adv_stop(
+            m_adv_handle
+        );
+    APP_ERROR_CHECK(err_code);
+
+    is_advertising = false;
 }
 
-void blesub_service_init(
+void blesub_custom_service_init(
     ble_uuid128_t base_uuid,
     uint16_t service_uuid,
     uint16_t* service_handle)
@@ -147,40 +180,6 @@ void blesub_service_init(
     ble_service_uuid.type = BLE_UUID_TYPE_VENDOR_BEGIN;
 }
 
-void blesub_init(ble_subsystem_config_t* ble_subsystem_config)
-{
-    if (ble_subsystem_config == NULL)
-    {
-        ble_config = &default_ble_subsystem_config;
-    }
-    else
-    {
-        ble_config = ble_subsystem_config;
-    }
-
-    init_ble_stack();
-    init_gap_params();
-    init_gatt();
-    init_services();
-    init_conn_params();
-
-    NRF_LOG_INFO("BLE init success");
-}
-
-void blesub_start_advertising()
-{
-    init_advertising();
-
-    ret_code_t err_code = 
-        sd_ble_gap_adv_start(
-            m_adv_handle, 
-            APP_BLE_CONN_CFG_TAG
-        );
-    APP_ERROR_CHECK(err_code);
-
-    bsp_board_led_on(ble_config->advertising_led_idx);
-}
-
 void blesub_nus_send_string(const char* string)
 {
     uint16_t length = (uint16_t)strlen(string);
@@ -201,23 +200,6 @@ void blesub_nus_send_string(const char* string)
     }
 }
 
-void blesub_lbs_default_led_write_handler(
-    uint16_t conn_handle, 
-    ble_lbs_t * p_lbs, 
-    uint8_t led_state)
-{
-    if (led_state)
-    {
-        bsp_board_led_on(lbs_config->led_idx);
-        NRF_LOG_INFO("Received LED ON!");
-    }
-    else
-    {
-        bsp_board_led_off(lbs_config->led_idx);
-        NRF_LOG_INFO("Received LED OFF!");
-    }
-}
-
 void blesub_nus_default_data_handler(ble_nus_evt_t* event)
 {
     if (event->type == BLE_NUS_EVT_RX_DATA)
@@ -230,6 +212,28 @@ void blesub_nus_default_data_handler(ble_nus_evt_t* event)
         );
     }
 }
+
+void blesub_bas_update_battery_level(uint8_t level)
+{
+    ret_code_t err_code = 
+        ble_bas_battery_level_update(
+            &m_bas, 
+            level, 
+            m_conn_handle
+        );
+    
+    if ((err_code != NRF_ERROR_INVALID_STATE) &&
+        (err_code != NRF_ERROR_RESOURCES) &&
+        (err_code != NRF_ERROR_NOT_FOUND) &&
+        (err_code != BLE_ERROR_INVALID_CONN_HANDLE))
+    {
+        APP_ERROR_CHECK(err_code);
+    }
+}
+
+#pragma endregion
+
+#pragma region Private Function Impl
 
 static void init_ble_stack()
 {
@@ -269,8 +273,8 @@ static void init_gap_params()
     err_code = 
         sd_ble_gap_device_name_set(
             &sec_mode,
-            (const uint8_t *)ble_config->device_name,
-            strlen(ble_config->device_name)
+            (const uint8_t *)ble_config.device_name,
+            strlen(ble_config.device_name)
         );
     APP_ERROR_CHECK(err_code);
 
@@ -291,12 +295,10 @@ static void init_gatt()
     APP_ERROR_CHECK(err_code);
 }
 
-static void init_services()
+static void init_standard_services()
 {
     ret_code_t         err_code;
     nrf_ble_qwr_init_t qwr_init = {0};
-    ble_lbs_init_t     lbs_init = {0};
-    ble_nus_init_t     nus_init = {0};
 
     // Init Queued Write Module
     memset(&qwr_init, 0, sizeof(qwr_init));
@@ -304,48 +306,7 @@ static void init_services()
     err_code = nrf_ble_qwr_init(&m_qwr, &qwr_init);
     APP_ERROR_CHECK(err_code);
 
-    if (enabled_services & BLE_SRV_LBS)
-    {
-        // Init Led Button Service
-
-        // The array must be static because a pointer to it will be saved in the button handler module
-        static app_button_cfg_t buttons[] =
-        {
-            {
-                0,
-                false,
-                BUTTON_PULL,
-                button_handler
-            }
-        };
-
-        buttons->pin_no = lbs_config->button_pin;
-
-        err_code = 
-            app_button_init(
-                buttons, 
-                ARRAY_SIZE(buttons),
-                lbs_config->button_detection_delay_timer_ticks
-            );
-        APP_ERROR_CHECK(err_code);
-    
-        memset(&lbs_init, 0, sizeof(lbs_init));
-        lbs_init.led_write_handler = lbs_config->led_write_handler;
-
-        err_code = ble_lbs_init(&m_lbs, &lbs_init);
-        APP_ERROR_CHECK(err_code);
-    }
-
-    if (enabled_services & BLE_SRV_NUS)
-    {
-        // Init Nordic Uart Service
-        memset(&nus_init, 0, sizeof(nus_init));
-        nus_init.data_handler = nus_config->data_handler;
-        err_code = ble_nus_init(&m_nus, &nus_init);
-        APP_ERROR_CHECK(err_code);
-    }
-
-    if (enabled_services & BLE_SRV_BLE_DFU)
+    if (ble_config.standard_services.with_dfu_enabled)
     {
         // Initialize the DFU service
         ble_dfu_buttonless_init_t dfus_init =
@@ -353,6 +314,34 @@ static void init_services()
             .evt_handler = ble_dfu_buttonless_evt_handler
         };
         err_code = ble_dfu_buttonless_init(&dfus_init);
+        APP_ERROR_CHECK(err_code);
+    }
+
+    if (ble_config.standard_services.with_nus_enabled)
+    {
+        // Init Nordic Uart Service
+        ble_nus_init_t nus_init;
+        memset(&nus_init, 0, sizeof(nus_init));
+        nus_init.data_handler = ble_nus_data_handler;
+        err_code = ble_nus_init(&m_nus, &nus_init);
+        APP_ERROR_CHECK(err_code);
+    }
+
+    if (ble_config.standard_services.with_bas_enabled)
+    {
+        // Init Battery service
+        ble_bas_init_t bas_init;
+        memset(&bas_init, 0, sizeof(bas_init));
+
+        bas_init.bl_cccd_wr_sec = SEC_OPEN;
+        bas_init.bl_rd_sec = SEC_OPEN;
+        bas_init.bl_report_rd_sec = SEC_OPEN;
+        bas_init.evt_handler = NULL;
+        bas_init.support_notification = true;
+        bas_init.p_report_ref = NULL;
+        bas_init.initial_batt_level = battery_get_level_percentage();
+
+        err_code = ble_bas_init(&m_bas, &bas_init);
         APP_ERROR_CHECK(err_code);
     }
 }
@@ -444,30 +433,26 @@ static void ble_event_handler(
     switch (p_ble_evt->header.evt_id)
     {
         case BLE_GAP_EVT_CONNECTED:
-            NRF_LOG_INFO("Connected");
-            bsp_board_led_on(ble_config->connected_led_idx);
-            bsp_board_led_off(ble_config->advertising_led_idx);
+            is_connected = true;
             m_conn_handle = p_ble_evt->evt.gap_evt.conn_handle;
             err_code = nrf_ble_qwr_conn_handle_assign(&m_qwr, m_conn_handle);
             APP_ERROR_CHECK(err_code);
-            if (enabled_services & BLE_SRV_LBS)
+            if (ble_config.conn_state_handler != NULL)
             {
-                err_code = app_button_enable();
-                APP_ERROR_CHECK(err_code);
+                ble_config.conn_state_handler(true);
             }
+            NRF_LOG_INFO("Connected");
             break;
 
         case BLE_GAP_EVT_DISCONNECTED:
-            NRF_LOG_INFO("Disconnected");
-            bsp_board_led_off(ble_config->connected_led_idx);
+            is_connected = false;
             m_conn_handle = BLE_CONN_HANDLE_INVALID;
-            if (enabled_services & BLE_SRV_LBS)
-            {
-                bsp_board_led_off(lbs_config->led_idx);
-                err_code = app_button_disable();
-                APP_ERROR_CHECK(err_code);
-            }
             blesub_start_advertising();
+            if (ble_config.conn_state_handler != NULL)
+            {
+                ble_config.conn_state_handler(false);
+            }
+            NRF_LOG_INFO("Disconnected");
             break;
 
         case BLE_GAP_EVT_SEC_PARAMS_REQUEST:
@@ -564,36 +549,6 @@ static void nrf_qwr_error_handler(uint32_t nrf_error)
     APP_ERROR_HANDLER(nrf_error);
 }
 
-static void button_handler(
-    uint8_t pin_no, 
-    uint8_t button_action)
-{
-    ret_code_t err_code;
-
-    if (pin_no == lbs_config->button_pin)
-    {
-        NRF_LOG_INFO("Send button state change.");
-        err_code = 
-            ble_lbs_on_button_change(
-                m_conn_handle, 
-                &m_lbs, 
-                button_action
-            );
-
-        if (err_code != NRF_SUCCESS &&
-            err_code != BLE_ERROR_INVALID_CONN_HANDLE &&
-            err_code != NRF_ERROR_INVALID_STATE &&
-            err_code != BLE_ERROR_GATTS_SYS_ATTR_MISSING)
-        {
-            APP_ERROR_CHECK(err_code);
-        }
-    }
-    else
-    {
-        APP_ERROR_HANDLER(pin_no);
-    }
-}
-
 static void ble_dfu_buttonless_evt_handler(ble_dfu_buttonless_evt_type_t event)
 {
     switch (event)
@@ -623,3 +578,5 @@ static void buttonless_dfu_sdh_state_observer(nrf_sdh_state_evt_t state, void * 
         nrf_pwr_mgmt_shutdown(NRF_PWR_MGMT_SHUTDOWN_GOTO_SYSOFF);
     }
 }
+
+#pragma endregion

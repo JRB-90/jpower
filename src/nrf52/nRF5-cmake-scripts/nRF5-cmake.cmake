@@ -234,6 +234,7 @@ macro(nRF5_setup)
     endif ()
 
     add_compile_options(${${ARCH}_DEFINES})
+    add_compile_options(-Wno-unknown-pragmas)
 
     add_link_options(-u _printf_float)
 

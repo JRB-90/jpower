@@ -17,11 +17,12 @@ nRF5_addAppButton()
 nRF5_addClock()
 nRF5_addAppTimer()
 nRF5_addPowerMgmt()
-nRF5_addBSP(FALSE TRUE FALSE)
+nRF5_addBSP(TRUE TRUE FALSE)
 nRF5_addSoftDeviceSupport()
 
 jpow_addJPUtils()
 jpow_addSensor()
+jpow_addBLE()
 
 list(APPEND SOURCE_FILES
     ${NRF_PROJECT_PATH}/main.c
@@ -41,7 +42,7 @@ nRF5_addExecutable(${target}
 target_compile_definitions(${target} PRIVATE 
     USE_APP_CONFIG
     DEBUG
-    DEBUG_PRINT
+    #DEBUG_PRINT
 )
 
 target_link_libraries(${target} PRIVATE

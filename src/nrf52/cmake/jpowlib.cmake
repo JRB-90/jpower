@@ -145,6 +145,7 @@ macro(jpow_addSensor)
 
     list(APPEND SOURCE_FILES
         "${CMAKE_SOURCE_DIR}/lib/sensor/sensor_subsystem.c"
+        "${CMAKE_SOURCE_DIR}/lib/sensor/sensor_ble_srv.c"
     )
 endmacro()
 
@@ -164,10 +165,11 @@ endmacro()
 macro(jpow_addBLE)
     nRF5_addPowerMgmt()
     nRF5_addSoftDeviceSupport()
-    nRF5_addBLEService(ble_nus)
-    nRF5_addBLEService(ble_lbs)
     nRF5_addBLEService(ble_dfu)
+    nRF5_addBLEService(ble_nus)
+    nRF5_addBLEService(ble_bas)
     nRF5_addBLEQWR()
+    jpow_addJPUtils()
     list(APPEND INCLUDE_DIRS
         "${CMAKE_SOURCE_DIR}/lib/ble"
     )
