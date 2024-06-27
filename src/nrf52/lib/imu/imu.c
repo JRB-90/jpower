@@ -32,6 +32,7 @@ static int32_t platform_read(
 );
 static float convert_accel_data(int32_t raw_value);
 static float convert_gyro_data(int32_t raw_value);
+static float convert_temp_data(int32_t raw_value);
 static void wake_handler(
     nrf_drv_gpiote_pin_t pin, 
     nrf_gpiote_polarity_t action
