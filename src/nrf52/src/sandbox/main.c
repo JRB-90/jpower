@@ -153,7 +153,7 @@ static void ble_init()
 
     blesub_init(&ble_subsystem_config);
 
-    err_code = sensor_ble_srv_init();
+    err_code = sensor_srv_init();
     APP_ERROR_CHECK(err_code);
 }
 
@@ -171,7 +171,7 @@ static void start_timers()
     NRF_TIMER1->TASKS_START = 1;
 
     sensor_subsystem_register_activity_event_cb(on_activity_event);
-    sensor_enable_activity_tracking();
+    //sensor_enable_activity_tracking();
 
     blesub_start_advertising();
     led_control_set(LED_STATE_FAST_PULSE);
@@ -195,13 +195,13 @@ void on_ble_conn_state_changed(bool is_connected)
 {
     if (is_connected)
     {
-        sensor_disable_activity_tracking();
+        //sensor_disable_activity_tracking();
         led_control_set(LED_STATE_SOLID);
     }
     else
     {
-        sensor_disable_activity_tracking();
-        sensor_enable_activity_tracking();
+        //sensor_disable_activity_tracking();
+        //sensor_enable_activity_tracking();
         led_control_set(LED_STATE_FAST_PULSE);
     }
 }
@@ -210,15 +210,15 @@ static void on_activity_event(imu_activity_event_t event)
 {
     if (event == IMU_ACTIVITY_EVENT_SLEEP)
     {
-        blesub_stop_advertising();
-        led_control_set(LED_STATE_OFF);
+        //blesub_stop_advertising();
+        //led_control_set(LED_STATE_OFF);
         NRF_LOG_INFO("Sleep");
     }
     
     if (event == IMU_ACTIVITY_EVENT_WAKE_UP)
     {
-        blesub_start_advertising();
-        led_control_set(LED_STATE_FAST_PULSE);
+        //blesub_start_advertising();
+        //led_control_set(LED_STATE_FAST_PULSE);
         NRF_LOG_INFO("Wake up");
     }
 }

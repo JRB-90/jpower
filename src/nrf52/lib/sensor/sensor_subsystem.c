@@ -3,6 +3,7 @@
 #include <string.h>
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
+#include "sensor_ble_srv.h"
 #include "imu.h"
 #include "cadence.h"
 #include "strain.h"
@@ -15,6 +16,7 @@ static nrf_drv_spi_t spi = NRF_DRV_SPI_INSTANCE(SPI_INSTANCE_ID);
 static uint32_t counter = 0;
 
 static void calculate_cadence_power(float time_delta_s);
+static void on_zero_offset_requested();
 
 ret_code_t sensor_subsystem_init(const sensor_config_t* const config)
 {
@@ -38,6 +40,8 @@ ret_code_t sensor_subsystem_init(const sensor_config_t* const config)
             config->spi_cs_pin
         );
     APP_ERROR_CHECK(err_code);
+
+    sensor_srv_reg_zero_offset_cb(on_zero_offset_requested);
 
     return NRF_SUCCESS;
 }
@@ -75,7 +79,8 @@ void sensor_disable_activity_tracking()
 
 static void calculate_cadence_power(float time_delta_s)
 {
-    float temp = imu_get_current_temp_c();
+    imu_reading_t imu_reading;
+    imu_get_current_reading(&imu_reading);
 
     FusionQuaternion attitude;
     cadence_get_attitude(&attitude);
@@ -87,6 +92,16 @@ static void calculate_cadence_power(float time_delta_s)
     float torque = strain_get_current_torque_nm();
 
     double power = torque * pedal_state.angular_velocity_dps;
+
+    float temp = imu_get_current_temp_c();
+
+    sensor_srv_update_adc(adc_value);
+    sensor_srv_update_power(power);
+    sensor_srv_update_accel(imu_reading.accel);
+    sensor_srv_update_gyro(imu_reading.gyro);
+    sensor_srv_update_orient(attitude.array);
+    sensor_srv_update_cadence(pedal_state.cadence_rpm);
+    sensor_srv_update_temp(temp);
 
 #ifdef DEBUG_PRINT
     char imu_str[128];
@@ -112,4 +127,10 @@ static void calculate_cadence_power(float time_delta_s)
     NRF_LOG_INFO("%s", strain_str);
     NRF_LOG_FLUSH();
 #endif
+}
+
+static void on_zero_offset_requested()
+{
+    strain_zero_offset();
+    NRF_LOG_INFO("Zero requested");
 }
