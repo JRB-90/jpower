@@ -1,14 +1,16 @@
 using JPower.Shared.Ble;
+using MauiIcons.Core;
 using System.Collections.ObjectModel;
 
-namespace CalApp.Shared.UI;
+namespace JPower.Shared.UI;
 
 public partial class BleDeviceInfoView : ContentView
 {
 	public BleDeviceInfoView()
 	{
 		InitializeComponent();
-	}
+        _ = new MauiIcon(); // Workaround from: https://github.com/AathifMahir/MauiIcons
+    }
 
     public static readonly BindableProperty BleDeviceInfoProperty =
         BindableProperty.Create(

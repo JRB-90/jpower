@@ -6,7 +6,8 @@
              xmlns:mi="http://www.aathifmahir.com/dotnet/2022/maui/icons"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:ui="clr-namespace:CalApp.Shared.UI"
-             xmlns:ble="clr-namespace:CalApp.Shared.Ble"
+             xmlns:sharedui="clr-namespace:JPower.Shared.UI;assembly=JPower.Shared"
+             xmlns:ble="clr-namespace:JPower.Shared.Ble;assembly=JPower.Shared"
              Title="Connect"
              x:DataType="ui:ConnectPageViewModel">
 
@@ -42,7 +43,7 @@
                 FontSize="Large"
                 Text="Connect to Device"/>
 
-            <ui:BleDeviceInfoView
+            <sharedui:BleDeviceInfoView
                 x:Name="DeviceInfoView"
                 Grid.Row="1"
                 Grid.Column="1"

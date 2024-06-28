@@ -1,6 +1,6 @@
 using JPower.Shared.Ble;
 
-namespace CalApp.Shared.UI;
+namespace JPower.Shared.UI;
 
 public partial class BleDeviceServicesView : ContentView
 {

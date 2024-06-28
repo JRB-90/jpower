@@ -119,12 +119,17 @@
 		<PackageReference Include="System.Reactive" Version="6.0.1" />
 		<PackageReference Include="UraniumUI" Version="2.8.1" />
 		<PackageReference Include="UraniumUI.Blurs" Version="2.8.1" />
+		<PackageReference Include="UraniumUI.Icons.MaterialIcons" Version="2.8.1" />
 		<PackageReference Include="UraniumUI.Material" Version="2.8.1" />
 		<PackageReference Include="UraniumUI.Validations.DataAnnotations" Version="2.8.1" />
 	</ItemGroup>
 
 	<ItemGroup>
 	  <ProjectReference Include="..\JPower.Shared\JPower.Shared.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="UI\" />
 	</ItemGroup>
 
 </Project>

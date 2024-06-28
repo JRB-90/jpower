@@ -2,7 +2,7 @@
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:conv="clr-namespace:JPower.Shared.Converters;assembly=JPower.Shared"
-             x:Class="CalApp.Shared.UI.JPowerDeviceView"
+             x:Class="JPower.Shared.UI.JPowerDeviceView"
              x:Name="this">
     <ContentView.Resources>
         <conv:JPStateToStringConverter x:Key="JPowerStateToStringConv"/>

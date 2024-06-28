@@ -1,13 +1,15 @@
 using JPower.Shared.Calibration;
+using MauiIcons.Core;
 
-namespace CalApp.Shared.UI;
+namespace JPower.Shared.UI;
 
 public partial class MeasurementsView : ContentView
 {
 	public MeasurementsView()
 	{
 		InitializeComponent();
-	}
+        _ = new MauiIcon(); // Workaround from: https://github.com/AathifMahir/MauiIcons
+    }
 
     public static readonly BindableProperty MeasurementsProperty =
         BindableProperty.Create(

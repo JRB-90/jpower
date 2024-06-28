@@ -1,4 +1,4 @@
-﻿using CalApp.Shared.Services;
+﻿using CalApp.Services;
 using JPower.Shared.Ble;
 using JPower.Shared.Calibration;
 using JPower.Shared.JPowDevice;

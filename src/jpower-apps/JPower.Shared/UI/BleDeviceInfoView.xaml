@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:mi="http://www.aathifmahir.com/dotnet/2022/maui/icons"
-             xmlns:ble="clr-namespace:JPower.Shared.Ble;assembly=JPower.Shared"
-             x:Class="CalApp.Shared.UI.BleDeviceInfoView"
+             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
+             xmlns:ble="clr-namespace:JPower.Shared.Ble"
+             x:Class="JPower.Shared.UI.BleDeviceInfoView"
              x:Name="this">
     <CollectionView
         x:Name="DeviceListView"
@@ -21,18 +21,24 @@
             <DataTemplate
                 x:DataType="ble:BleDeviceInfo">
                 <Grid
+                    x:Name="DeviceGrid"
                     Margin="20">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
-                    <mi:MauiIcon
+                    <Image
                         Grid.Column="0"
                         Margin="10"
                         VerticalOptions="Center"
-                        HorizontalOptions="Center"
-                        Icon="{mi:Material Bluetooth}"/>
+                        HorizontalOptions="Center">
+                        <Image.Source>
+                            <FontImageSource 
+                                FontFamily="MaterialRegular" 
+                                Glyph="{x:Static m:MaterialRegular.Bluetooth}"/>
+                        </Image.Source>
+                    </Image>
 
                     <Grid
                         Grid.Column="1">

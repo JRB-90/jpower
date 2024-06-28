@@ -2,10 +2,11 @@
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:calibrate="clr-namespace:JPower.Shared.Calibration;assembly=JPower.Shared"
-             xmlns:mi="http://www.aathifmahir.com/dotnet/2022/maui/icons"
-             x:Class="CalApp.Shared.UI.MeasurementsView"
+             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
+             x:Class="JPower.Shared.UI.MeasurementsView"
              x:Name="this">
     <CollectionView
+        x:Name="MeasurementsCollection"
         BindingContext="{x:Reference this}"
         Margin="10"
         SelectionMode="None"
@@ -15,6 +16,7 @@
             <DataTemplate
                 x:DataType="calibrate:Measurement">
                 <Grid
+                    x:Name="MeasurementGrid"
                     Margin="10">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
@@ -24,12 +26,17 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
-                    <mi:MauiIcon
+                    <Image
                         Grid.Column="0"
                         Margin="5"
                         VerticalOptions="Center"
-                        HorizontalOptions="Center"
-                        Icon="{mi:Material Straighten}"/>
+                        HorizontalOptions="Center">
+                        <Image.Source>
+                            <FontImageSource 
+                                FontFamily="MaterialRegular" 
+                                Glyph="{x:Static m:MaterialRegular.Straighten}"/>
+                        </Image.Source>
+                    </Image>
 
                     <Label
                         Grid.Column="1"

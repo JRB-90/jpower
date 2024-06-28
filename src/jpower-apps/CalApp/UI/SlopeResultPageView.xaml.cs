@@ -1,3 +1,5 @@
+using MauiIcons.Core;
+
 namespace CalApp.Shared.UI;
 
 public partial class SlopeResultPageView : ContentView
@@ -6,5 +8,6 @@ public partial class SlopeResultPageView : ContentView
 	{
 		BindingContext = JPower.Shared.Mvvm.ServiceProvider.GetService<SlopeResultPageViewModel>();
 		InitializeComponent();
-	}
+        _ = new MauiIcon(); // Workaround from: https://github.com/AathifMahir/MauiIcons
+    }
 }

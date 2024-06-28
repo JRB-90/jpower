@@ -5,7 +5,8 @@
              xmlns:validation="clr-namespace:InputKit.Shared.Validations;assembly=InputKit.Maui"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:ui="clr-namespace:CalApp.Shared.UI"
-             xmlns:ble="clr-namespace:CalApp.Shared.Ble"
+             xmlns:sharedui="clr-namespace:JPower.Shared.UI;assembly=JPower.Shared"
+             xmlns:ble="clr-namespace:JPower.Shared.Ble;assembly=JPower.Shared"
              xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
              xmlns:mi="http://www.aathifmahir.com/dotnet/2022/maui/icons"
              x:Class="CalApp.Shared.UI.CalibrationPageView"
@@ -35,7 +36,7 @@
                 <ColumnDefinition Width="2*"/>
             </Grid.ColumnDefinitions>
 
-            <ui:JPowerDeviceView
+            <sharedui:JPowerDeviceView
                 Margin="10"
                 Grid.Row="0"
                 Grid.Column="1"
@@ -100,7 +101,7 @@
                 Command="{Binding PushCalibrationCommand}"
                 Text="Calibrate"/>
 
-            <ui:MeasurementsView
+            <sharedui:MeasurementsView
                 IsEnabled="{Binding CanCalibrate}"
                 Grid.Row="4"
                 Grid.Column="1"

@@ -1,4 +1,4 @@
-﻿using CalApp.Shared.Services;
+﻿using CalApp.Services;
 
 namespace CalApp
 {

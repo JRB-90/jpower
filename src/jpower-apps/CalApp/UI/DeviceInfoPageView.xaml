@@ -2,6 +2,7 @@
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:ui="clr-namespace:CalApp.Shared.UI"
+             xmlns:sharedui="clr-namespace:JPower.Shared.UI;assembly=JPower.Shared"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              x:Class="CalApp.Shared.UI.DeviceInfoPageView"
              x:DataType="ui:DeviceInfoPageViewModel">
@@ -13,7 +14,7 @@
     </ContentView.Resources>
 
     <Grid>
-        <ui:BleDeviceServicesView
+        <sharedui:BleDeviceServicesView
             IsEnabled="{Binding IsBusy, Converter={StaticResource InvertedBoolConverter}}"
             Margin="10"
             HorizontalOptions="Center"

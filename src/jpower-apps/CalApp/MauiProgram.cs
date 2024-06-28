@@ -16,7 +16,7 @@ namespace CalApp
     {
         public static MauiApp CreateMauiApp()
         {
-            bool isSimMode = false;
+            bool isSimMode = true;
 
             var builder = MauiApp.CreateBuilder();
             builder
@@ -32,13 +32,13 @@ namespace CalApp
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                     fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+                    fonts.AddMaterialIconFonts();
                 });
 
             builder.UseMauiCommunityToolkit(options =>
             {
                 options.SetShouldSuppressExceptionsInConverters(false);
                 options.SetShouldSuppressExceptionsInBehaviors(false);
-                options.SetShouldSuppressExceptionsInAnimations(false);
             });
 
 #if DEBUG

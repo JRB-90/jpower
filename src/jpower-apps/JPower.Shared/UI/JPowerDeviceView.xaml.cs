@@ -1,6 +1,6 @@
 using JPower.Shared.JPowDevice;
 
-namespace CalApp.Shared.UI;
+namespace JPower.Shared.UI;
 
 public partial class JPowerDeviceView : ContentView
 {
