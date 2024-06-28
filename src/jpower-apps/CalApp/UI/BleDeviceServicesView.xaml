@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:ble="clr-namespace:JPower.Shared.Ble;assembly=JPower.Shared"
+             x:Class="CalApp.Shared.UI.BleDeviceServicesView"
+             x:Name="this">
+    
+    <CollectionView
+        BindingContext="{x:Reference this}"
+        Margin="10"
+        SelectionMode="None"
+        ItemsSource="{Binding BleDeviceServices}">
+
+        <CollectionView.ItemTemplate>
+            <DataTemplate
+                x:DataType="ble:IBleDeviceService">
+                <Grid
+                    Margin="20"
+                    Padding="10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <VerticalStackLayout
+                        Grid.Column="0"
+                        Margin="5">
+
+                        <Label
+                            Margin="5"
+                            HorizontalTextAlignment="Start"
+                            FontSize="Small"
+                            Text="{Binding Name}"/>
+
+                        <Label
+                            Margin="5"
+                            HorizontalTextAlignment="Start"
+                            FontSize="Micro"
+                            FontAttributes="Italic"
+                            Text="{Binding UUID}"/>
+                    </VerticalStackLayout>
+
+                    <CollectionView
+                        Grid.Column="1"
+                        Margin="10"
+                        SelectionMode="None"
+                        ItemsSource="{Binding Characteristics}">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate
+                                x:DataType="ble:IBleDeviceCharacteristic">
+                                <Label
+                                    Margin="5"
+                                    HorizontalTextAlignment="Start"
+                                    FontSize="Micro"
+                                    Text="{Binding Name}"/>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </Grid>
+            </DataTemplate>
+        </CollectionView.ItemTemplate>
+    </CollectionView>
+</ContentView>

@@ -1,7 +1,8 @@
-﻿using CalApp.Shared.Ble;
-using CalApp.Shared.Services;
+﻿using CalApp.Shared.Services;
 using CalApp.Shared.UI;
 using CommunityToolkit.Maui;
+using JPower.Shared.Ble;
+using JPower.Shared.Services;
 using MauiIcons.Fluent;
 using MauiIcons.Material;
 using Microsoft.Extensions.Logging;
@@ -44,7 +45,7 @@ namespace CalApp
             builder.Logging.AddDebug();
 #endif
 
-            builder.Services.AddSingleton<IAppContext, Shared.Services.AppContext>();
+            builder.Services.AddSingleton<IAppContext, JPower.Shared.Services.AppContext>();
             builder.Services.AddSingleton<IPermissionsService, PermissionsService>();
             builder.Services.AddSingleton<INavigationService, NavigationService>();
             builder.Services.AddSingleton<IAlertService, AlertService>();

@@ -83,31 +83,31 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <MauiXaml Update="Shared\UI\BleDeviceInfoView.xaml">
+	  <MauiXaml Update="UI\BleDeviceInfoView.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Shared\UI\BleDeviceServicesView.xaml">
+	  <MauiXaml Update="UI\BleDeviceServicesView.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Shared\UI\CalibrationPageView.xaml">
+	  <MauiXaml Update="UI\CalibrationPageView.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Shared\UI\ConnectPageView.xaml">
+	  <MauiXaml Update="UI\ConnectPageView.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Shared\UI\DeviceInfoPageView.xaml">
+	  <MauiXaml Update="UI\DeviceInfoPageView.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Shared\UI\DeviceOverviewView.xaml">
+	  <MauiXaml Update="UI\DeviceOverviewView.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Shared\UI\JPowerDeviceView.xaml">
+	  <MauiXaml Update="UI\JPowerDeviceView.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Shared\UI\MeasurementsView.xaml">
+	  <MauiXaml Update="UI\MeasurementsView.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Shared\UI\SlopeResultPageView.xaml">
+	  <MauiXaml Update="UI\SlopeResultPageView.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	</ItemGroup>
