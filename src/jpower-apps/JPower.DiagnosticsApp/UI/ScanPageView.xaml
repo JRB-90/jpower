@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<uranium:UraniumContentPage 
+             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
+             xmlns:mi="http://www.aathifmahir.com/dotnet/2022/maui/icons"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:ui="clr-namespace:JPower.DiagnosticsApp.UI"
+             xmlns:sharedui="clr-namespace:JPower.Shared.UI;assembly=JPower.Shared"
+             xmlns:ble="clr-namespace:JPower.Shared.Ble;assembly=JPower.Shared"
+             x:Class="JPower.DiagnosticsApp.UI.ScanPageView"
+             Title="Scan For Devices"
+             x:DataType="ui:ScanPageViewModel">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <Grid>
+        <Grid
+        IsEnabled="{Binding IsBusy, Converter={StaticResource InvertedBoolConverter}}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="15*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="15*"/>
+                <ColumnDefinition Width="2*"/>
+            </Grid.ColumnDefinitions>
+
+            <Label
+            x:Name="TitleLabel"
+            Grid.Row="0"
+            Grid.Column="1"
+            Grid.ColumnSpan="3"
+            HorizontalOptions="Center"
+            Margin="20"
+            FontSize="Large"
+            Text="Connect to Device"/>
+
+            <sharedui:BleDeviceInfoView
+            x:Name="DeviceInfoView"
+            Grid.Row="1"
+            Grid.Column="1"
+            Grid.ColumnSpan="3"
+            HorizontalOptions="Center"
+            BleDeviceInfo="{Binding DiscoveredDevices}"
+            SelectedDevice="{Binding SelectedDevice, Mode=OneWayToSource}"/>
+
+            <Button
+            x:Name="ScanButton"
+            Grid.Row="2"
+            Grid.Column="1"
+            HorizontalOptions="FillAndExpand"
+            Margin="0, 10, 5, 10"
+            Command="{Binding ScanCommand}"
+            Text="Scan"/>
+
+            <Button
+            x:Name="ConnectButton"
+            Grid.Row="2"
+            Grid.Column="3"
+            HorizontalOptions="FillAndExpand"
+            Margin="5, 10, 0, 10"
+            Command="{Binding ConnectCommand}"
+            Text="Connect"/>
+        </Grid>
+
+        <ActivityIndicator
+        IsRunning="{Binding IsBusy}"/>
+    </Grid>
+</uranium:UraniumContentPage>

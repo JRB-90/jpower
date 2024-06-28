@@ -129,7 +129,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="UI\" />
+	  <MauiXaml Update="UI\ScanPageView.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	</ItemGroup>
 
 </Project>

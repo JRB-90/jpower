@@ -3,13 +3,13 @@
     x:Class="JPower.DiagnosticsApp.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:local="clr-namespace:JPower.DiagnosticsApp"
+    xmlns:local="clr-namespace:JPower.DiagnosticsApp.UI"
     Shell.FlyoutBehavior="Disabled"
-    Title="JPower.DiagnosticsApp">
+    Title="Diagnostics App">
 
     <ShellContent
         Title="Home"
-        ContentTemplate="{DataTemplate local:MainPage}"
+        ContentTemplate="{DataTemplate local:ScanPageView}"
         Route="MainPage" />
 
 </Shell>

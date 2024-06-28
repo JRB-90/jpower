@@ -1,12 +1,14 @@
-﻿namespace JPower.DiagnosticsApp
+﻿using JPower.DiagnosticsApp.Services;
+
+namespace JPower.DiagnosticsApp
 {
     public partial class App : Application
     {
-        public App()
+        public App(INavigationService navigationService)
         {
             InitializeComponent();
-
-            MainPage = new AppShell();
+            MainPage = new NavigationPage();
+            navigationService.NavigateToScanPage();
         }
 
         protected override Window CreateWindow(IActivationState? activationState)

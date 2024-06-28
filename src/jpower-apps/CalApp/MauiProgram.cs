@@ -39,6 +39,7 @@ namespace CalApp
             {
                 options.SetShouldSuppressExceptionsInConverters(false);
                 options.SetShouldSuppressExceptionsInBehaviors(false);
+                options.SetShouldSuppressExceptionsInAnimations(false);
             });
 
 #if DEBUG
