@@ -2,7 +2,7 @@
 using JPower.Shared.Mvvm;
 using System.Diagnostics;
 
-namespace CalApp.Shared.Services
+namespace CalApp.Services
 {
     public class NavigationService : INavigationService
     {

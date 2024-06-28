@@ -1,4 +1,4 @@
-﻿using CalApp.Shared.Services;
+﻿using CalApp.Services;
 using CalApp.Shared.UI;
 using CommunityToolkit.Maui;
 using JPower.Shared.Ble;

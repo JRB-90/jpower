@@ -1,4 +1,4 @@
-﻿namespace CalApp.Shared.Services
+﻿namespace CalApp.Services
 {
     public interface INavigationService
     {
