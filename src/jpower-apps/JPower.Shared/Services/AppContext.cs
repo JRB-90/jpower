@@ -1,6 +1,7 @@
 ﻿using JPower.Shared.Ble;
 using JPower.Shared.Calibration;
 using JPower.Shared.JPowDevice;
+using JPower.Shared.JPower;
 
 namespace JPower.Shared.Services
 {
@@ -10,7 +11,7 @@ namespace JPower.Shared.Services
         {
             IsBusy = false;
             BleDevice = null;
-            JPowerDevice = null;
+            LegacyJPowerDevice = null;
             CalibrationContext = new CalibrationContext();
         }
 
@@ -44,6 +45,16 @@ namespace JPower.Shared.Services
             }
         }
 
+        public ILegacyJPowerDevice? LegacyJPowerDevice
+        {
+            get => legacyJPowerDevice;
+            set
+            {
+                legacyJPowerDevice = value;
+                LegacyJPowerDeviceChanged?.Invoke(this, legacyJPowerDevice);
+            }
+        }
+
         public ICalibrationContext CalibrationContext { get; }
 
         public event EventHandler<bool>? BusyStateChanged;
@@ -52,8 +63,11 @@ namespace JPower.Shared.Services
 
         public event EventHandler<IJPowerDevice?>? JPowerDeviceChanged;
 
+        public event EventHandler<ILegacyJPowerDevice?>? LegacyJPowerDeviceChanged;
+
         private bool isBusy;
         private IBleDevice? bleDevice;
         private IJPowerDevice? jPowerDevice;
+        private ILegacyJPowerDevice? legacyJPowerDevice;
     }
 }

@@ -33,21 +33,21 @@ namespace CalApp.Shared.UI
             SwitchCalCommand =
                 new Command(
                     async () => await SwitchToCalMode(),
-                    () => appContext.JPowerDevice != null &&
-                          appContext.JPowerDevice.State != JPowerState.JP_STATE_CALIBRATING
+                    () => appContext.LegacyJPowerDevice != null &&
+                          appContext.LegacyJPowerDevice.State != JPowerState.JP_STATE_CALIBRATING
                 );
 
             SwitchRunCommand =
                 new Command(
                     async () => await SwitchToRunMode(),
-                    () => appContext.JPowerDevice != null &&
-                          appContext.JPowerDevice.State != JPowerState.JP_STATE_RUNNING
+                    () => appContext.LegacyJPowerDevice != null &&
+                          appContext.LegacyJPowerDevice.State != JPowerState.JP_STATE_RUNNING
                 );
 
             ZeroCommand =
                 new Command(
                     async () => await Zero(),
-                    () => appContext.JPowerDevice != null &&
+                    () => appContext.LegacyJPowerDevice != null &&
                           appContext.BleDevice != null &&
                           appContext.BleDevice.DeviceState == BleDeviceState.Connected
                 );
@@ -55,7 +55,7 @@ namespace CalApp.Shared.UI
             PushCalibrationCommand =
                 new Command(
                     async () => await Calibrate(),
-                    () => appContext.JPowerDevice != null &&
+                    () => appContext.LegacyJPowerDevice != null &&
                           appContext.BleDevice != null &&
                           appContext.BleDevice.DeviceState == BleDeviceState.Connected &&
                           calibrationContext.Measurements.Count >= MinMeasurementCount
@@ -64,7 +64,7 @@ namespace CalApp.Shared.UI
             TakeMeasurementCommand =
                 new Command(
                     async () => await TakeMeasurement(),
-                    () => appContext.JPowerDevice != null &&
+                    () => appContext.LegacyJPowerDevice != null &&
                           appContext.BleDevice != null &&
                           appContext.BleDevice.DeviceState == BleDeviceState.Connected &&
                           WeightInput != null &&
@@ -86,16 +86,16 @@ namespace CalApp.Shared.UI
 
             appContext.BusyStateChanged += AppContext_BusyStateChanged;
             appContext.BleDeviceChanged += AppContext_BleDeviceChanged;
-            appContext.JPowerDeviceChanged += AppContext_JPowerDeviceChanged;
+            appContext.LegacyJPowerDeviceChanged += AppContext_JPowerDeviceChanged;
 
             if (appContext.BleDevice != null )
             {
                 appContext.BleDevice.DeviceStateChanged += BleDevice_DeviceStateChanged;
             }
 
-            if (appContext.JPowerDevice != null)
+            if (appContext.LegacyJPowerDevice != null)
             {
-                appContext.JPowerDevice.StateValues.Subscribe(_ => OnJPowerStateChanged());
+                appContext.LegacyJPowerDevice.StateValues.Subscribe(_ => OnJPowerStateChanged());
             }
 
             calibrationContext.Measurements.Add(new Measurement(1.0,   8000000, 10));
@@ -111,8 +111,8 @@ namespace CalApp.Shared.UI
         {
             get
             {
-                if (appContext.JPowerDevice != null &&
-                    appContext.JPowerDevice.State == JPowerState.JP_STATE_CALIBRATING)
+                if (appContext.LegacyJPowerDevice != null &&
+                    appContext.LegacyJPowerDevice.State == JPowerState.JP_STATE_CALIBRATING)
                 {
                     return true;
                 }
@@ -135,7 +135,7 @@ namespace CalApp.Shared.UI
 
         public IBleDevice? CurrentBleDevice => appContext.BleDevice;
 
-        public IJPowerDevice? CurrentJPowerDevice => appContext.JPowerDevice;
+        public ILegacyJPowerDevice? CurrentJPowerDevice => appContext.LegacyJPowerDevice;
 
         public ObservableCollection<Measurement> Measurements => calibrationContext.Measurements;
 
@@ -159,12 +159,12 @@ namespace CalApp.Shared.UI
 
             try
             {
-                if (appContext.JPowerDevice == null)
+                if (appContext.LegacyJPowerDevice == null)
                 {
                     throw new InvalidOperationException("JPower device not connected");
                 }
 
-                var wasSuccessful = await appContext.JPowerDevice.SwitchToCalMode();
+                var wasSuccessful = await appContext.LegacyJPowerDevice.SwitchToCalMode();
 
                 if (!wasSuccessful)
                 {
@@ -197,12 +197,12 @@ namespace CalApp.Shared.UI
 
             try
             {
-                if (appContext.JPowerDevice == null)
+                if (appContext.LegacyJPowerDevice == null)
                 {
                     throw new InvalidOperationException("JPower device not connected");
                 }
 
-                var wasSuccessful = await appContext.JPowerDevice.SwitchToRunMode();
+                var wasSuccessful = await appContext.LegacyJPowerDevice.SwitchToRunMode();
 
                 if (!wasSuccessful)
                 {
@@ -235,12 +235,12 @@ namespace CalApp.Shared.UI
 
             try
             {
-                if (appContext.JPowerDevice == null)
+                if (appContext.LegacyJPowerDevice == null)
                 {
                     throw new InvalidOperationException("JPower device not connected");
                 }
 
-                var wasSuccessful = await appContext.JPowerDevice.ZeroOffset();
+                var wasSuccessful = await appContext.LegacyJPowerDevice.ZeroOffset();
 
                 if (!wasSuccessful)
                 {
@@ -273,13 +273,13 @@ namespace CalApp.Shared.UI
 
             try
             {
-                if (appContext.JPowerDevice == null)
+                if (appContext.LegacyJPowerDevice == null)
                 {
                     throw new InvalidOperationException("JPower device not connected");
                 }
 
                 var slope = appContext.CalibrationContext.CalculateSlope();
-                var wasSuccessful = await appContext.JPowerDevice.PushSlope(slope);
+                var wasSuccessful = await appContext.LegacyJPowerDevice.PushSlope(slope);
 
                 if (!wasSuccessful)
                 {
@@ -312,7 +312,7 @@ namespace CalApp.Shared.UI
 
             try
             {
-                if (appContext.JPowerDevice == null)
+                if (appContext.LegacyJPowerDevice == null)
                 {
                     throw new InvalidOperationException("JPower device not connected");
                 }
@@ -322,7 +322,7 @@ namespace CalApp.Shared.UI
                 var measurements =
                     await
                     appContext
-                    .JPowerDevice
+                    .LegacyJPowerDevice
                     .RawAdcValues
                     .Take(NumSamples)
                     .Timeout(DateTime.Now.AddSeconds(10))
@@ -411,13 +411,13 @@ namespace CalApp.Shared.UI
             OnPropertyChanged(nameof(CurrentBleDevice));
         }
 
-        private void AppContext_JPowerDeviceChanged(object? sender, IJPowerDevice? e)
+        private void AppContext_JPowerDeviceChanged(object? sender, ILegacyJPowerDevice? e)
         {
             OnPropertyChanged(nameof(CurrentJPowerDevice));
 
-            if (appContext.JPowerDevice != null)
+            if (appContext.LegacyJPowerDevice != null)
             {
-                appContext.JPowerDevice.StateValues.Subscribe(_ => OnJPowerStateChanged());
+                appContext.LegacyJPowerDevice.StateValues.Subscribe(_ => OnJPowerStateChanged());
             }
         }
 

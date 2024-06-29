@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:sharedui="clr-namespace:JPower.Shared.UI"
+             x:Class="JPower.Shared.UI.JPowerDiagnosticsView"
+             x:Name="this">
+    <ScrollView>
+        <Grid
+            BindingContext="{x:Reference this}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="15*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="15*"/>
+                <ColumnDefinition Width="2*"/>
+            </Grid.ColumnDefinitions>
+
+            <Label
+                Grid.Row="0"
+                Grid.Column="1"
+                Margin="10"
+                HorizontalTextAlignment="Center"
+                FontSize="Small"
+                Text="ADC"/>
+
+            <Label
+                Grid.Row="0"
+                Grid.Column="3"
+                Margin="10"
+                HorizontalTextAlignment="Center"
+                FontSize="Small"
+                Text="{Binding JPowerDevice.AdcValue}"/>
+
+            <Label
+                Grid.Row="1"
+                Grid.Column="1"
+                Margin="10"
+                HorizontalTextAlignment="Center"
+                FontSize="Small"
+                Text="Power"/>
+
+            <Label
+                Grid.Row="1"
+                Grid.Column="3"
+                Margin="10"
+                HorizontalTextAlignment="Center"
+                FontSize="Small"
+                Text="{Binding JPowerDevice.PowerValue}"/>
+
+            <sharedui:Vector3DView
+                Grid.Row="2"
+                Grid.Column="1"
+                Grid.ColumnSpan="3"
+                HorizontalOptions="FillAndExpand"
+                Vector3D="{Binding JPowerDevice.AccelValue}"/>
+
+            <sharedui:Vector3DView
+                Grid.Row="3"
+                Grid.Column="1"
+                Grid.ColumnSpan="3"
+                HorizontalOptions="FillAndExpand"
+                Vector3D="{Binding JPowerDevice.GyroValue}"/>
+
+            <sharedui:Vector3DView
+                Grid.Row="4"
+                Grid.Column="1"
+                Grid.ColumnSpan="3"
+                HorizontalOptions="FillAndExpand"
+                Vector3D="{Binding JPowerDevice.OrientValue}"/>
+
+            <Label
+                Grid.Row="5"
+                Grid.Column="1"
+                Margin="10"
+                HorizontalTextAlignment="Center"
+                FontSize="Small"
+                Text="Cadence"/>
+
+            <Label
+                Grid.Row="5"
+                Grid.Column="3"
+                Margin="10"
+                HorizontalTextAlignment="Center"
+                FontSize="Small"
+                Text="{Binding JPowerDevice.CadenceValue}"/>
+            
+            <Label
+                Grid.Row="6"
+                Grid.Column="1"
+                Margin="10"
+                HorizontalTextAlignment="Center"
+                FontSize="Small"
+                Text="Temp"/>
+
+            <Label
+                Grid.Row="6"
+                Grid.Column="3"
+                Margin="10"
+                HorizontalTextAlignment="Center"
+                FontSize="Small"
+                Text="{Binding JPowerDevice.TempValue, StringFormat='{0:F3}'}"/>
+
+        </Grid>
+    </ScrollView>
+</ContentView>

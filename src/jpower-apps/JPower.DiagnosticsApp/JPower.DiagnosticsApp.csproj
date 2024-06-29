@@ -129,6 +129,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <MauiXaml Update="UI\DiagnosticsPageView.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="UI\ScanPageView.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>

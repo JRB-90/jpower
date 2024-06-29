@@ -7,7 +7,6 @@ using Microsoft.Extensions.Logging;
 using OxyPlot.Maui.Skia;
 using SkiaSharp.Views.Maui.Controls.Hosting;
 using UraniumUI;
-using JPower.Shared.Ble;
 using JPower.DiagnosticsApp.UI;
 
 namespace JPower.DiagnosticsApp
@@ -62,6 +61,8 @@ namespace JPower.DiagnosticsApp
 
             builder.Services.AddTransient<ScanPageView>();
             builder.Services.AddTransient<ScanPageViewModel>();
+            builder.Services.AddTransient<DiagnosticsPageView>();
+            builder.Services.AddTransient<DiagnosticsPageViewModel>();
 
             return builder.Build();
         }

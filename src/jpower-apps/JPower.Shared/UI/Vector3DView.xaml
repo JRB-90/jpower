@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="JPower.Shared.UI.Vector3DView"
+             x:Name="this">
+    <Grid
+        BindingContext="{x:Reference this}">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <Label
+            Grid.Column="0"
+            FontSize="Micro"
+            HorizontalTextAlignment="Center"
+            Text="{Binding Vector3D.X, StringFormat='{0:F3}'}"/>
+
+        <Label
+            Grid.Column="1"
+            FontSize="Micro"
+            HorizontalTextAlignment="Center"
+            Text="{Binding Vector3D.Y, StringFormat='{0:F3}'}"/>
+
+        <Label
+            Grid.Column="2"
+            FontSize="Micro"
+            HorizontalTextAlignment="Center"
+            Text="{Binding Vector3D.Z, StringFormat='{0:F3}'}"/>
+
+    </Grid>
+</ContentView>

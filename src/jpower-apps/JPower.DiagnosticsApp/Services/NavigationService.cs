@@ -40,9 +40,7 @@ namespace JPower.DiagnosticsApp.Services
 
         public Task NavigateToDiagnosticsPage()
         {
-            throw new NotImplementedException();
-
-            //return NavigateToPage<DiagnosticsView>();
+            return NavigateToPage<DiagnosticsPageView>();
         }
 
         public Task NavigateBack()

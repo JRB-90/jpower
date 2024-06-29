@@ -1,56 +1,66 @@
-﻿using JPower.Shared.Calibration;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 
-namespace JPower.Shared.JPowDevice
+namespace JPower.Shared.JPower
 {
-    public enum JPowerState
+    [StructLayout(LayoutKind.Explicit, Size = 12, CharSet = CharSet.Ansi)]
+    public struct JPowerAccelData
     {
-        JP_STATE_STARTUP                        = 0,
-        JP_STATE_INITIALISED                    = 1,
-        JP_STATE_RUNNING                        = 2,
-        JP_STATE_CALIBRATING                    = 3,
+        [FieldOffset(0)] public float x;
+        [FieldOffset(4)] public float y;
+        [FieldOffset(8)] public float z;
     }
 
-    public enum JPowerStateRequest
+    [StructLayout(LayoutKind.Explicit, Size = 12, CharSet = CharSet.Ansi)]
+    public struct JPowerGyroData
     {
-        JP_STATE_REQUEST_NONE                   = 0,
-        JP_STATE_REQUEST_PUBLISH_STATE          = 1,
-        JP_STATE_REQUEST_SWITCH_TO_RUNNING      = 2,
-        JP_STATE_REQUEST_SWITCH_TO_CALIBRATE    = 3,
+        [FieldOffset(0)] public float rx;
+        [FieldOffset(4)] public float ry;
+        [FieldOffset(8)] public float rz;
     }
 
     [StructLayout(LayoutKind.Explicit, Size = 16, CharSet = CharSet.Ansi)]
-    public struct JPowerCalibrationData
+    public struct JPowerOrientData
     {
-        [FieldOffset(0)]public UInt128 guid;
-        [FieldOffset(16)] public float slope;
-        [FieldOffset(20)] public float intercept;
+        [FieldOffset(0)] public float w;
+        [FieldOffset(4)] public float x;
+        [FieldOffset(8)] public float y;
+        [FieldOffset(12)] public float z;
     }
 
     public interface IJPowerDevice
     {
-        uint RawAdcValue { get; }
+        uint AdcValue { get; }
 
-        JPowerState State { get; }
+        ushort PowerValue { get; }
 
-        IObservable<uint> RawAdcValues { get; }
+        Vector3D AccelValue { get; }
 
-        IObservable<JPowerState> StateValues { get; }
+        Vector3D GyroValue { get; }
+
+        Vector3D OrientValue { get; }
+
+        ushort CadenceValue { get; }
+
+        float TempValue { get; }
+
+        IObservable<uint> AdcValues { get; }
+
+        IObservable<ushort> PowerValues { get; }
+
+        IObservable<Vector3D> AccelValues { get; }
+
+        IObservable<Vector3D> GyroValues { get; }
+
+        IObservable<Vector3D> OrientValues { get; }
+
+        IObservable<ushort> CadenceValues { get; }
+
+        IObservable<float> TempValues { get; }
+
+        Task<bool> ZeroOffset();
 
         Task StartStreaming();
 
         Task StopStreaming();
-
-        Task<bool> SwitchToCalMode();
-
-        Task<bool> SwitchToRunMode();
-
-        Task<bool> StateRequest(JPowerStateRequest stateRequest);
-
-        Task<bool> ZeroOffset();
-
-        Task<bool> PushSlope(Slope slope);
-
-        Task<Slope> PullSlope();
     }
 }

@@ -1,13 +1,14 @@
-﻿using CalApp.Services;
-using JPower.Shared.Ble;
+﻿using JPower.Shared.Services;
+using JPower.DiagnosticsApp.Services;
 using JPower.Shared.Mvvm;
-using JPower.Shared.Services;
+using JPower.Shared.Ble;
+using JPower.Shared.JPower;
 
-namespace CalApp.Shared.UI
+namespace JPower.DiagnosticsApp.UI
 {
-    public class DeviceOverviewViewModel : ViewModelBase
+    public class DiagnosticsPageViewModel : ViewModelBase
     {
-        public DeviceOverviewViewModel(
+        public DiagnosticsPageViewModel(
             IAppContext appContext,
             INavigationService navigationService,
             IAlertService alertService,
@@ -23,17 +24,19 @@ namespace CalApp.Shared.UI
 
         public bool IsBusy => appContext.IsBusy;
 
+        public IJPowerDevice? CurrentJPowerDevice => appContext.JPowerDevice;
+
         public override async Task OnNavigatingTo(object? parameter)
         {
             if (appContext.BleDevice == null)
             {
                 await alertService.DisplayAlert(
                     "Error",
-                    "No device selected, returning to connect page",
+                    "No device selected, returning to scan page",
                     "OK"
                 );
 
-                await navigationService.NavigateToConnectPage();
+                await navigationService.NavigateToScanPage();
 
                 return;
             }
@@ -42,16 +45,16 @@ namespace CalApp.Shared.UI
             {
                 await alertService.DisplayAlert(
                     "Error",
-                    "Device disconnected, returning to connect page",
+                    "Device disconnected, returning to scan page",
                     "OK"
                 );
 
-                await navigationService.NavigateToConnectPage();
+                await navigationService.NavigateToScanPage();
             }
 
             if (appContext.LegacyJPowerDevice == null)
             {
-
+                // TODO
             }
         }
 

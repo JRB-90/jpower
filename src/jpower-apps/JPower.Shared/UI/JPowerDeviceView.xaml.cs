@@ -12,14 +12,14 @@ public partial class JPowerDeviceView : ContentView
     public static readonly BindableProperty JPowerDeviceProperty =
         BindableProperty.Create(
             "JPowerDevice",
-            typeof(IJPowerDevice),
+            typeof(ILegacyJPowerDevice),
             typeof(JPowerDeviceView),
-            default(IJPowerDevice)
+            default(ILegacyJPowerDevice)
         );
 
-    public IJPowerDevice JPowerDevice
+    public ILegacyJPowerDevice JPowerDevice
     {
-        get => (IJPowerDevice)GetValue(JPowerDeviceProperty);
+        get => (ILegacyJPowerDevice)GetValue(JPowerDeviceProperty);
         set => SetValue(JPowerDeviceProperty, value);
     }
 

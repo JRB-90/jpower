@@ -1,7 +1,6 @@
 ﻿using CalApp.Services;
 using CalApp.Shared.UI;
 using CommunityToolkit.Maui;
-using JPower.Shared.Ble;
 using JPower.Shared.Services;
 using MauiIcons.Fluent;
 using MauiIcons.Material;

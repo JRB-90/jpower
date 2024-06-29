@@ -1,7 +1,8 @@
-﻿using JPower.Shared.JPowDevice;
-using JPower.Shared.Services;
+﻿using JPower.Shared.Ble;
+using JPower.Shared.JPowDevice;
+using JPower.Shared.JPower;
 
-namespace JPower.Shared.Ble
+namespace JPower.Shared.Services
 {
     public class SimulatedBleService : IBleService
     {
@@ -34,7 +35,7 @@ namespace JPower.Shared.Ble
             {
                 await Task.Delay(random.Next(100, 1000));
 
-                var deviceInfo = 
+                var deviceInfo =
                     new BleDeviceInfo(
                         Guid.NewGuid(),
                         $"BLE Device {i}"
@@ -72,6 +73,13 @@ namespace JPower.Shared.Ble
             await Task.Delay(random.Next(100, 500));
 
             return new SimulatedJPowerDevice();
+        }
+
+        public async Task<ILegacyJPowerDevice> CreateLegacyJPowerDevice(IBleDevice bleDevice)
+        {
+            await Task.Delay(random.Next(100, 500));
+
+            return new LegacySimulatedJPowerDevice();
         }
 
         public async Task<bool> IsJPowerDevice(IBleDevice device)

@@ -1,10 +1,11 @@
-﻿using JPower.Shared.Services;
-using JPower.Shared.JPowDevice;
+﻿using JPower.Shared.JPowDevice;
 using Plugin.BLE;
 using Plugin.BLE.Abstractions.Contracts;
 using Plugin.BLE.Abstractions.EventArgs;
+using JPower.Shared.Ble;
+using JPower.Shared.JPower;
 
-namespace JPower.Shared.Ble
+namespace JPower.Shared.Services
 {
     public class BleService : IBleService
     {
@@ -51,9 +52,27 @@ namespace JPower.Shared.Ble
 
         public Task<IJPowerDevice> CreateJPowerDevice(IBleDevice bleDevice)
         {
+            throw new NotImplementedException();
+
+            // TODO
+
+            //if (bleDevice is BleDevice device)
+            //{
+            //    IJPowerDevice jPowerDevice = new JPowerDevice(device);
+
+            //    return Task.FromResult(jPowerDevice);
+            //}
+            //else
+            //{
+            //    throw new ArgumentException("Cannot create JPower device");
+            //}
+        }
+
+        public Task<ILegacyJPowerDevice> CreateLegacyJPowerDevice(IBleDevice bleDevice)
+        {
             if (bleDevice is BleDevice device)
             {
-                IJPowerDevice jPowerDevice = new JPowerDevice(device);
+                ILegacyJPowerDevice jPowerDevice = new LegacyJPowerDevice(device);
 
                 return Task.FromResult(jPowerDevice);
             }
@@ -71,7 +90,7 @@ namespace JPower.Shared.Ble
                 {
                     knownDevices.Add(e.Device.Id, e.Device);
                 }
-                
+
                 var device = new BleDeviceInfo(e.Device.Id, e.Device.Name);
                 BleDeviceDiscovered?.Invoke(this, device);
             }
@@ -100,7 +119,7 @@ namespace JPower.Shared.Ble
 
         public Task<bool> IsJPowerDevice(IBleDevice device)
         {
-            return Task.FromResult(JPowerBleUUIDs.IsJPowerDevice(device));
+            return Task.FromResult(device.IsLegacyJPowerDevice());
         }
 
         private BleScanningState scanningState;

@@ -1,5 +1,6 @@
 ﻿using JPower.Shared.Ble;
 using JPower.Shared.JPowDevice;
+using JPower.Shared.JPower;
 
 namespace JPower.Shared.Services
 {
@@ -9,7 +10,9 @@ namespace JPower.Shared.Services
 
         IBleDevice? BleDevice { get; set; }
 
-        IJPowerDevice? JPowerDevice { get; set; }
+        IJPowerDevice JPowerDevice { get; set; }
+
+        ILegacyJPowerDevice? LegacyJPowerDevice { get; set; }
 
         ICalibrationContext CalibrationContext { get; }
 
@@ -18,5 +21,7 @@ namespace JPower.Shared.Services
         event EventHandler<IBleDevice?>? BleDeviceChanged;
 
         event EventHandler<IJPowerDevice?>? JPowerDeviceChanged;
+
+        event EventHandler<ILegacyJPowerDevice?>? LegacyJPowerDeviceChanged;
     }
 }
