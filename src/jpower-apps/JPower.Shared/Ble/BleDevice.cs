@@ -51,8 +51,6 @@ namespace JPower.Shared.Ble
 
         public IDevice Device => device;
 
-        public BleDeviceInfo BleDeviceInfo => throw new NotImplementedException();
-
         public event EventHandler<BleDeviceState>? DeviceStateChanged;
 
         public event EventHandler? DevicePropertiesUpdated;
@@ -123,7 +121,6 @@ namespace JPower.Shared.Ble
             if (!hasDisconnected)
             {
                 DeviceState = BleDeviceState.Disconnected;
-                throw new InvalidOperationException("Device is not in connected state");
             }
 
             return true;

@@ -2,8 +2,6 @@
 {
     public interface IBleDevice
     {
-        BleDeviceInfo BleDeviceInfo { get; }
-
         BleDeviceState DeviceState { get; }
 
         IReadOnlyCollection<IBleDeviceService> Services { get; }

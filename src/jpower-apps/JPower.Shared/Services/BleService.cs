@@ -52,20 +52,16 @@ namespace JPower.Shared.Services
 
         public Task<IJPowerDevice> CreateJPowerDevice(IBleDevice bleDevice)
         {
-            throw new NotImplementedException();
+            if (bleDevice is BleDevice device)
+            {
+                IJPowerDevice jPowerDevice = new JPowerDevice(device);
 
-            // TODO
-
-            //if (bleDevice is BleDevice device)
-            //{
-            //    IJPowerDevice jPowerDevice = new JPowerDevice(device);
-
-            //    return Task.FromResult(jPowerDevice);
-            //}
-            //else
-            //{
-            //    throw new ArgumentException("Cannot create JPower device");
-            //}
+                return Task.FromResult(jPowerDevice);
+            }
+            else
+            {
+                throw new ArgumentException("Cannot create JPower device");
+            }
         }
 
         public Task<ILegacyJPowerDevice> CreateLegacyJPowerDevice(IBleDevice bleDevice)
@@ -119,7 +115,7 @@ namespace JPower.Shared.Services
 
         public Task<bool> IsJPowerDevice(IBleDevice device)
         {
-            return Task.FromResult(device.IsLegacyJPowerDevice());
+            return Task.FromResult(device.IsJPowerDevice());
         }
 
         private BleScanningState scanningState;

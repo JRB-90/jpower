@@ -29,7 +29,6 @@
 
 static void board_init();
 static void softdevice_init();
-static void ble_init();
 static void start_timers();
 static bool app_shutdown_handler(nrf_pwr_mgmt_evt_t event);
 static void on_ble_conn_state_changed(bool is_connected);
@@ -70,9 +69,6 @@ int main()
 
     softdevice_init();
     NRF_LOG_INFO("Soft device initialised");
-
-    ble_init();
-    NRF_LOG_INFO("BLE initialised");
     
     start_timers();
     NRF_LOG_INFO("JPower fully initialised");
@@ -141,15 +137,12 @@ static void board_init()
 
 static void softdevice_init()
 {
-    ret_code_t err_code = nrf_sdh_enable_request();
+    ret_code_t err_code;
+
+    err_code = nrf_sdh_enable_request();
     APP_ERROR_CHECK(err_code);
 
     ASSERT(nrf_sdh_is_enabled());
-}
-
-static void ble_init()
-{
-    ret_code_t err_code;
 
     blesub_init(&ble_subsystem_config);
 
@@ -170,7 +163,7 @@ static void start_timers()
 
     NRF_TIMER1->TASKS_START = 1;
 
-    sensor_subsystem_register_activity_event_cb(on_activity_event);
+    //sensor_subsystem_register_activity_event_cb(on_activity_event);
     //sensor_enable_activity_tracking();
 
     blesub_start_advertising();
@@ -202,25 +195,26 @@ void on_ble_conn_state_changed(bool is_connected)
     {
         //sensor_disable_activity_tracking();
         //sensor_enable_activity_tracking();
+        blesub_start_advertising();
         led_control_set(LED_STATE_FAST_PULSE);
     }
 }
 
 static void on_activity_event(imu_activity_event_t event)
 {
-    if (event == IMU_ACTIVITY_EVENT_SLEEP)
-    {
-        //blesub_stop_advertising();
-        //led_control_set(LED_STATE_OFF);
-        NRF_LOG_INFO("Sleep");
-    }
+    // if (event == IMU_ACTIVITY_EVENT_SLEEP)
+    // {
+    //     blesub_stop_advertising();
+    //     led_control_set(LED_STATE_OFF);
+    //     NRF_LOG_INFO("Sleep");
+    // }
     
-    if (event == IMU_ACTIVITY_EVENT_WAKE_UP)
-    {
-        //blesub_start_advertising();
-        //led_control_set(LED_STATE_FAST_PULSE);
-        NRF_LOG_INFO("Wake up");
-    }
+    // if (event == IMU_ACTIVITY_EVENT_WAKE_UP)
+    // {
+    //     blesub_start_advertising();
+    //     led_control_set(LED_STATE_FAST_PULSE);
+    //     NRF_LOG_INFO("Wake up");
+    // }
 }
 
 static void callback_10ms(void* context)

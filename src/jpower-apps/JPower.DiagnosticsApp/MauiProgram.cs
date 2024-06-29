@@ -15,7 +15,7 @@ namespace JPower.DiagnosticsApp
     {
         public static MauiApp CreateMauiApp()
         {
-            bool isSimMode = true;
+            bool isSimMode = false;
 
             var builder = MauiApp.CreateBuilder();
             builder

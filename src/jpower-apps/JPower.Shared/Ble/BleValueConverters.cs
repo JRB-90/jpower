@@ -45,6 +45,11 @@ namespace JPower.Shared.Ble
             return BitConverter.ToUInt64(data, 0);
         }
 
+        public static float ToFloat32(byte[] data)
+        {
+            return BitConverter.Int32BitsToSingle(BitConverter.ToInt32(data));
+        }
+
         public static T CastToStruct<T>(this byte[] data) where T : struct
         {
             var pData = GCHandle.Alloc(data, GCHandleType.Pinned);

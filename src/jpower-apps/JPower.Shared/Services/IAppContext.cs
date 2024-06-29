@@ -10,7 +10,7 @@ namespace JPower.Shared.Services
 
         IBleDevice? BleDevice { get; set; }
 
-        IJPowerDevice JPowerDevice { get; set; }
+        IJPowerDevice? JPowerDevice { get; set; }
 
         ILegacyJPowerDevice? LegacyJPowerDevice { get; set; }
 

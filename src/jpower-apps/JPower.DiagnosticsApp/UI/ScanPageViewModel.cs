@@ -131,7 +131,7 @@ namespace JPower.DiagnosticsApp.UI
                     await appContext.BleDevice.Disconnect();
                 }
 
-                appContext.LegacyJPowerDevice = null;
+                appContext.JPowerDevice = null;
                 appContext.BleDevice = null;
 
                 await alertService.DisplayAlert(

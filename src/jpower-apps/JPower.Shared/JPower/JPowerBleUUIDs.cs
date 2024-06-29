@@ -24,7 +24,7 @@ namespace JPower.Shared.JPower
             JPOWER_SENSOR_SRV_UUID,
         };
 
-        public static bool IsJPowerDevice2(this IBleDevice bleDevice)
+        public static bool IsJPowerDevice(this IBleDevice bleDevice)
         {
             if (bleDevice.Services.Count == 0)
             {

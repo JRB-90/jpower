@@ -89,7 +89,6 @@ ret_code_t blesub_init(ble_subsystem_config_t* ble_subsystem_config)
     init_gatt();
     init_standard_services();
     init_conn_params();
-    init_advertising();
 
     return NRF_SUCCESS;
 }
@@ -110,6 +109,8 @@ void blesub_start_advertising()
     {
         return;
     }
+
+    init_advertising();
 
     ret_code_t err_code = 
         sd_ble_gap_adv_start(
@@ -423,18 +424,19 @@ static void ble_event_handler(
             APP_ERROR_CHECK(err_code);
             if (ble_config.conn_state_handler != NULL)
             {
-                ble_config.conn_state_handler(true);
+                ble_config.conn_state_handler(is_connected);
             }
             NRF_LOG_INFO("Connected");
             break;
 
         case BLE_GAP_EVT_DISCONNECTED:
             is_connected = false;
+            is_advertising = false;
             m_conn_handle = BLE_CONN_HANDLE_INVALID;
             blesub_start_advertising();
             if (ble_config.conn_state_handler != NULL)
             {
-                ble_config.conn_state_handler(false);
+                ble_config.conn_state_handler(is_connected);
             }
             NRF_LOG_INFO("Disconnected");
             break;
