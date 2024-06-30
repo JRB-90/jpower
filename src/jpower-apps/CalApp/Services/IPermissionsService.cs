@@ -1,4 +1,4 @@
-﻿namespace JPower.Shared.Services
+﻿namespace CalApp.Services
 {
     /// <summary>
     /// Used to check permission status and prompt the user to allow

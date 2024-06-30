@@ -43,6 +43,8 @@ namespace JPower.Shared.JPower
 
         float TempValue { get; }
 
+        ushort BatteryLevel { get; }
+
         IObservable<uint> AdcValues { get; }
 
         IObservable<ushort> PowerValues { get; }
@@ -56,6 +58,8 @@ namespace JPower.Shared.JPower
         IObservable<ushort> CadenceValues { get; }
 
         IObservable<float> TempValues { get; }
+
+        IObservable<ushort> BatteryLevels { get; }
 
         Task<bool> ZeroOffset();
 

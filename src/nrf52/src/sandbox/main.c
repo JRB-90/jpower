@@ -226,8 +226,13 @@ static void callback_10ms(void* context)
 
     led_control_update_10ms();
     battery_update();
-    blesub_bas_update_battery_level(battery_get_level_percentage());
     sensor_subsystem_update_10ms(time_delta_s);
+
+    if ((counter_10ms % 100) == 0)
+    {
+        // Publish battery level once a second
+        blesub_bas_update_battery_level(battery_get_level_percentage());
+    }
 
     counter_10ms++;
 }

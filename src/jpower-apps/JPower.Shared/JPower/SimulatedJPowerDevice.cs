@@ -17,6 +17,16 @@ namespace JPower.Shared.JPower
             orientValues = new Subject<Vector3D>();
             cadenceValues = new Subject<ushort>();
             tempValues = new Subject<float>();
+            batteryLevels = new Subject<ushort>();
+
+            adcValue = 0;
+            powerValue = 0;
+            accelValue = new Vector3D(0.0, 0.0, 0.0);
+            gyroValue = new Vector3D(0.0, 0.0, 0.0);
+            orientValue = new Vector3D(0.0, 0.0, 0.0);
+            cadenceValue = 0;
+            tempValue = 0.0f;
+            batteryLevel = 0;
 
             timer = new System.Timers.Timer();
             timer.Interval = 500;
@@ -93,6 +103,16 @@ namespace JPower.Shared.JPower
             }
         }
 
+        public ushort BatteryLevel
+        {
+            get => batteryLevel;
+            set
+            {
+                SetProperty(ref batteryLevel, value);
+                batteryLevels.OnNext(value);
+            }
+        }
+
         public IObservable<uint> AdcValues => adcValues;
 
         public IObservable<ushort> PowerValues => powerValues;
@@ -106,6 +126,8 @@ namespace JPower.Shared.JPower
         public IObservable<ushort> CadenceValues => cadenceValues;
 
         public IObservable<float> TempValues => tempValues;
+
+        public IObservable<ushort> BatteryLevels => batteryLevels;
 
         public async Task StartStreaming()
         {
@@ -165,6 +187,7 @@ namespace JPower.Shared.JPower
 
                 CadenceValue = (ushort)(90 + random.Next(-30, 30));
                 TempValue = (float)random.NextDouble() * 24.0f;
+                BatteryLevel = (ushort)(random.Next(0, 100));
             }
         }
 
@@ -175,6 +198,7 @@ namespace JPower.Shared.JPower
         private Vector3D orientValue;
         private ushort cadenceValue;
         private float tempValue;
+        private ushort batteryLevel;
 
         private Subject<uint> adcValues;
         private Subject<ushort> powerValues;
@@ -183,6 +207,7 @@ namespace JPower.Shared.JPower
         private Subject<Vector3D> orientValues;
         private Subject<ushort> cadenceValues;
         private Subject<float> tempValues;
+        private Subject<ushort> batteryLevels;
 
         private Random random;
         private int offset;

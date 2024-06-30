@@ -13,19 +13,19 @@
 
         <Label
             Grid.Column="0"
-            FontSize="Micro"
+            FontSize="Small"
             HorizontalTextAlignment="Center"
             Text="{Binding Vector3D.X, StringFormat='{0:F3}'}"/>
 
         <Label
             Grid.Column="1"
-            FontSize="Micro"
+            FontSize="Small"
             HorizontalTextAlignment="Center"
             Text="{Binding Vector3D.Y, StringFormat='{0:F3}'}"/>
 
         <Label
             Grid.Column="2"
-            FontSize="Micro"
+            FontSize="Small"
             HorizontalTextAlignment="Center"
             Text="{Binding Vector3D.Z, StringFormat='{0:F3}'}"/>
 

@@ -15,6 +15,7 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="2*"/>
@@ -28,86 +29,129 @@
                 Grid.Row="0"
                 Grid.Column="1"
                 Margin="10"
-                HorizontalTextAlignment="Center"
+                HorizontalTextAlignment="Start"
                 FontSize="Small"
-                Text="ADC"/>
+                Text="Battery"/>
 
             <Label
                 Grid.Row="0"
                 Grid.Column="3"
                 Margin="10"
-                HorizontalTextAlignment="Center"
+                HorizontalTextAlignment="End"
                 FontSize="Small"
-                Text="{Binding JPowerDevice.AdcValue}"/>
+                Text="{Binding JPowerDevice.BatteryLevel}"/>
 
             <Label
                 Grid.Row="1"
                 Grid.Column="1"
                 Margin="10"
-                HorizontalTextAlignment="Center"
-                FontSize="Small"
-                Text="Power"/>
-
-            <Label
-                Grid.Row="1"
-                Grid.Column="3"
-                Margin="10"
-                HorizontalTextAlignment="Center"
-                FontSize="Small"
-                Text="{Binding JPowerDevice.PowerValue}"/>
-
-            <sharedui:Vector3DView
-                Grid.Row="2"
-                Grid.Column="1"
-                Grid.ColumnSpan="3"
-                HorizontalOptions="FillAndExpand"
-                Vector3D="{Binding JPowerDevice.AccelValue}"/>
-
-            <sharedui:Vector3DView
-                Grid.Row="3"
-                Grid.Column="1"
-                Grid.ColumnSpan="3"
-                HorizontalOptions="FillAndExpand"
-                Vector3D="{Binding JPowerDevice.GyroValue}"/>
-
-            <sharedui:Vector3DView
-                Grid.Row="4"
-                Grid.Column="1"
-                Grid.ColumnSpan="3"
-                HorizontalOptions="FillAndExpand"
-                Vector3D="{Binding JPowerDevice.OrientValue}"/>
-
-            <Label
-                Grid.Row="5"
-                Grid.Column="1"
-                Margin="10"
-                HorizontalTextAlignment="Center"
-                FontSize="Small"
-                Text="Cadence"/>
-
-            <Label
-                Grid.Row="5"
-                Grid.Column="3"
-                Margin="10"
-                HorizontalTextAlignment="Center"
-                FontSize="Small"
-                Text="{Binding JPowerDevice.CadenceValue}"/>
-            
-            <Label
-                Grid.Row="6"
-                Grid.Column="1"
-                Margin="10"
-                HorizontalTextAlignment="Center"
+                HorizontalTextAlignment="Start"
                 FontSize="Small"
                 Text="Temp"/>
 
             <Label
-                Grid.Row="6"
+                Grid.Row="1"
                 Grid.Column="3"
                 Margin="10"
-                HorizontalTextAlignment="Center"
+                HorizontalTextAlignment="End"
                 FontSize="Small"
                 Text="{Binding JPowerDevice.TempValue, StringFormat='{0:F3}'}"/>
+
+            <Label
+                Grid.Row="2"
+                Grid.Column="1"
+                Margin="10"
+                HorizontalTextAlignment="Start"
+                FontSize="Small"
+                Text="ADC"/>
+
+            <Label
+                Grid.Row="2"
+                Grid.Column="3"
+                Margin="10"
+                HorizontalTextAlignment="End"
+                FontSize="Small"
+                Text="{Binding JPowerDevice.AdcValue}"/>
+
+            <Label
+                Grid.Row="3"
+                Grid.Column="1"
+                Margin="10"
+                HorizontalTextAlignment="Start"
+                FontSize="Small"
+                Text="Power"/>
+
+            <Label
+                Grid.Row="3"
+                Grid.Column="3"
+                Margin="10"
+                HorizontalTextAlignment="End"
+                FontSize="Small"
+                Text="{Binding JPowerDevice.PowerValue}"/>
+
+            <Label
+                Grid.Row="4"
+                Grid.Column="1"
+                Margin="10"
+                HorizontalTextAlignment="Start"
+                FontSize="Small"
+                Text="Cadence"/>
+
+            <Label
+                Grid.Row="4"
+                Grid.Column="3"
+                Margin="10"
+                HorizontalTextAlignment="End"
+                FontSize="Small"
+                Text="{Binding JPowerDevice.CadenceValue}"/>
+
+            <Label
+                Grid.Row="5"
+                Grid.Column="1"
+                Margin="10"
+                HorizontalTextAlignment="Start"
+                FontSize="Small"
+                Text="Accel"/>
+            
+            <sharedui:Vector3DView
+                Grid.Row="5"
+                Grid.Column="2"
+                Grid.ColumnSpan="2"
+                HorizontalOptions="FillAndExpand"
+                VerticalOptions="Center"
+                Vector3D="{Binding JPowerDevice.AccelValue}"/>
+
+            <Label
+                Grid.Row="6"
+                Grid.Column="1"
+                Margin="10"
+                HorizontalTextAlignment="Start"
+                FontSize="Small"
+                Text="Gyro"/>
+
+            <sharedui:Vector3DView
+                Grid.Row="6"
+                Grid.Column="2"
+                Grid.ColumnSpan="2"
+                HorizontalOptions="FillAndExpand"
+                VerticalOptions="Center"
+                Vector3D="{Binding JPowerDevice.GyroValue}"/>
+
+            <Label
+                Grid.Row="7"
+                Grid.Column="1"
+                Margin="10"
+                HorizontalTextAlignment="Start"
+                FontSize="Small"
+                Text="Orient"/>
+            
+            <sharedui:Vector3DView
+                Grid.Row="7"
+                Grid.Column="2"
+                Grid.ColumnSpan="2"
+                HorizontalOptions="FillAndExpand"
+                VerticalOptions="Center"
+                Vector3D="{Binding JPowerDevice.OrientValue}"/>
 
         </Grid>
     </ScrollView>

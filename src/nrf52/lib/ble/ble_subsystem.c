@@ -70,6 +70,10 @@ static void buttonless_dfu_sdh_state_observer(
     nrf_sdh_state_evt_t state, 
     void * p_context
 );
+static void bas_event_handler(
+    ble_bas_t * p_bas, 
+    ble_bas_evt_t * p_evt
+);
 
 NRF_SDH_STATE_OBSERVER(buttonless_dfu_state_obs, 0) =
 {
@@ -318,13 +322,15 @@ static void init_standard_services()
         ble_bas_init_t bas_init;
         memset(&bas_init, 0, sizeof(bas_init));
 
-        bas_init.bl_cccd_wr_sec = SEC_OPEN;
-        bas_init.bl_rd_sec = SEC_OPEN;
-        bas_init.bl_report_rd_sec = SEC_OPEN;
-        bas_init.evt_handler = NULL;
+        
+        bas_init.evt_handler = bas_event_handler;
         bas_init.support_notification = true;
         bas_init.p_report_ref = NULL;
         bas_init.initial_batt_level = battery_get_level_percentage();
+
+        bas_init.bl_cccd_wr_sec = SEC_OPEN;
+        bas_init.bl_rd_sec = SEC_OPEN;
+        bas_init.bl_report_rd_sec = SEC_OPEN;
 
         err_code = ble_bas_init(&m_bas, &bas_init);
         APP_ERROR_CHECK(err_code);
@@ -562,6 +568,24 @@ static void buttonless_dfu_sdh_state_observer(nrf_sdh_state_evt_t state, void * 
     {
         nrf_power_gpregret2_set(BOOTLOADER_DFU_SKIP_CRC);
         nrf_pwr_mgmt_shutdown(NRF_PWR_MGMT_SHUTDOWN_GOTO_SYSOFF);
+    }
+}
+
+static void bas_event_handler(ble_bas_t * p_bas, ble_bas_evt_t * p_evt)
+{
+    ret_code_t err_code;
+
+    switch (p_evt->evt_type)
+    {
+        case BLE_BAS_EVT_NOTIFICATION_ENABLED:
+            break; // BLE_BAS_EVT_NOTIFICATION_ENABLED
+
+        case BLE_BAS_EVT_NOTIFICATION_DISABLED:
+            break; // BLE_BAS_EVT_NOTIFICATION_DISABLED
+
+        default:
+            // No implementation needed.
+            break;
     }
 }
 

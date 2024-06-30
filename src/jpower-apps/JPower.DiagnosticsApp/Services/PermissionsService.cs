@@ -1,4 +1,4 @@
-﻿namespace JPower.Shared.Services
+﻿namespace JPower.DiagnosticsApp.Services
 {
     public class PermissionsService : IPermissionsService
     {

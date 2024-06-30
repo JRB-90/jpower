@@ -23,5 +23,7 @@
         Task StopListening();
 
         Task<bool> WriteValue(byte[] value);
+
+        Task<byte[]> ReadValue();
     }
 }

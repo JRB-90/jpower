@@ -65,6 +65,13 @@ namespace JPower.Shared.Ble
             return true;
         }
 
+        public async Task<byte[]> ReadValue()
+        {
+            await Task.Delay(100);
+
+            return currentValue;
+        }
+
         private byte[] currentValue;
     }
 }

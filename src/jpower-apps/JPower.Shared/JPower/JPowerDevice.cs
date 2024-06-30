@@ -17,6 +17,7 @@ namespace JPower.Shared.JPower
             orientValues = new Subject<Vector3D>();
             cadenceValues = new Subject<ushort>();
             tempValues = new Subject<float>();
+            batteryLevels = new Subject<ushort>();
 
             adcValue = 0;
             powerValue = 0;
@@ -25,6 +26,7 @@ namespace JPower.Shared.JPower
             orientValue = new Vector3D(0.0, 0.0, 0.0);
             cadenceValue = 0;
             tempValue = 0.0f;
+            batteryLevel = 0;
 
             sensorService       = GetService(JPowerBleUUIDs.JPOWER_SENSOR_SRV_UUID);
             zeroOffsetChar      = GetCharacteristic(sensorService, JPowerBleUUIDs.JPOWER_SENSOR_SRV_ZERO_OFFSEt_UUID);
@@ -35,6 +37,9 @@ namespace JPower.Shared.JPower
             orientValueChar     = GetCharacteristic(sensorService, JPowerBleUUIDs.JPOWER_SENSOR_SRV_ORIENT_UUID);
             cadenceValueChar    = GetCharacteristic(sensorService, JPowerBleUUIDs.JPOWER_SENSOR_SRV_CADENCE_UUID);
             tempValueChar       = GetCharacteristic(sensorService, JPowerBleUUIDs.JPOWER_SENSOR_SRV_TEMP_UUID);
+
+            batteryService      = GetService(JPowerBleUUIDs.JPOWER_BATTERY_SRV_UUID);
+            batteryLevelChar    = GetCharacteristic(batteryService, JPowerBleUUIDs.JPOWER_BATTERY_LEVEL_SRV_UUID);
 
             adcValueChar.ValueUpdated       += AdcValueChar_ValueUpdated;
             powerValueChar.ValueUpdated     += PowerValueChar_ValueUpdated;
@@ -115,6 +120,16 @@ namespace JPower.Shared.JPower
             }
         }
 
+        public ushort BatteryLevel
+        {
+            get => batteryLevel;
+            set
+            {
+                SetProperty(ref batteryLevel, value);
+                batteryLevels.OnNext(value);
+            }
+        }
+
         public IObservable<uint> AdcValues => adcValues;
 
         public IObservable<ushort> PowerValues => powerValues;
@@ -128,6 +143,8 @@ namespace JPower.Shared.JPower
         public IObservable<ushort> CadenceValues => cadenceValues;
 
         public IObservable<float> TempValues => tempValues;
+
+        public IObservable<ushort> BatteryLevels => batteryLevels;
 
         public async Task StartStreaming()
         {
@@ -206,9 +223,15 @@ namespace JPower.Shared.JPower
             CadenceValue = BleValueConverters.ToUint16(value);
         }
 
-        private void TempValueChar_ValueUpdated(object? sender, byte[] value)
+        private async void TempValueChar_ValueUpdated(object? sender, byte[] value)
         {
             TempValue = BleValueConverters.ToFloat32(value);
+
+            var battery = await batteryLevelChar.ReadValue();
+            if (battery.Length == 1)
+            {
+                BatteryLevel = BleValueConverters.ToUint8(battery);
+            }
         }
 
         private uint adcValue;
@@ -218,6 +241,7 @@ namespace JPower.Shared.JPower
         private Vector3D orientValue;
         private ushort cadenceValue;
         private float tempValue;
+        private ushort batteryLevel;
 
         private Subject<uint> adcValues;
         private Subject<ushort> powerValues;
@@ -226,8 +250,10 @@ namespace JPower.Shared.JPower
         private Subject<Vector3D> orientValues;
         private Subject<ushort> cadenceValues;
         private Subject<float> tempValues;
+        private Subject<ushort> batteryLevels;
 
         private BleDevice bleDevice;
+
         private BleDeviceService sensorService;
         private BleDeviceCharacteristic zeroOffsetChar;
         private BleDeviceCharacteristic adcValueChar;
@@ -237,5 +263,8 @@ namespace JPower.Shared.JPower
         private BleDeviceCharacteristic orientValueChar;
         private BleDeviceCharacteristic cadenceValueChar;
         private BleDeviceCharacteristic tempValueChar;
+
+        private BleDeviceService batteryService;
+        private BleDeviceCharacteristic batteryLevelChar;
     }
 }

@@ -19,9 +19,13 @@ namespace JPower.Shared.JPower
         public static Guid JPOWER_SENSOR_SRV_CADENCE_UUID       = new Guid("0000aa07-0000-1000-8000-00805f9b34fb");
         public static Guid JPOWER_SENSOR_SRV_TEMP_UUID          = new Guid("0000aa08-0000-1000-8000-00805f9b34fb");
 
+        public static Guid JPOWER_BATTERY_SRV_UUID              = new Guid("0000180f-0000-1000-8000-00805f9b34fb");
+        public static Guid JPOWER_BATTERY_LEVEL_SRV_UUID        = new Guid("00002a19-0000-1000-8000-00805f9b34fb");
+
         public static Guid[] JPOWER_SERVICES =
         {
             JPOWER_SENSOR_SRV_UUID,
+            JPOWER_BATTERY_SRV_UUID
         };
 
         public static bool IsJPowerDevice(this IBleDevice bleDevice)

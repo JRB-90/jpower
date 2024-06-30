@@ -66,6 +66,20 @@ namespace JPower.Shared.Ble
             return await characteristic.WriteAsync(value) == 0;
         }
 
+        public async Task<byte[]> ReadValue()
+        {
+            var res = await characteristic.ReadAsync();
+
+            if (res.resultCode == 0)
+            {
+                return res.data;
+            }
+            else
+            {
+                return new byte[0];
+            }
+        }
+
         private void Characteristic_ValueUpdated(
             object? sender,
             Plugin.BLE.Abstractions.EventArgs.CharacteristicUpdatedEventArgs e)
