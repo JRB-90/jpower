@@ -20,7 +20,7 @@ namespace JPower.Shared.JPowDevice
     }
 
     [StructLayout(LayoutKind.Explicit, Size = 16, CharSet = CharSet.Ansi)]
-    public struct JPowerCalibrationData
+    public struct LegacyJPowerCalibrationData
     {
         [FieldOffset(0)]public UInt128 guid;
         [FieldOffset(16)] public float slope;

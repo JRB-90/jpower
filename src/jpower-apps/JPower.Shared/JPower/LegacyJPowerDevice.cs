@@ -98,11 +98,11 @@ namespace JPower.Shared.JPowDevice
 
         public Task<bool> PushSlope(Slope slope)
         {
-            var calData = new JPowerCalibrationData();
+            var calData = new LegacyJPowerCalibrationData();
             calData.guid = 0xA5A5A5A5A5A5A5A5;// Guid.NewGuid().ToUInt128();
             calData.slope = (float)slope.SlopeValue;
             calData.intercept = (float)slope.Intercept;
-            var calDataBytes = calData.CastToArray<JPowerCalibrationData>();
+            var calDataBytes = calData.CastToArray<LegacyJPowerCalibrationData>();
 
             return pushCalChar.WriteValue(calDataBytes);
         }
@@ -123,7 +123,7 @@ namespace JPower.Shared.JPowDevice
 
             try
             {
-                var calibrationData = pullCalChar.CurrentValue.CastToStruct<JPowerCalibrationData>();
+                var calibrationData = pullCalChar.CurrentValue.CastToStruct<LegacyJPowerCalibrationData>();
 
                 return
                     new Slope(

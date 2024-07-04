@@ -1,11 +1,15 @@
 #include "strain.h"
 
 #include "ad779x.h"
+#include "calibrate_ble_srv.h"
 
 static nrf_drv_spi_t* spi = NULL;
 static calibration_data_t current_cal = { 0 };
 static uint32_t current_adc_value = 0;
 static float current_torque_nm = 0.0f;
+
+static void on_zero_requested();
+static uint32_t on_measure_requested(uint8_t num_samples);
 
 ret_code_t strain_init(
     nrf_drv_spi_t* spi_instance,
@@ -36,6 +40,11 @@ ret_code_t strain_init(
             ss_pin
         );
     APP_ERROR_CHECK(err_code);
+
+    calibrate_reg_pull_cal_cb(strain_get_calibration);
+    calibrate_reg_cal_pushed_cb(strain_set_calibration);
+    calibrate_reg_zero_offset_cb(on_zero_requested);
+    calibrate_reg_measure_cb(on_measure_requested);
 
     return NRF_SUCCESS;
 }
@@ -75,4 +84,17 @@ ret_code_t strain_zero_offset()
     ad779x_system_zeroscale_calibration();
 
     return NRF_SUCCESS;
+}
+
+static void on_zero_requested()
+{
+    ret_code_t err_code = strain_zero_offset();
+    APP_ERROR_CHECK(err_code);
+}
+
+static uint32_t on_measure_requested(uint8_t num_samples)
+{
+    // TODO - store last n samples and return average
+
+    return current_adc_value;
 }

@@ -1,7 +1,21 @@
-﻿using System.Runtime.InteropServices;
+﻿using JPower.Shared.JPowDevice;
+using System.Runtime.InteropServices;
 
 namespace JPower.Shared.JPower
 {
+    public enum JPowerCalSrvRequest
+    {
+        CALIBRATE_SRV_PULL_CAL = 0x01,
+        CALIBRATE_SRV_ZERO_OFFSET = 0x02,
+        CALIBRATE_SRV_MEASURE = 0x03,
+    }
+
+    public enum JPowerCalSrvResponse
+    {
+        CALIBRATE_SRV_OK = 0x01,
+        CALIBRATE_SRV_NOK = 0x02,
+    }
+
     [StructLayout(LayoutKind.Explicit, Size = 12, CharSet = CharSet.Ansi)]
     public struct JPowerAccelData
     {
@@ -18,6 +32,13 @@ namespace JPower.Shared.JPower
         [FieldOffset(8)] public float rz;
     }
 
+    [StructLayout(LayoutKind.Explicit, Size = 24, CharSet = CharSet.Ansi)]
+    public struct JPowerImuData
+    {
+        [FieldOffset(0)] public JPowerAccelData accel;
+        [FieldOffset(12)] public JPowerGyroData gyro;
+    }
+
     [StructLayout(LayoutKind.Explicit, Size = 16, CharSet = CharSet.Ansi)]
     public struct JPowerOrientData
     {
@@ -27,9 +48,32 @@ namespace JPower.Shared.JPower
         [FieldOffset(12)] public float z;
     }
 
+    [StructLayout(LayoutKind.Explicit, Size = 56, CharSet = CharSet.Ansi)]
+    public struct JPowerSensorDiagData
+    {
+        [FieldOffset(0)] public float temp;
+        [FieldOffset(4)] public uint adcValue;
+        [FieldOffset(8)] public float torque;
+        [FieldOffset(12)] public JPowerImuData imuData;
+        [FieldOffset(36)] public JPowerOrientData orientation;
+        [FieldOffset(52)] public ushort cadence;
+        [FieldOffset(54)] public ushort power;
+    }
+
+    [StructLayout(LayoutKind.Explicit, Size = 28, CharSet = CharSet.Ansi)]
+    public struct JPowerCalibrationData
+    {
+        [FieldOffset(0)] public UInt128 guid;
+        [FieldOffset(16)] public float slope;
+        [FieldOffset(20)] public float intercept;
+        [FieldOffset(24)] public float crankLength;
+    }
+
     public interface IJPowerDevice
     {
         uint AdcValue { get; }
+
+        float TorqueValue { get; }
 
         ushort PowerValue { get; }
 
@@ -47,6 +91,8 @@ namespace JPower.Shared.JPower
 
         IObservable<uint> AdcValues { get; }
 
+        IObservable<float> TorqueValues { get; }
+
         IObservable<ushort> PowerValues { get; }
 
         IObservable<Vector3D> AccelValues { get; }
@@ -61,10 +107,16 @@ namespace JPower.Shared.JPower
 
         IObservable<ushort> BatteryLevels { get; }
 
-        Task<bool> ZeroOffset();
-
         Task StartStreaming();
 
         Task StopStreaming();
+
+        Task<JPowerCalibrationData> PullCalibration();
+
+        Task PushCalibration(JPowerCalibrationData calibration);
+
+        Task<bool> ZeroOffset();
+
+        Task<uint> Measure(byte numberSamples);
     }
 }

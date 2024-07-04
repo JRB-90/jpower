@@ -8,7 +8,7 @@
 #include "cadence.h"
 #include "strain.h"
 
-#define DESIRED_PRINT_HZ    1
+#define DESIRED_PRINT_HZ    5
 #define COUNTER_TRIGGER     100 / DESIRED_PRINT_HZ
 
 static nrf_drv_twi_t twi = NRF_DRV_TWI_INSTANCE(TWI_INSTANCE_ID);
@@ -16,7 +16,6 @@ static nrf_drv_spi_t spi = NRF_DRV_SPI_INSTANCE(SPI_INSTANCE_ID);
 static uint32_t counter = 0;
 
 static void calculate_cadence_power(float time_delta_s);
-static void on_zero_offset_requested();
 
 ret_code_t sensor_subsystem_init(const sensor_config_t* const config)
 {
@@ -40,8 +39,6 @@ ret_code_t sensor_subsystem_init(const sensor_config_t* const config)
             config->spi_cs_pin
         );
     APP_ERROR_CHECK(err_code);
-
-    sensor_srv_reg_zero_offset_cb(on_zero_offset_requested);
 
     return NRF_SUCCESS;
 }
@@ -91,17 +88,22 @@ static void calculate_cadence_power(float time_delta_s)
     uint32_t adc_value = strain_get_current_adv_value();
     float torque = strain_get_current_torque_nm();
 
-    double power = torque * pedal_state.angular_velocity_dps;
+    uint16_t power = (uint16_t)(torque * pedal_state.angular_velocity_dps);
 
     float temp = imu_get_current_temp_c();
 
-    sensor_srv_update_adc(adc_value);
-    sensor_srv_update_power(power);
-    sensor_srv_update_accel(imu_reading.accel);
-    sensor_srv_update_gyro(imu_reading.gyro);
-    sensor_srv_update_orient(attitude.array);
-    sensor_srv_update_cadence(pedal_state.cadence_rpm);
-    sensor_srv_update_temp(temp);
+    sensor_diag_data_t diag_data =
+    {
+        .temp_c = temp,
+        .adc_value = adc_value,
+        .torque_nm = torque,
+        .imu_data = imu_reading,
+        .orient = attitude,
+        .cadence_rpm = pedal_state.cadence_rpm,
+        .power_w = power,
+    };
+
+    sensor_srv_update_diag_data(&diag_data);
 
 #ifdef DEBUG_PRINT
     char imu_str[128];
@@ -127,10 +129,4 @@ static void calculate_cadence_power(float time_delta_s)
     NRF_LOG_INFO("%s", strain_str);
     NRF_LOG_FLUSH();
 #endif
-}
-
-static void on_zero_offset_requested()
-{
-    strain_zero_offset();
-    NRF_LOG_INFO("Zero requested");
 }

@@ -6,11 +6,11 @@
 #include "app_error.h"
 #include "ble_srv_common.h"
 
-#define BLE_SRV_MAX_SERVICES            16   // Maximum defineable services
-#define BLE_SRV_MAX_CHARACTERISTICS	    16  // Maximum characteristics per service
+#define BLE_SRV_MAX_SERVICES            16  // Maximum defineable services
+#define BLE_SRV_MAX_CHARACTERISTICS	    8   // Maximum characteristics per service
 #define BLE_SRV_MAX_TOTAL_CHARACT		32  // Maximum characteristics definable overall
 #define BLE_SRV_MAX_STRING_SIZE			64	// Maximum size of the String type structures
-#define BLE_SRV_MAX_DATA_SIZE			32  // Maximum size of the service data type
+#define BLE_SRV_MAX_DATA_SIZE			64  // Maximum size of the service data type
 
 typedef enum
 {

@@ -425,6 +425,8 @@ static void ble_event_handler(
     {
         case BLE_GAP_EVT_CONNECTED:
             is_connected = true;
+            is_advertising = false;
+            blesub_stop_advertising();
             m_conn_handle = p_ble_evt->evt.gap_evt.conn_handle;
             err_code = nrf_ble_qwr_conn_handle_assign(&m_qwr, m_conn_handle);
             APP_ERROR_CHECK(err_code);
@@ -439,11 +441,11 @@ static void ble_event_handler(
             is_connected = false;
             is_advertising = false;
             m_conn_handle = BLE_CONN_HANDLE_INVALID;
-            blesub_start_advertising();
             if (ble_config.conn_state_handler != NULL)
             {
                 ble_config.conn_state_handler(is_connected);
             }
+            blesub_start_advertising();
             NRF_LOG_INFO("Disconnected");
             break;
 
@@ -573,8 +575,6 @@ static void buttonless_dfu_sdh_state_observer(nrf_sdh_state_evt_t state, void * 
 
 static void bas_event_handler(ble_bas_t * p_bas, ble_bas_evt_t * p_evt)
 {
-    ret_code_t err_code;
-
     switch (p_evt->evt_type)
     {
         case BLE_BAS_EVT_NOTIFICATION_ENABLED:

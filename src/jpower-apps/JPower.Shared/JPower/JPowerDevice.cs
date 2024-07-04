@@ -1,16 +1,21 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using JPower.Shared.Ble;
+using JPower.Shared.JPowDevice;
 using System.Reactive.Subjects;
 
 namespace JPower.Shared.JPower
 {
     public class JPowerDevice : ObservableObject, IJPowerDevice
     {
+        public const int REPLY_TIMEOUT_MS = 5000;
+
         public JPowerDevice(BleDevice bleDevice)
         {
             this.bleDevice = bleDevice;
+            mre = new ManualResetEvent(false);
 
             adcValues = new Subject<uint>();
+            torqueValues = new Subject<float>();
             powerValues = new Subject<ushort>();
             accelValues = new Subject<Vector3D>();
             gyroValues = new Subject<Vector3D>();
@@ -20,6 +25,7 @@ namespace JPower.Shared.JPower
             batteryLevels = new Subject<ushort>();
 
             adcValue = 0;
+            torqueValue = 0.0f;
             powerValue = 0;
             accelValue = new Vector3D(0.0, 0.0, 0.0);
             gyroValue = new Vector3D(0.0, 0.0, 0.0);
@@ -29,25 +35,22 @@ namespace JPower.Shared.JPower
             batteryLevel = 0;
 
             sensorService       = GetService(JPowerBleUUIDs.JPOWER_SENSOR_SRV_UUID);
-            zeroOffsetChar      = GetCharacteristic(sensorService, JPowerBleUUIDs.JPOWER_SENSOR_SRV_ZERO_OFFSEt_UUID);
-            adcValueChar        = GetCharacteristic(sensorService, JPowerBleUUIDs.JPOWER_SENSOR_SRV_ADC_UUID);
-            powerValueChar      = GetCharacteristic(sensorService, JPowerBleUUIDs.JPOWER_SENSOR_SRV_POWER_UUID);
-            accelValueChar      = GetCharacteristic(sensorService, JPowerBleUUIDs.JPOWER_SENSOR_SRV_ACCEL_UUID);
-            gyroValueChar       = GetCharacteristic(sensorService, JPowerBleUUIDs.JPOWER_SENSOR_SRV_GYRO_UUID);
-            orientValueChar     = GetCharacteristic(sensorService, JPowerBleUUIDs.JPOWER_SENSOR_SRV_ORIENT_UUID);
-            cadenceValueChar    = GetCharacteristic(sensorService, JPowerBleUUIDs.JPOWER_SENSOR_SRV_CADENCE_UUID);
-            tempValueChar       = GetCharacteristic(sensorService, JPowerBleUUIDs.JPOWER_SENSOR_SRV_TEMP_UUID);
+            diagDataChar        = GetCharacteristic(sensorService, JPowerBleUUIDs.JPOWER_SENSOR_SRV_DIAG_DATA_UUID);
 
             batteryService      = GetService(JPowerBleUUIDs.JPOWER_BATTERY_SRV_UUID);
             batteryLevelChar    = GetCharacteristic(batteryService, JPowerBleUUIDs.JPOWER_BATTERY_LEVEL_SRV_UUID);
 
-            adcValueChar.ValueUpdated       += AdcValueChar_ValueUpdated;
-            powerValueChar.ValueUpdated     += PowerValueChar_ValueUpdated;
-            accelValueChar.ValueUpdated     += AccelValueChar_ValueUpdated;
-            gyroValueChar.ValueUpdated      += GyroValueChar_ValueUpdated;
-            orientValueChar.ValueUpdated    += OrientValueChar_ValueUpdated;
-            cadenceValueChar.ValueUpdated   += CadenceValueChar_ValueUpdated;
-            tempValueChar.ValueUpdated      += TempValueChar_ValueUpdated;
+            calibrateService    = GetService(JPowerBleUUIDs.JPOWER_CAL_SRV_UUID);
+            sendReqChar         = GetCharacteristic(calibrateService, JPowerBleUUIDs.JPOWER_CAL_SRV_SEND_REQ_UUID);
+            pushCalChar         = GetCharacteristic(calibrateService, JPowerBleUUIDs.JPOWER_CAL_SRV_PUSH_CAL_UUID);
+            pullCalResChar      = GetCharacteristic(calibrateService, JPowerBleUUIDs.JPOWER_CAL_SRV_PULL_CAL_RES_UUID);
+            measureResChar      = GetCharacteristic(calibrateService, JPowerBleUUIDs.JPOWER_CAL_SRV_MEASURE_RES_UUID);
+            zeroOffsetResChar   = GetCharacteristic(calibrateService, JPowerBleUUIDs.JPOWER_CAL_SRV_ZERO_RES_UUID);
+
+            diagDataChar.ValueUpdated += DiagDataChar_ValueUpdated;
+
+            batteryTimer = new System.Timers.Timer(TimeSpan.FromSeconds(3));
+            batteryTimer.Elapsed += BatteryTimer_Elapsed;
         }
 
         public uint AdcValue
@@ -57,6 +60,16 @@ namespace JPower.Shared.JPower
             {
                 SetProperty(ref adcValue, value);
                 adcValues.OnNext(value);
+            }
+        }
+
+        public float TorqueValue
+        {
+            get => torqueValue;
+            set
+            {
+                SetProperty(ref torqueValue, value);
+                torqueValues.OnNext(value);
             }
         }
 
@@ -132,6 +145,8 @@ namespace JPower.Shared.JPower
 
         public IObservable<uint> AdcValues => adcValues;
 
+        public IObservable<float> TorqueValues => torqueValues;
+
         public IObservable<ushort> PowerValues => powerValues;
 
         public IObservable<Vector3D> AccelValues => accelValues;
@@ -148,29 +163,62 @@ namespace JPower.Shared.JPower
 
         public async Task StartStreaming()
         {
-            await adcValueChar.StartListening();
-            await powerValueChar.StartListening();
-            await accelValueChar.StartListening();
-            await gyroValueChar.StartListening();
-            await orientValueChar.StartListening();
-            await cadenceValueChar.StartListening();
-            await tempValueChar.StartListening();
+            await diagDataChar.StartListening();
+
+            JPowerCalibrationData dummyCal = new()
+            {
+                guid = 42,
+                slope = 0.42f,
+                intercept = 1234.5f,
+                crankLength = 0.1725f,
+            };
+
+            await PushCalibration(dummyCal);
+            var cal = await PullCalibration();
+            var meas = await Measure(10);
+            var zero = await ZeroOffset();
         }
 
         public async Task StopStreaming()
         {
-            await adcValueChar.StopListening();
-            await powerValueChar.StopListening();
-            await accelValueChar.StopListening();
-            await gyroValueChar.StopListening();
-            await orientValueChar.StopListening();
-            await cadenceValueChar.StopListening();
-            await tempValueChar.StopListening();
+            await diagDataChar.StopListening();
         }
 
-        public Task<bool> ZeroOffset()
+        public async Task PushCalibration(JPowerCalibrationData calibration)
         {
-            return zeroOffsetChar.WriteValue(new byte[1] { 0x01 });
+            var writeResult = await pushCalChar.WriteValue(calibration.CastToArray());
+
+            if (writeResult == false)
+            {
+                throw new InvalidOperationException("Failed to push cal to device");
+            }
+        }
+
+        public async Task<JPowerCalibrationData> PullCalibration()
+        {
+            await SendAndAwaitReturn(JPowerCalSrvRequest.CALIBRATE_SRV_PULL_CAL, pullCalResChar);
+            var calData = pullCalResChar.CurrentValue.CastToStruct<JPowerCalibrationData>();
+
+            return calData;
+        }
+
+        public async Task<uint> Measure(byte numberSamples)
+        {
+            await SendAndAwaitReturn(JPowerCalSrvRequest.CALIBRATE_SRV_MEASURE, measureResChar);
+            uint measurement = BleValueConverters.ToUint32(measureResChar.CurrentValue);
+
+            return measurement;
+        }
+
+        public async Task<bool> ZeroOffset()
+        {
+            await SendAndAwaitReturn(JPowerCalSrvRequest.CALIBRATE_SRV_ZERO_OFFSET, zeroOffsetResChar);
+            var result = (JPowerCalSrvResponse)zeroOffsetResChar.CurrentValue[0];
+
+            return 
+                result == JPowerCalSrvResponse.CALIBRATE_SRV_OK
+                ? true 
+                : false;
         }
 
         private BleDeviceService GetService(Guid uuid)
@@ -193,48 +241,69 @@ namespace JPower.Shared.JPower
                  .First();
         }
 
-        private void AdcValueChar_ValueUpdated(object? sender, byte[] value)
+        private void DiagDataChar_ValueUpdated(object? sender, byte[] value)
         {
-            AdcValue = BleValueConverters.ToUint32(value);
+            var diagData = value.CastToStruct<JPowerSensorDiagData>();
+
+            TempValue = diagData.temp;
+            AdcValue = diagData.adcValue;
+            AccelValue = diagData.imuData.accel.ToVector3D();
+            GyroValue = diagData.imuData.gyro.ToVector3D();
+            OrientValue = diagData.orientation.ToVector3D();
+            CadenceValue = diagData.cadence;
+            PowerValue = diagData.power;
         }
 
-        private void PowerValueChar_ValueUpdated(object? sender, byte[] value)
+        private async void BatteryTimer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
         {
-            PowerValue = BleValueConverters.ToUint16(value);
-        }
-
-        private void AccelValueChar_ValueUpdated(object? sender, byte[] value)
-        {
-            AccelValue = value.CastToStruct<JPowerAccelData>().ToVector3D();
-        }
-
-        private void GyroValueChar_ValueUpdated(object? sender, byte[] value)
-        {
-            GyroValue = value.CastToStruct<JPowerGyroData>().ToVector3D();
-        }
-
-        private void OrientValueChar_ValueUpdated(object? sender, byte[] value)
-        {
-            OrientValue = value.CastToStruct<JPowerOrientData>().ToVector3D();
-        }
-
-        private void CadenceValueChar_ValueUpdated(object? sender, byte[] value)
-        {
-            CadenceValue = BleValueConverters.ToUint16(value);
-        }
-
-        private async void TempValueChar_ValueUpdated(object? sender, byte[] value)
-        {
-            TempValue = BleValueConverters.ToFloat32(value);
-
-            var battery = await batteryLevelChar.ReadValue();
-            if (battery.Length == 1)
+            try
             {
-                BatteryLevel = BleValueConverters.ToUint8(battery);
+                var battery = await batteryLevelChar.ReadValue();
+                if (battery.Length == 1)
+                {
+                    BatteryLevel = BleValueConverters.ToUint8(battery);
+                }
+            }
+            catch
+            {
+            }
+        }
+
+        private async Task SendAndAwaitReturn(
+            JPowerCalSrvRequest request,
+            BleDeviceCharacteristic characteristic)
+        {
+            try
+            {
+                await characteristic.StartListening();
+
+                mre.Reset();
+                characteristic.ValueUpdated += (s, v) => mre.Set();
+                var reqData = new byte[1] { (byte)request };
+                var writeRes = await sendReqChar.WriteValue(reqData);
+
+                if (writeRes == false)
+                {
+                    throw new InvalidOperationException("Failed to send request to JPower");
+                }
+
+                if (!mre.WaitOne(REPLY_TIMEOUT_MS))
+                {
+                    throw new InvalidOperationException("Did not receive return message inside the timeout");
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException(ex.Message);
+            }
+            finally
+            {
+                await characteristic.StopListening();
             }
         }
 
         private uint adcValue;
+        private float torqueValue;
         private ushort powerValue;
         private Vector3D accelValue;
         private Vector3D gyroValue;
@@ -244,6 +313,7 @@ namespace JPower.Shared.JPower
         private ushort batteryLevel;
 
         private Subject<uint> adcValues;
+        private Subject<float> torqueValues;
         private Subject<ushort> powerValues;
         private Subject<Vector3D> accelValues;
         private Subject<Vector3D> gyroValues;
@@ -255,16 +325,19 @@ namespace JPower.Shared.JPower
         private BleDevice bleDevice;
 
         private BleDeviceService sensorService;
-        private BleDeviceCharacteristic zeroOffsetChar;
-        private BleDeviceCharacteristic adcValueChar;
-        private BleDeviceCharacteristic powerValueChar;
-        private BleDeviceCharacteristic accelValueChar;
-        private BleDeviceCharacteristic gyroValueChar;
-        private BleDeviceCharacteristic orientValueChar;
-        private BleDeviceCharacteristic cadenceValueChar;
-        private BleDeviceCharacteristic tempValueChar;
+        private BleDeviceCharacteristic diagDataChar;
 
         private BleDeviceService batteryService;
         private BleDeviceCharacteristic batteryLevelChar;
+
+        private BleDeviceService calibrateService;
+        private BleDeviceCharacteristic sendReqChar;
+        private BleDeviceCharacteristic pushCalChar;
+        private BleDeviceCharacteristic pullCalResChar;
+        private BleDeviceCharacteristic measureResChar;
+        private BleDeviceCharacteristic zeroOffsetResChar;
+
+        private System.Timers.Timer batteryTimer;
+        private ManualResetEvent mre;
     }
 }

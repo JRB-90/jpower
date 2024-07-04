@@ -18,6 +18,7 @@
 #include "nrf_drv_clock.h"
 #include "sensor_subsystem.h"
 #include "sensor_ble_srv.h"
+#include "calibrate_ble_srv.h"
 #include "imu_types.h"
 #include "led_control.h"
 #include "battery.h"
@@ -148,6 +149,9 @@ static void softdevice_init()
 
     err_code = sensor_srv_init();
     APP_ERROR_CHECK(err_code);
+
+    err_code = calibrate_srv_init();
+    APP_ERROR_CHECK(err_code);
 }
 
 static void start_timers()
@@ -163,7 +167,7 @@ static void start_timers()
 
     NRF_TIMER1->TASKS_START = 1;
 
-    //sensor_subsystem_register_activity_event_cb(on_activity_event);
+    sensor_subsystem_register_activity_event_cb(on_activity_event);
     //sensor_enable_activity_tracking();
 
     blesub_start_advertising();
@@ -202,19 +206,19 @@ void on_ble_conn_state_changed(bool is_connected)
 
 static void on_activity_event(imu_activity_event_t event)
 {
-    // if (event == IMU_ACTIVITY_EVENT_SLEEP)
-    // {
-    //     blesub_stop_advertising();
-    //     led_control_set(LED_STATE_OFF);
-    //     NRF_LOG_INFO("Sleep");
-    // }
+    if (event == IMU_ACTIVITY_EVENT_SLEEP)
+    {
+        //blesub_stop_advertising();
+        //led_control_set(LED_STATE_OFF);
+        NRF_LOG_INFO("Sleep");
+    }
     
-    // if (event == IMU_ACTIVITY_EVENT_WAKE_UP)
-    // {
-    //     blesub_start_advertising();
-    //     led_control_set(LED_STATE_FAST_PULSE);
-    //     NRF_LOG_INFO("Wake up");
-    // }
+    if (event == IMU_ACTIVITY_EVENT_WAKE_UP)
+    {
+        //blesub_start_advertising();
+        //led_control_set(LED_STATE_FAST_PULSE);
+        NRF_LOG_INFO("Wake up");
+    }
 }
 
 static void callback_10ms(void* context)

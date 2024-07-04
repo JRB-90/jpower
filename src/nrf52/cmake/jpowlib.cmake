@@ -35,20 +35,6 @@ macro(jpow_addStorage)
     )
 endmacro()
 
-# Add Calibrate Library
-macro(jpow_addCalibrate)
-    jpow_addJPUtils()
-    jpow_addBLE()
-    list(APPEND INCLUDE_DIRS
-        "${CMAKE_SOURCE_DIR}/lib/calibrate"
-    )
-
-    list(APPEND SOURCE_FILES
-        "${CMAKE_SOURCE_DIR}/lib/calibrate/calibrate.c"
-        "${CMAKE_SOURCE_DIR}/lib/calibrate/calibrate_srv.c"
-    )
-endmacro()
-
 # Add JPower State Library
 macro(jpow_addJPState)
     jpow_addBLE()
@@ -130,6 +116,7 @@ macro(jpow_addStrain)
     list(APPEND SOURCE_FILES
         "${CMAKE_SOURCE_DIR}/lib/strain/strain.c"
         "${CMAKE_SOURCE_DIR}/lib/strain/ad779x.c"
+        "${CMAKE_SOURCE_DIR}/lib/strain/calibrate_ble_srv.c"
     )
 endmacro()
 
