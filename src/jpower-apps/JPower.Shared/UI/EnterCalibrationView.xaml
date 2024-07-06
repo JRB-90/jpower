@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<toolkit:Popup xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:ui="clr-namespace:JPower.Shared.UI"
+             xmlns:mds="clr-namespace:Material.Components.Maui.Styles;assembly=Material.Components.Maui"
+             xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
+             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
+             xmlns:validation="clr-namespace:InputKit.Shared.Validations;assembly=InputKit.Maui"
+             x:Class="JPower.Shared.UI.EnterCalibrationView"
+             x:DataType="ui:EnterCalibrationViewModel"
+             Color="DimGray">
+
+    <Grid
+        Padding="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+
+        <Label
+            Grid.Row="0"
+            Grid.Column="0"
+            Margin="10"
+            FontSize="Small"
+            Text="ID"/>
+
+        <Label
+            Grid.Row="0"
+            Grid.Column="1"
+            Margin="10"
+            HorizontalTextAlignment="End"
+            FontSize="Micro"
+            FontAttributes="Italic"
+            Text="{Binding ID}"/>
+
+        <!--<material:TextField
+            Grid.Row="1"
+            Grid.Column="1"
+            Grid.ColumnSpan="3"
+            Margin="10"
+            HorizontalOptions="FillAndExpand"
+            Icon="{FontImageSource FontFamily=MaterialRegular, Glyph={x:Static m:MaterialRegular.Terrain}}"
+            Title="Slope"
+            Keyboard="Numeric"
+            Text="{Binding Slope}">
+            <validation:RequiredValidation />
+            <validation:NumericValidation />
+        </material:TextField>
+
+        <material:TextField
+            Grid.Row="2"
+            Grid.Column="1"
+            Grid.ColumnSpan="3"
+            Margin="10"
+            HorizontalOptions="FillAndExpand"
+            Icon="{FontImageSource FontFamily=MaterialRegular, Glyph={x:Static m:MaterialRegular.LineAxis}}"
+            Title="Intercept"
+            Keyboard="Numeric"
+            Text="{Binding Intercept}">
+            <validation:RequiredValidation />
+            <validation:NumericValidation />
+        </material:TextField>
+
+
+        <material:TextField
+            Grid.Row="3"
+            Grid.Column="1"
+            Grid.ColumnSpan="3"
+            Margin="10"
+            HorizontalOptions="FillAndExpand"
+            Icon="{FontImageSource FontFamily=MaterialRegular, Glyph={x:Static m:MaterialRegular.Straighten}}"
+            Title="Crank Length (m)"
+            Keyboard="Numeric"
+            Text="{Binding Crank}">
+            <validation:RequiredValidation />
+            <validation:NumericValidation />
+        </material:TextField>-->
+
+        <Button
+            x:Name="OkButton"
+            Grid.Row="4"
+            Grid.Column="1"
+            Margin="5"
+            HorizontalOptions="FillAndExpand"
+            Clicked="OkButton_Clicked"
+            Text="OK"/>
+
+        <Button
+            x:Name="CancelButton"
+            Grid.Row="4"
+            Grid.Column="3"
+            Margin="5"
+            HorizontalOptions="FillAndExpand"
+            Clicked="CancelButton_Clicked"
+            Text="Cancel"/>
+
+    </Grid>
+</toolkit:Popup>

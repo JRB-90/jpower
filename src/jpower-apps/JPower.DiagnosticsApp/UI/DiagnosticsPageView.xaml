@@ -4,12 +4,31 @@
              xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
              xmlns:ui="clr-namespace:JPower.DiagnosticsApp.UI"
              xmlns:sharedui="clr-namespace:JPower.Shared.UI;assembly=JPower.Shared"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              x:Class="JPower.DiagnosticsApp.UI.DiagnosticsPageView"
              x:DataType="ui:DiagnosticsPageViewModel"
              Title="Diagnostics View">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
     <Grid>
+        <Grid
+            IsEnabled="{Binding IsBusy, Converter={StaticResource InvertedBoolConverter}}">
         <sharedui:JPowerDiagnosticsView
+            x:Name="JPowerDiag"
             Margin="10"
-            JPowerDevice="{Binding CurrentJPowerDevice}"/>
+            JPowerDevice="{Binding CurrentJPowerDevice}"
+            PullCalCommand="{Binding PullCalCommand}"
+            PushCalCommand="{Binding PushCalCommand}"
+            ZeroOffsetCommand="{Binding ZeroOffsetCommand}"
+            MeasureCommand="{Binding MeasureCommand}"/>
+        </Grid>
+
+        <ActivityIndicator
+            IsRunning="{Binding IsBusy}"/>
     </Grid>
 </uranium:UraniumContentPage>

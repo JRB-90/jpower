@@ -164,19 +164,6 @@ namespace JPower.Shared.JPower
         public async Task StartStreaming()
         {
             await diagDataChar.StartListening();
-
-            JPowerCalibrationData dummyCal = new()
-            {
-                guid = 42,
-                slope = 0.42f,
-                intercept = 1234.5f,
-                crankLength = 0.1725f,
-            };
-
-            await PushCalibration(dummyCal);
-            var cal = await PullCalibration();
-            var meas = await Measure(10);
-            var zero = await ZeroOffset();
         }
 
         public async Task StopStreaming()

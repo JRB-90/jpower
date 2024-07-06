@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<toolkit:Popup xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:ui="clr-namespace:JPower.Shared.UI"
+             x:Class="JPower.Shared.UI.DisplayCalibrationView"
+             x:DataType="ui:DisplayCalibrationViewModel"
+             Color="DimGray">
+
+    <Grid
+        Padding="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+
+        <Label
+            Grid.Row="0"
+            Grid.Column="0"
+            Margin="10"
+            FontSize="Small"
+            Text="ID"/>
+
+        <Label
+            Grid.Row="0"
+            Grid.Column="1"
+            Margin="10"
+            HorizontalTextAlignment="End"
+            FontSize="Micro"
+            FontAttributes="Italic"
+            Text="{Binding ID}"/>
+
+        <Label
+            Grid.Row="1"
+            Grid.Column="0"
+            Margin="10"
+            FontSize="Small"
+            Text="Slope"/>
+
+        <Label
+            Grid.Row="1"
+            Grid.Column="1"
+            Margin="10"
+            HorizontalTextAlignment="End"
+            FontSize="Small"
+            Text="{Binding Slope}"/>
+
+        <Label
+            Grid.Row="2"
+            Grid.Column="0"
+            Margin="10"
+            FontSize="Small"
+            Text="Intercept"/>
+
+        <Label
+            Grid.Row="2"
+            Grid.Column="1"
+            Margin="10"
+            HorizontalTextAlignment="End"
+            FontSize="Small"
+            Text="{Binding Intercept}"/>
+
+        <Label
+            Grid.Row="3"
+            Grid.Column="0"
+            Margin="10"
+            FontSize="Small"
+            Text="Crank Length"/>
+
+        <Label
+            Grid.Row="3"
+            Grid.Column="1"
+            Margin="10"
+            HorizontalTextAlignment="End"
+            FontSize="Small"
+            Text="{Binding Crank}"/>
+
+    </Grid>
+</toolkit:Popup>

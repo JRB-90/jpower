@@ -16,6 +16,8 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="2*"/>
@@ -152,6 +154,38 @@
                 HorizontalOptions="FillAndExpand"
                 VerticalOptions="Center"
                 Vector3D="{Binding JPowerDevice.OrientValue}"/>
+
+            <Button
+                Grid.Row="8"
+                Grid.Column="1"
+                HorizontalOptions="FillAndExpand"
+                Margin="5"
+                Command="{Binding PullCalCommand}"
+                Text="Pull Cal"/>
+
+            <Button
+                Grid.Row="8"
+                Grid.Column="3"
+                HorizontalOptions="FillAndExpand"
+                Margin="5"
+                Command="{Binding PushCalCommand}"
+                Text="Push Cal"/>
+
+            <Button
+                Grid.Row="9"
+                Grid.Column="1"
+                HorizontalOptions="FillAndExpand"
+                Margin="5"
+                Command="{Binding ZeroOffsetCommand}"
+                Text="Zero Offset"/>
+
+            <Button
+                Grid.Row="9"
+                Grid.Column="3"
+                HorizontalOptions="FillAndExpand"
+                Margin="5"
+                Command="{Binding MeasureCommand}"
+                Text="Measure"/>
 
         </Grid>
     </ScrollView>

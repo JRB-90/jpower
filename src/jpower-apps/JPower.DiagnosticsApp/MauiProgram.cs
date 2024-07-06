@@ -8,6 +8,8 @@ using OxyPlot.Maui.Skia;
 using SkiaSharp.Views.Maui.Controls.Hosting;
 using UraniumUI;
 using JPower.DiagnosticsApp.UI;
+using JPower.Shared.UI;
+using Material.Components.Maui.Extensions;
 
 namespace JPower.DiagnosticsApp
 {
@@ -27,6 +29,7 @@ namespace JPower.DiagnosticsApp
                 .UseFluentMauiIcons()
                 .UseUraniumUI()
                 .UseUraniumUIMaterial()
+                .UseMaterialComponents()
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
@@ -49,6 +52,7 @@ namespace JPower.DiagnosticsApp
             builder.Services.AddSingleton<IPermissionsService, PermissionsService>();
             builder.Services.AddSingleton<INavigationService, NavigationService>();
             builder.Services.AddSingleton<IAlertService, AlertService>();
+            builder.Services.AddSingleton<CommunityToolkit.Maui.Core.IPopupService, CommunityToolkit.Maui.PopupService>();
 
             if (isSimMode)
             {
@@ -63,6 +67,9 @@ namespace JPower.DiagnosticsApp
             builder.Services.AddTransient<ScanPageViewModel>();
             builder.Services.AddTransient<DiagnosticsPageView>();
             builder.Services.AddTransient<DiagnosticsPageViewModel>();
+
+            builder.Services.AddTransientPopup<DisplayCalibrationView, DisplayCalibrationViewModel>();
+            builder.Services.AddTransientPopup<EnterCalibrationView, EnterCalibrationViewModel>();
 
             return builder.Build();
         }
