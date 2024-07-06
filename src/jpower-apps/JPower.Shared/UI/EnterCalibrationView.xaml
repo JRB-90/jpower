@@ -7,10 +7,15 @@
              xmlns:mds="clr-namespace:Material.Components.Maui.Styles;assembly=Material.Components.Maui"
              xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
              xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
-             xmlns:validation="clr-namespace:InputKit.Shared.Validations;assembly=InputKit.Maui"
              x:Class="JPower.Shared.UI.EnterCalibrationView"
              x:DataType="ui:EnterCalibrationViewModel"
-             Color="DimGray">
+             Color="DarkGray">
+
+    <toolkit:Popup.Resources>
+        <Style x:Key="InvalidEntryStyle" TargetType="Entry">
+            <Setter Property="TextColor" Value="Red" />
+        </Style>
+    </toolkit:Popup.Resources>
 
     <Grid
         Padding="20">
@@ -30,7 +35,8 @@
             Grid.Row="0"
             Grid.Column="0"
             Margin="10"
-            FontSize="Small"
+            VerticalOptions="Center"
+            FontSize="Micro"
             Text="ID"/>
 
         <Label
@@ -42,66 +48,107 @@
             FontAttributes="Italic"
             Text="{Binding ID}"/>
 
-        <!--<material:TextField
+        <Label
+            Grid.Row="1"
+            Grid.Column="0"
+            Margin="10"
+            VerticalOptions="Center"
+            FontSize="Micro"
+            Text="Slope"/>
+
+        <Entry
             Grid.Row="1"
             Grid.Column="1"
-            Grid.ColumnSpan="3"
             Margin="10"
-            HorizontalOptions="FillAndExpand"
-            Icon="{FontImageSource FontFamily=MaterialRegular, Glyph={x:Static m:MaterialRegular.Terrain}}"
-            Title="Slope"
+            HorizontalTextAlignment="End"
             Keyboard="Numeric"
+            FontSize="Micro"
             Text="{Binding Slope}">
-            <validation:RequiredValidation />
-            <validation:NumericValidation />
-        </material:TextField>
+            <Entry.Behaviors>
+                <toolkit:NumericValidationBehavior
+                    InvalidStyle="{StaticResource InvalidEntryStyle}"
+                    MinimumValue="0.0"
+                    Flags="ValidateOnValueChanged"/>
+            </Entry.Behaviors>
+        </Entry>
 
-        <material:TextField
+        <Label
+            Grid.Row="2"
+            Grid.Column="0"
+            Margin="10"
+            VerticalOptions="Center"
+            FontSize="Micro"
+            Text="Intercept"/>
+
+        <Entry
             Grid.Row="2"
             Grid.Column="1"
-            Grid.ColumnSpan="3"
             Margin="10"
-            HorizontalOptions="FillAndExpand"
-            Icon="{FontImageSource FontFamily=MaterialRegular, Glyph={x:Static m:MaterialRegular.LineAxis}}"
-            Title="Intercept"
+            HorizontalTextAlignment="End"
             Keyboard="Numeric"
+            FontSize="Micro"
             Text="{Binding Intercept}">
-            <validation:RequiredValidation />
-            <validation:NumericValidation />
-        </material:TextField>
+            <Entry.Behaviors>
+                <toolkit:NumericValidationBehavior
+                    InvalidStyle="{StaticResource InvalidEntryStyle}"
+                    MinimumValue="0.0"
+                    Flags="ValidateOnValueChanged"/>
+            </Entry.Behaviors>
+        </Entry>
 
+        <Label
+            Grid.Row="3"
+            Grid.Column="0"
+            Margin="10"
+            VerticalOptions="Center"
+            FontSize="Micro"
+            Text="Crank Length (m)"/>
 
-        <material:TextField
+        <Entry
             Grid.Row="3"
             Grid.Column="1"
-            Grid.ColumnSpan="3"
             Margin="10"
-            HorizontalOptions="FillAndExpand"
-            Icon="{FontImageSource FontFamily=MaterialRegular, Glyph={x:Static m:MaterialRegular.Straighten}}"
-            Title="Crank Length (m)"
+            HorizontalTextAlignment="End"
             Keyboard="Numeric"
+            FontSize="Micro"
             Text="{Binding Crank}">
-            <validation:RequiredValidation />
-            <validation:NumericValidation />
-        </material:TextField>-->
+            <Entry.Behaviors>
+                <toolkit:NumericValidationBehavior
+                    InvalidStyle="{StaticResource InvalidEntryStyle}"
+                    MinimumValue="0.0"
+                    Flags="ValidateOnValueChanged"/>
+            </Entry.Behaviors>
+        </Entry>
 
-        <Button
-            x:Name="OkButton"
+        <Grid
             Grid.Row="4"
-            Grid.Column="1"
-            Margin="5"
-            HorizontalOptions="FillAndExpand"
-            Clicked="OkButton_Clicked"
-            Text="OK"/>
+            Grid.Column="0"
+            Grid.ColumnSpan="2"
+            HorizontalOptions="FillAndExpand">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="15*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="15*"/>
+                <ColumnDefinition Width="2*"/>
+            </Grid.ColumnDefinitions>
 
-        <Button
-            x:Name="CancelButton"
-            Grid.Row="4"
-            Grid.Column="3"
-            Margin="5"
-            HorizontalOptions="FillAndExpand"
-            Clicked="CancelButton_Clicked"
-            Text="Cancel"/>
+            <Button
+                x:Name="OkButton"
+                Grid.Column="1"
+                Margin="5"
+                HorizontalOptions="FillAndExpand"
+                Clicked="OkButton_Clicked"
+                Text="OK"/>
+
+            <Button
+                x:Name="CancelButton"
+                Grid.Column="3"
+                Margin="5"
+                HorizontalOptions="FillAndExpand"
+                Clicked="CancelButton_Clicked"
+                Text="Cancel"/>
+        </Grid>
 
     </Grid>
 </toolkit:Popup>

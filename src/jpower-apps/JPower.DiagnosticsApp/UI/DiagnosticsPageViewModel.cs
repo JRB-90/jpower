@@ -168,11 +168,22 @@ namespace JPower.DiagnosticsApp.UI
                 appContext.IsBusy = true;
 
                 var cal = new JPowerCalibrationData();
+                cal.guid = Guid.NewGuid().ToByteArray();
+                EnterCalibrationViewModel? diag = null;
 
                 var result =
                     await popupService.ShowPopupAsync<EnterCalibrationViewModel>(
-                        onPresenting: x => x.Calibration = cal
+                        onPresenting: x =>
+                        {
+                            diag = x;
+                            x.Calibration = cal;
+                        }
                     );
+
+                if (diag == null)
+                {
+                    return;
+                }
 
                 if (result is bool boolResult)
                 {
@@ -190,7 +201,7 @@ namespace JPower.DiagnosticsApp.UI
                     throw new InvalidOperationException("JPower Device Invalid");
                 }
 
-                await appContext.JPowerDevice.PushCalibration(cal);
+                await appContext.JPowerDevice.PushCalibration(diag.Calibration);
             }
             catch (Exception ex)
             {

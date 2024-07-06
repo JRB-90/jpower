@@ -163,7 +163,7 @@ namespace JPower.Shared.JPower
             return
                 new JPowerCalibrationData()
                 {
-                    guid = 0, // Guid.NewGuid(), // TODO
+                    guid = Guid.NewGuid().ToByteArray(),
                     slope = (float)random.NextDouble(),
                     intercept = (float)random.NextDouble() * 1000.0f,
                     crankLength = 0.1725f,

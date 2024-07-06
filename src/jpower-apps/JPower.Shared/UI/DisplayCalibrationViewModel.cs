@@ -19,7 +19,8 @@ namespace JPower.Shared.UI
             set
             {
                 SetProperty(ref calibration, value);
-                ID = calibration.guid.ToString();
+                var guid = new Guid(calibration.guid);
+                ID = guid.ToString();
                 Slope = Convert.ToString(calibration.slope);
                 Intercept = Convert.ToString(calibration.intercept);
                 Crank = Convert.ToString(calibration.crankLength);

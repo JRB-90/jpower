@@ -1,5 +1,4 @@
-﻿using JPower.Shared.Ble;
-using JPower.Shared.JPower;
+﻿using JPower.Shared.JPower;
 using JPower.Shared.Mvvm;
 
 namespace JPower.Shared.UI
@@ -11,7 +10,6 @@ namespace JPower.Shared.UI
             var id = Guid.NewGuid();
             ID = id.ToString();
             calibration = new JPowerCalibrationData();
-            calibration.guid = Guid.NewGuid().ToUInt128();
         }
 
         public JPowerCalibrationData Calibration
