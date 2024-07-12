@@ -1,5 +1,4 @@
 ﻿using JPower.Shared.Ble;
-using JPower.Shared.JPowDevice;
 using JPower.Shared.JPower;
 
 namespace JPower.Shared.Services
@@ -19,8 +18,6 @@ namespace JPower.Shared.Services
         Task<IBleDevice> CreateBleDevice(BleDeviceInfo deviceInfo);
 
         Task<IJPowerDevice> CreateJPowerDevice(IBleDevice bleDevice);
-
-        Task<ILegacyJPowerDevice> CreateLegacyJPowerDevice(IBleDevice bleDevice);
 
         Task<bool> IsJPowerDevice(IBleDevice device);
     }

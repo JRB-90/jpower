@@ -1,5 +1,4 @@
-﻿using JPower.Shared.JPowDevice;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 
 namespace JPower.Shared.JPower
 {
@@ -53,11 +52,12 @@ namespace JPower.Shared.JPower
     {
         [FieldOffset(0)] public float temp;
         [FieldOffset(4)] public uint adcValue;
-        [FieldOffset(8)] public float torque;
-        [FieldOffset(12)] public JPowerImuData imuData;
-        [FieldOffset(36)] public JPowerOrientData orientation;
-        [FieldOffset(52)] public ushort cadence;
-        [FieldOffset(54)] public ushort power;
+        [FieldOffset(8)] public float force;
+        [FieldOffset(12)] public float torque;
+        [FieldOffset(16)] public JPowerImuData imuData;
+        [FieldOffset(40)] public JPowerOrientData orientation;
+        [FieldOffset(56)] public ushort cadence;
+        [FieldOffset(58)] public ushort power;
     }
 
     [StructLayout(LayoutKind.Explicit, Size = 28, CharSet = CharSet.Ansi)]
@@ -73,6 +73,8 @@ namespace JPower.Shared.JPower
     public interface IJPowerDevice
     {
         uint AdcValue { get; }
+
+        float ForceValue { get; }
 
         float TorqueValue { get; }
 
@@ -91,6 +93,8 @@ namespace JPower.Shared.JPower
         ushort BatteryLevel { get; }
 
         IObservable<uint> AdcValues { get; }
+
+        IObservable<float> ForceValues { get; }
 
         IObservable<float> TorqueValues { get; }
 

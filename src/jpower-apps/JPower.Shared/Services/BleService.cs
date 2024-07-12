@@ -1,5 +1,4 @@
-﻿using JPower.Shared.JPowDevice;
-using Plugin.BLE;
+﻿using Plugin.BLE;
 using Plugin.BLE.Abstractions.Contracts;
 using Plugin.BLE.Abstractions.EventArgs;
 using JPower.Shared.Ble;
@@ -55,20 +54,6 @@ namespace JPower.Shared.Services
             if (bleDevice is BleDevice device)
             {
                 IJPowerDevice jPowerDevice = new JPowerDevice(device);
-
-                return Task.FromResult(jPowerDevice);
-            }
-            else
-            {
-                throw new ArgumentException("Cannot create JPower device");
-            }
-        }
-
-        public Task<ILegacyJPowerDevice> CreateLegacyJPowerDevice(IBleDevice bleDevice)
-        {
-            if (bleDevice is BleDevice device)
-            {
-                ILegacyJPowerDevice jPowerDevice = new LegacyJPowerDevice(device);
 
                 return Task.FromResult(jPowerDevice);
             }

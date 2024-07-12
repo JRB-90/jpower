@@ -6,6 +6,7 @@
 static nrf_drv_spi_t* spi = NULL;
 static calibration_data_t current_cal = { 0 };
 static uint32_t current_adc_value = 0;
+static float current_force_n = 0.0f;
 static float current_torque_nm = 0.0f;
 
 static void on_zero_requested();
@@ -26,8 +27,8 @@ ret_code_t strain_init(
     current_cal = (calibration_data_t)
     {
         .cal_id = {{ 0 }},
-        .slope = 0.134f,
-        .intercept = 567.89f,
+        .slope = 209018.859f,
+        .intercept = 8386309.5f,
         .crank_length_m = 0.1725f,
     };
 
@@ -54,9 +55,11 @@ void strain_update_10ms(float delta_time_s)
     current_adc_value = ad7799_read_raw_data_single();
 
     // F = (slope * adc) + intercept
-    double force = (current_cal.slope * current_adc_value) + current_cal.intercept;
+    // current_force_n = (current_cal.slope * current_adc_value) + current_cal.intercept;
+    // F = (adc - intercept) / slope
+    current_force_n = (current_adc_value - current_cal.intercept) / current_cal.slope;
     // T = F * r
-    current_torque_nm = force * current_cal.crank_length_m;
+    current_torque_nm = current_force_n * current_cal.crank_length_m;
 }
 
 void strain_get_calibration(calibration_data_t* const calibration)
@@ -72,6 +75,11 @@ void strain_set_calibration(calibration_data_t* const calibration)
 uint32_t strain_get_current_adv_value()
 {
     return current_adc_value;
+}
+
+float strain_get_current_force_n()
+{
+    return current_force_n;
 }
 
 float strain_get_current_torque_nm()

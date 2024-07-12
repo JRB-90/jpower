@@ -41,9 +41,7 @@
                 Grid.Row="0"
                 Grid.Column="1"
                 Grid.ColumnSpan="3"
-                JPowerDevice="{Binding CurrentJPowerDevice}"
-                SwitchCalCommand="{Binding SwitchCalCommand}"
-                SwitchRunCommand="{Binding SwitchRunCommand}"/>
+                JPowerDevice="{Binding CurrentJPowerDevice}"/>
 
             <material:TextField
                 IsEnabled="{Binding CanCalibrate}"

@@ -86,6 +86,7 @@ static void calculate_cadence_power(float time_delta_s)
     cadence_get_pedal_state(&pedal_state);
 
     uint32_t adc_value = strain_get_current_adv_value();
+    float force = strain_get_current_force_n();
     float torque = strain_get_current_torque_nm();
 
     uint16_t power = (uint16_t)(torque * pedal_state.angular_velocity_dps);
@@ -96,6 +97,7 @@ static void calculate_cadence_power(float time_delta_s)
     {
         .temp_c = temp,
         .adc_value = adc_value,
+        .force_n = force,
         .torque_nm = torque,
         .imu_data = imu_reading,
         .orient = attitude,

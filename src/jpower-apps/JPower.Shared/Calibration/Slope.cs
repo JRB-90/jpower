@@ -2,14 +2,14 @@
 {
     public class Slope
     {
-        public Slope(double slopeValue, double intercept)
+        public Slope(float slopeValue, float intercept)
         {
             SlopeValue = slopeValue;
             Intercept = intercept;
         }
 
-        public double SlopeValue { get; }
+        public float SlopeValue { get; }
 
-        public double Intercept { get; }
+        public float Intercept { get; }
     }
 }

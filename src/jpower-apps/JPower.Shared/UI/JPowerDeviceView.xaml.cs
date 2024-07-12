@@ -1,4 +1,4 @@
-using JPower.Shared.JPowDevice;
+using JPower.Shared.JPower;
 
 namespace JPower.Shared.UI;
 
@@ -12,14 +12,14 @@ public partial class JPowerDeviceView : ContentView
     public static readonly BindableProperty JPowerDeviceProperty =
         BindableProperty.Create(
             "JPowerDevice",
-            typeof(ILegacyJPowerDevice),
+            typeof(IJPowerDevice),
             typeof(JPowerDeviceView),
-            default(ILegacyJPowerDevice)
+            default(IJPowerDevice)
         );
 
-    public ILegacyJPowerDevice JPowerDevice
+    public IJPowerDevice JPowerDevice
     {
-        get => (ILegacyJPowerDevice)GetValue(JPowerDeviceProperty);
+        get => (IJPowerDevice)GetValue(JPowerDeviceProperty);
         set => SetValue(JPowerDeviceProperty, value);
     }
 

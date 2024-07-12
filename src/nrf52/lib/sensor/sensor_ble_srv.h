@@ -17,6 +17,7 @@ typedef struct
 {
     float temp_c;
     uint32_t adc_value;
+    float force_n;
     float torque_nm;
     imu_reading_t imu_data;
     FusionQuaternion orient;

@@ -1,5 +1,4 @@
 ﻿using CalApp.Services;
-using JPower.Shared.Ble;
 using JPower.Shared.Mvvm;
 using JPower.Shared.Services;
 
@@ -22,71 +21,6 @@ namespace CalApp.Shared.UI
         }
 
         public bool IsBusy => appContext.IsBusy;
-
-        public override async Task OnNavigatingTo(object? parameter)
-        {
-            if (appContext.BleDevice == null)
-            {
-                await alertService.DisplayAlert(
-                    "Error",
-                    "No device selected, returning to connect page",
-                    "OK"
-                );
-
-                await navigationService.NavigateToConnectPage();
-
-                return;
-            }
-
-            if (appContext.BleDevice.DeviceState != BleDeviceState.Connected)
-            {
-                await alertService.DisplayAlert(
-                    "Error",
-                    "Device disconnected, returning to connect page",
-                    "OK"
-                );
-
-                await navigationService.NavigateToConnectPage();
-            }
-
-            if (appContext.LegacyJPowerDevice == null)
-            {
-
-            }
-        }
-
-        public override async Task OnNavigatedFrom(bool isForwardNavigation)
-        {
-            try
-            {
-                appContext.IsBusy = true;
-
-                if (!isForwardNavigation)
-                {
-                    if (appContext.LegacyJPowerDevice != null)
-                    {
-                        await appContext.LegacyJPowerDevice.StopStreaming();
-                    }
-
-                    if (appContext.BleDevice != null)
-                    {
-                        await appContext.BleDevice.Disconnect();
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                await alertService.DisplayAlert(
-                    "Error",
-                    ex.Message,
-                    "OK"
-                );
-            }
-            finally
-            {
-                appContext.IsBusy = false;
-            }
-        }
 
         private void AppContext_BusyStateChanged(object? sender, bool e)
         {

@@ -103,14 +103,14 @@ namespace CalApp.Shared.UI
                         throw new InvalidOperationException("Not a JPower device");
                     }
 
-                    appContext.LegacyJPowerDevice = await bleService.CreateLegacyJPowerDevice(appContext.BleDevice);
+                    appContext.JPowerDevice = await bleService.CreateJPowerDevice(appContext.BleDevice);
                     
-                    if (appContext.LegacyJPowerDevice == null)
+                    if (appContext.JPowerDevice == null)
                     {
                         throw new InvalidOperationException("Failed to create JPower device");
                     }
 
-                    await appContext.LegacyJPowerDevice.StartStreaming();
+                    await appContext.JPowerDevice.StartStreaming();
 
                     await navigation.NavigateToDeviceOverviewPage();
                 }
@@ -131,7 +131,7 @@ namespace CalApp.Shared.UI
                     await appContext.BleDevice.Disconnect();
                 }
 
-                appContext.LegacyJPowerDevice = null;
+                appContext.JPowerDevice = null;
                 appContext.BleDevice = null;
 
                 await alertService.DisplayAlert(

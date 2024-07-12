@@ -19,10 +19,5 @@
             <ui:SlopeResultPageView/>
         </material:TabItem>
 
-        <material:TabItem
-            Title="Services">
-            <ui:DeviceInfoPageView/>
-        </material:TabItem>
-
     </material:TabView>
 </uranium:UraniumContentPage>

@@ -15,9 +15,11 @@ namespace JPower.Shared.Calibration
 
         public Slope CalculateSlope()
         {
-            if (Measurements.Count == 0)
+            if (Measurements.Count < 2)
             {
-                return new Slope(0.0, 0.0);
+                throw new InvalidOperationException(
+                    "Need at least two measurements to calculate calibration"
+                );
             }
 
             (double intercept, double slope) result = 
@@ -26,7 +28,10 @@ namespace JPower.Shared.Calibration
                     Measurements.Select(x => (double)x.AdcValue).ToArray()
                 );
 
-            return new Slope(result.slope, result.intercept);
+            return new Slope(
+                (float)result.slope,
+                (float)result.intercept
+            );
         }
     }
 }

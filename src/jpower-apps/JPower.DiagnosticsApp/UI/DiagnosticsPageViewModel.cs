@@ -88,7 +88,7 @@ namespace JPower.DiagnosticsApp.UI
                 await navigationService.NavigateToScanPage();
             }
 
-            if (appContext.LegacyJPowerDevice == null)
+            if (appContext.JPowerDevice == null)
             {
                 // TODO
             }
@@ -102,9 +102,9 @@ namespace JPower.DiagnosticsApp.UI
 
                 if (!isForwardNavigation)
                 {
-                    if (appContext.LegacyJPowerDevice != null)
+                    if (appContext.JPowerDevice != null)
                     {
-                        await appContext.LegacyJPowerDevice.StopStreaming();
+                        await appContext.JPowerDevice.StopStreaming();
                     }
 
                     if (appContext.BleDevice != null)

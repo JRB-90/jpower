@@ -74,7 +74,7 @@ static nrf_drv_spi_t* spi = NULL;
 static ad779x_mode_reg_t default_mode =
 {
     .mode = AD779X_MODE_IDLE,
-    .psw_state = AD779X_PSW_OPEN,
+    .psw_state = AD779X_PSW_CLOSED,
     .filter_rate = AD779X_FILTER_RATE_242HZ,
 };
 

@@ -1,5 +1,4 @@
 ﻿using JPower.Shared.Ble;
-using JPower.Shared.JPowDevice;
 using JPower.Shared.JPower;
 
 namespace JPower.Shared.Services
@@ -73,13 +72,6 @@ namespace JPower.Shared.Services
             await Task.Delay(random.Next(100, 500));
 
             return new SimulatedJPowerDevice();
-        }
-
-        public async Task<ILegacyJPowerDevice> CreateLegacyJPowerDevice(IBleDevice bleDevice)
-        {
-            await Task.Delay(random.Next(100, 500));
-
-            return new LegacySimulatedJPowerDevice();
         }
 
         public async Task<bool> IsJPowerDevice(IBleDevice device)

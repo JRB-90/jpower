@@ -1,6 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using JPower.Shared.Ble;
-using JPower.Shared.JPowDevice;
 using System.Reactive.Subjects;
 
 namespace JPower.Shared.JPower
@@ -15,6 +14,7 @@ namespace JPower.Shared.JPower
             mre = new ManualResetEvent(false);
 
             adcValues = new Subject<uint>();
+            forceValues = new Subject<float>();
             torqueValues = new Subject<float>();
             powerValues = new Subject<ushort>();
             accelValues = new Subject<Vector3D>();
@@ -25,6 +25,7 @@ namespace JPower.Shared.JPower
             batteryLevels = new Subject<ushort>();
 
             adcValue = 0;
+            forceValue = 0.0f;
             torqueValue = 0.0f;
             powerValue = 0;
             accelValue = new Vector3D(0.0, 0.0, 0.0);
@@ -60,6 +61,16 @@ namespace JPower.Shared.JPower
             {
                 SetProperty(ref adcValue, value);
                 adcValues.OnNext(value);
+            }
+        }
+
+        public float ForceValue
+        {
+            get => forceValue;
+            set
+            {
+                SetProperty(ref forceValue, value);
+                forceValues.OnNext(value);
             }
         }
 
@@ -144,6 +155,8 @@ namespace JPower.Shared.JPower
         }
 
         public IObservable<uint> AdcValues => adcValues;
+
+        public IObservable<float> ForceValues => forceValues;
 
         public IObservable<float> TorqueValues => torqueValues;
 
@@ -234,6 +247,8 @@ namespace JPower.Shared.JPower
 
             TempValue = diagData.temp;
             AdcValue = diagData.adcValue;
+            ForceValue = diagData.force;
+            TorqueValue = diagData.torque;
             AccelValue = diagData.imuData.accel.ToVector3D();
             GyroValue = diagData.imuData.gyro.ToVector3D();
             OrientValue = diagData.orientation.ToVector3D();
@@ -290,6 +305,7 @@ namespace JPower.Shared.JPower
         }
 
         private uint adcValue;
+        private float forceValue;
         private float torqueValue;
         private ushort powerValue;
         private Vector3D accelValue;
@@ -300,6 +316,7 @@ namespace JPower.Shared.JPower
         private ushort batteryLevel;
 
         private Subject<uint> adcValues;
+        private Subject<float> forceValues;
         private Subject<float> torqueValues;
         private Subject<ushort> powerValues;
         private Subject<Vector3D> accelValues;
