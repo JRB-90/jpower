@@ -3,6 +3,8 @@
 #include "ad779x.h"
 #include "calibrate_ble_srv.h"
 
+#define KG_TO_N 9.81
+
 static nrf_drv_spi_t* spi = NULL;
 static calibration_data_t current_cal = { 0 };
 static uint32_t current_adc_value = 0;
@@ -54,10 +56,8 @@ void strain_update_10ms(float delta_time_s)
 {
     current_adc_value = ad7799_read_raw_data_single();
 
-    // F = (slope * adc) + intercept
-    // current_force_n = (current_cal.slope * current_adc_value) + current_cal.intercept;
     // F = (adc - intercept) / slope
-    current_force_n = (current_adc_value - current_cal.intercept) / current_cal.slope;
+    current_force_n = ((current_adc_value - current_cal.intercept) / current_cal.slope) * KG_TO_N;
     // T = F * r
     current_torque_nm = current_force_n * current_cal.crank_length_m;
 }
