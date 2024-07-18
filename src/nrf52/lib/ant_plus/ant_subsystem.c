@@ -1,15 +1,19 @@
 #include "ant_subsystem.h"
 
 #include <string.h>
-#include "app_error.h"
+#include "nrf_log.h"
+#include "nrf_log_ctrl.h"
 #include "nrf_pwr_mgmt.h"
 #include "nrf_sdh.h"
 #include "nrf_sdh_ant.h"
+#include "ant_error.h"
 #include "ant_key_manager.h"
+#include "ant_parameters.h"
+#include "ant_interface.h"
 #include "ant_state_indicator.h"
 #include "ant_bpwr.h"
 
-// ========      Private Data Types       ========
+#pragma region Private Data types
 
 typedef struct
 {
@@ -19,21 +23,28 @@ typedef struct
     uint8_t event_count;
 } bike_power_status_t;
 
+#pragma endregion
 
-// ======== Private Function Declarations ========
+#pragma region Private Function Defs
 
 static void softdevice_setup();
 static void profile_setup();
+static void ant_evt_handler(
+    ant_evt_t* event, 
+    void* context
+);
 static void ant_bpwr_evt_handler(
-    ant_bpwr_profile_t * p_profile, 
+    ant_bpwr_profile_t* p_profile, 
     ant_bpwr_evt_t event
 );
 static void ant_bpwr_calib_handler(
-    ant_bpwr_profile_t * p_profile, 
-    ant_bpwr_page1_data_t * p_page1
+    ant_bpwr_profile_t* p_profile,
+    ant_bpwr_page1_data_t* p_page1
 );
 
-// ========         Private Data          ========
+#pragma endregion
+
+#pragma region Private Data
 
 static ant_bpwr_profile_t m_ant_bpwr;
 static bike_power_status_t power_status = { 0 };
@@ -55,28 +66,44 @@ BPWR_SENS_PROFILE_CONFIG_DEF(
 
 NRF_SDH_ANT_OBSERVER(
     m_ant_observer,
-    ANT_BPWR_ANT_OBSERVER_PRIO,
-    ant_bpwr_sens_evt_handler, 
+    APP_ANT_OBSERVER_PRIO,
+    ant_evt_handler, 
     &m_ant_bpwr
 );
 
-// ======== Public Function Definitions ========
+#pragma endregion
 
-void antsub_init()
+#pragma region Public Function Impl
+
+ret_code_t antsub_init()
 {
-    ret_code_t err_code =
-        ant_state_indicator_init(
-            m_ant_bpwr.channel_number,
-            BPWR_SENS_CHANNEL_TYPE
-        );
-    
-    APP_ERROR_CHECK(err_code);
-
     softdevice_setup();
     profile_setup();
+
+    return NRF_SUCCESS;
 }
 
-void antsub_update_power(const bike_power_data_t* const state)
+void antsub_start_broadcasting()
+{
+    ret_code_t err_code;
+
+    err_code = ant_bpwr_sens_open(&m_ant_bpwr);
+    APP_ERROR_CHECK(err_code);
+
+    err_code = ant_state_indicator_channel_opened();
+    APP_ERROR_CHECK(err_code);
+}
+
+void antsub_stop_broadcasting()
+{
+    ret_code_t err_code;
+
+    NRF_LOG_INFO("ANT B-PWR %u closed", m_ant_bpwr.channel_number);
+    err_code = sd_ant_channel_close(m_ant_bpwr.channel_number);
+    APP_ERROR_CHECK(err_code);
+}
+
+void antsub_update_power(const ant_bike_power_data_t* const state)
 {
     power_status.instantanous_power = state->power;
     power_status.accumulated_power += state->power;
@@ -84,7 +111,9 @@ void antsub_update_power(const bike_power_data_t* const state)
     power_status.event_count++;
 }
 
-// ======== Private Function Definitions ========
+#pragma endregion
+
+#pragma region Private Function Impl
 
 static void softdevice_setup()
 {
@@ -93,11 +122,20 @@ static void softdevice_setup()
 
     err_code = ant_plus_key_set(ANTPLUS_NETWORK_NUM);
     APP_ERROR_CHECK(err_code);
+
+    err_code = 
+        ant_state_indicator_init(
+            m_ant_bpwr.channel_number, 
+            BPWR_SENS_CHANNEL_TYPE
+        );
+    APP_ERROR_CHECK(err_code);
 }
 
 static void profile_setup()
 {
-    ret_code_t err_code = 
+    ret_code_t err_code;
+    
+    err_code = 
         ant_bpwr_sens_init(
             &m_ant_bpwr,
             BPWR_SENS_CHANNEL_CONFIG(m_ant_bpwr),
@@ -131,11 +169,32 @@ static void profile_setup()
     APP_ERROR_CHECK(err_code);
 }
 
+static void ant_evt_handler(
+    ant_evt_t* event, 
+    void* context)
+{
+    switch (event->event)
+    {
+    case EVENT_CHANNEL_COLLISION:
+        NRF_LOG_ERROR("ANT channel collision");
+        break;
+
+    case EVENT_CHANNEL_CLOSED:
+        NRF_LOG_INFO("ANT channel closed");
+        break;
+    
+    default:
+        break;
+    }
+}
+
 static void ant_bpwr_evt_handler(
-    ant_bpwr_profile_t * p_profile,
+    ant_bpwr_profile_t* p_profile,
     ant_bpwr_evt_t event)
 {
-    nrf_pwr_mgmt_feed();
+    //nrf_pwr_mgmt_feed();
+
+    NRF_LOG_INFO("BPWR");
 
     switch (event)
     {
@@ -156,8 +215,8 @@ static void ant_bpwr_evt_handler(
 }
 
 static void ant_bpwr_calib_handler(
-    ant_bpwr_profile_t * p_profile, 
-    ant_bpwr_page1_data_t * p_page1)
+    ant_bpwr_profile_t* p_profile, 
+    ant_bpwr_page1_data_t* p_page1)
 {
     switch (p_page1->calibration_id)
     {
@@ -195,3 +254,4 @@ static void ant_bpwr_calib_handler(
     }
 }
 
+#pragma endregion

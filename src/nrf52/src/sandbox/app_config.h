@@ -3,14 +3,14 @@
 // The BLE advertising device name
 #define DEVICE_NAME "JPower"
 
-
+#define APP_ANT_OBSERVER_PRIO 1
+#define APP_BLE_OBSERVER_PRIO 0
+#define APP_SHUTDOWN_HANDLER_PRIORITY 1
 
 #define NRF_SDH_CLOCK_LF_SRC 0
 #define NRF_SDH_CLOCK_LF_RC_CTIV 16
 #define NRF_SDH_CLOCK_LF_RC_TEMP_CTIV 2
 #define NRF_SDH_CLOCK_LF_ACCURACY 1
-
-
 
 #define NRF_QUEUE_ENABLED 1
 

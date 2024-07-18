@@ -21,8 +21,15 @@ typedef struct
     uint8_t wake_pin;
 } sensor_config_t;
 
+typedef struct
+{
+    uint16_t cadence_rpm;
+    uint16_t power_w;
+} sensor_bike_power_t;
+
 extern ret_code_t sensor_subsystem_init(const sensor_config_t* const config);
 extern void sensor_subsystem_register_activity_event_cb(activity_event_cb callback);
+extern sensor_bike_power_t sensor_subsystem_get_bike_power();
 extern void sensor_subsystem_update_10ms(float time_delta_s);
 extern void sensor_enable_activity_tracking();
 extern void sensor_disable_activity_tracking();

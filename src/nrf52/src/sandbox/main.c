@@ -23,6 +23,7 @@
 #include "led_control.h"
 #include "battery.h"
 #include "ble_subsystem.h"
+#include "ant_subsystem.h"
 
 #define DEVICE_NAME             "JPower"                // Name of device. Will be included in the advertising data
 #define HI_FREQ_CLK_HZ          100                     // Frequency (Hz) of the high speed timer
@@ -145,13 +146,15 @@ static void softdevice_init()
 
     ASSERT(nrf_sdh_is_enabled());
 
-    blesub_init(&ble_subsystem_config);
+    // blesub_init(&ble_subsystem_config);
 
-    err_code = sensor_srv_init();
-    APP_ERROR_CHECK(err_code);
+    // err_code = sensor_srv_init();
+    // APP_ERROR_CHECK(err_code);
 
-    err_code = calibrate_srv_init();
-    APP_ERROR_CHECK(err_code);
+    // err_code = calibrate_srv_init();
+    // APP_ERROR_CHECK(err_code);
+
+    antsub_init();
 }
 
 static void start_timers()
@@ -167,10 +170,11 @@ static void start_timers()
 
     NRF_TIMER1->TASKS_START = 1;
 
-    sensor_subsystem_register_activity_event_cb(on_activity_event);
+    //sensor_subsystem_register_activity_event_cb(on_activity_event);
     //sensor_enable_activity_tracking();
 
-    blesub_start_advertising();
+    //blesub_start_advertising();
+    //antsub_start_broadcasting();
     led_control_set(LED_STATE_FAST_PULSE);
 }
 
@@ -193,13 +197,15 @@ void on_ble_conn_state_changed(bool is_connected)
     if (is_connected)
     {
         //sensor_disable_activity_tracking();
+        //antsub_stop_broadcasting();
         led_control_set(LED_STATE_SOLID);
     }
     else
     {
         //sensor_disable_activity_tracking();
         //sensor_enable_activity_tracking();
-        blesub_start_advertising();
+        //blesub_start_advertising();
+        //antsub_start_broadcasting();
         led_control_set(LED_STATE_FAST_PULSE);
     }
 }
@@ -209,6 +215,7 @@ static void on_activity_event(imu_activity_event_t event)
     if (event == IMU_ACTIVITY_EVENT_SLEEP)
     {
         //blesub_stop_advertising();
+        //antsub_stop_broadcasting();
         //led_control_set(LED_STATE_OFF);
         NRF_LOG_INFO("Sleep");
     }
@@ -216,6 +223,7 @@ static void on_activity_event(imu_activity_event_t event)
     if (event == IMU_ACTIVITY_EVENT_WAKE_UP)
     {
         //blesub_start_advertising();
+        //antsub_start_broadcasting();
         //led_control_set(LED_STATE_FAST_PULSE);
         NRF_LOG_INFO("Wake up");
     }
@@ -232,10 +240,22 @@ static void callback_10ms(void* context)
     battery_update();
     sensor_subsystem_update_10ms(time_delta_s);
 
+    //sensor_bike_power_t bike_power = sensor_subsystem_get_bike_power();
+    ant_bike_power_data_t ant_bike_power = 
+    {
+        // .cadence = bike_power.cadence_rpm, 
+        // .power = bike_power.power_w
+
+        .cadence = 60, 
+        .power = 150
+    };
+
+    antsub_update_power(&ant_bike_power);
+
     if ((counter_10ms % 100) == 0)
     {
         // Publish battery level once a second
-        blesub_bas_update_battery_level(battery_get_level_percentage());
+        //blesub_bas_update_battery_level(battery_get_level_percentage());
     }
 
     counter_10ms++;

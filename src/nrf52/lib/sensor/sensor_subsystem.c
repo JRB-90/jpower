@@ -13,6 +13,7 @@
 
 static nrf_drv_twi_t twi = NRF_DRV_TWI_INSTANCE(TWI_INSTANCE_ID);
 static nrf_drv_spi_t spi = NRF_DRV_SPI_INSTANCE(SPI_INSTANCE_ID);
+static sensor_bike_power_t bike_power = { 0, 0 };
 static uint32_t counter = 0;
 
 static void calculate_cadence_power(float time_delta_s);
@@ -48,6 +49,11 @@ void sensor_subsystem_register_activity_event_cb(activity_event_cb callback)
     imu_register_activity_event_cb(callback);
 }
 
+sensor_bike_power_t sensor_subsystem_get_bike_power()
+{
+    return bike_power;
+}
+
 void sensor_subsystem_update_10ms(float time_delta_s)
 {
     strain_update_10ms(time_delta_s);
@@ -55,7 +61,7 @@ void sensor_subsystem_update_10ms(float time_delta_s)
 
     if (counter >= COUNTER_TRIGGER)
     {
-        calculate_cadence_power(time_delta_s);
+        //calculate_cadence_power(time_delta_s);
         counter = 0;
     }
     else
@@ -92,6 +98,9 @@ static void calculate_cadence_power(float time_delta_s)
     uint16_t power = (uint16_t)(torque * pedal_state.angular_velocity_dps);
 
     float temp = imu_get_current_temp_c();
+
+    bike_power.cadence_rpm = pedal_state.cadence_rpm;
+    bike_power.power_w = power;
 
     sensor_diag_data_t diag_data =
     {

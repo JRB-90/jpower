@@ -23,6 +23,7 @@ nRF5_addSoftDeviceSupport()
 jpow_addJPUtils()
 jpow_addSensor()
 jpow_addBLE()
+jpow_addANTPlus()
 
 list(APPEND SOURCE_FILES
     ${NRF_PROJECT_PATH}/main.c
