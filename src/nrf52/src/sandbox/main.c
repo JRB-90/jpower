@@ -23,6 +23,7 @@
 #include "led_control.h"
 #include "battery.h"
 #include "ble_subsystem.h"
+#include "ant_subsystem.h"
 
 #define DEVICE_NAME             "JPower"                // Name of device. Will be included in the advertising data
 #define HI_FREQ_CLK_HZ          100                     // Frequency (Hz) of the high speed timer
@@ -152,6 +153,8 @@ static void softdevice_init()
 
     err_code = calibrate_srv_init();
     APP_ERROR_CHECK(err_code);
+
+    antsub_init();
 }
 
 static void start_timers()
@@ -231,6 +234,10 @@ static void callback_10ms(void* context)
     led_control_update_10ms();
     battery_update();
     sensor_subsystem_update_10ms(time_delta_s);
+
+    sensor_bike_data_t bike_data;
+    sensor_get_bike_data(&bike_data);
+    antsub_update_power_cadence(bike_data.power, bike_data.cadence);
 
     if ((counter_10ms % 100) == 0)
     {

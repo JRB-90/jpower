@@ -76,11 +76,13 @@ void antsub_init()
     profile_setup();
 }
 
-void antsub_update_power(const bike_power_data_t* const state)
+void antsub_update_power_cadence(
+    uint16_t power,
+    uint8_t cadence)
 {
-    power_status.instantanous_power = state->power;
-    power_status.accumulated_power += state->power;
-    power_status.instantanous_cadence = state->cadence;
+    power_status.instantanous_power = power;
+    power_status.accumulated_power += power;
+    power_status.instantanous_cadence = cadence;
     power_status.event_count++;
 }
 

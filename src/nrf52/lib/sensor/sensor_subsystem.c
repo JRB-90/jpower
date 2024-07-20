@@ -14,6 +14,8 @@
 static nrf_drv_twi_t twi = NRF_DRV_TWI_INSTANCE(TWI_INSTANCE_ID);
 static nrf_drv_spi_t spi = NRF_DRV_SPI_INSTANCE(SPI_INSTANCE_ID);
 static uint32_t counter = 0;
+static uint16_t power = 0;
+static uint8_t cadence = 0;
 
 static void calculate_cadence_power(float time_delta_s);
 
@@ -64,6 +66,12 @@ void sensor_subsystem_update_10ms(float time_delta_s)
     }
 }
 
+void sensor_get_bike_data(sensor_bike_data_t *const bike_data)
+{
+    bike_data->power = power;
+    bike_data->cadence = cadence;
+}
+
 void sensor_enable_activity_tracking()
 {
     imu_enable_activity_tracking();
@@ -84,12 +92,13 @@ static void calculate_cadence_power(float time_delta_s)
 
     pedal_state_t pedal_state;
     cadence_get_pedal_state(&pedal_state);
+    cadence = (uint8_t)pedal_state.cadence_rpm; // TODO - Clamp to uint8?
 
     uint32_t adc_value = strain_get_current_adv_value();
     float force = strain_get_current_force_n();
     float torque = strain_get_current_torque_nm();
 
-    uint16_t power = (uint16_t)(torque * pedal_state.angular_velocity_dps);
+    power = (uint16_t)(torque * pedal_state.angular_velocity_dps);
 
     float temp = imu_get_current_temp_c();
 
