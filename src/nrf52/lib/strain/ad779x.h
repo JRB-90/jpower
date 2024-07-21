@@ -168,6 +168,10 @@ extern ad779x_mode_reg_t ad779x_read_mode_reg();
 extern void ad779x_write_mode_reg(const ad779x_mode_reg_t* const mode);
 extern ad779x_conf_reg_t ad779x_read_conf_reg();
 extern void ad779x_write_conf_reg(const ad779x_conf_reg_t* const conf);
+extern uint16_t ad7798_read_offset_reg();
+extern void ad7798_write_offset_reg(const uint16_t value);
+extern uint32_t ad7799_read_offset_reg();
+extern void ad7799_write_offset_reg(const uint32_t value);
 
 extern uint16_t ad7798_read_raw_data_single();
 extern uint32_t ad7799_read_raw_data_single();

@@ -60,14 +60,15 @@ namespace JPower.Shared.JPower
         [FieldOffset(58)] public ushort power;
     }
 
-    [StructLayout(LayoutKind.Explicit, Size = 28, CharSet = CharSet.Ansi)]
+    [StructLayout(LayoutKind.Explicit, Size = 32, CharSet = CharSet.Ansi)]
     public struct JPowerCalibrationData
     {
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 16)]
         [FieldOffset(0)] public byte[] guid;
-        [FieldOffset(16)] public float slope;
-        [FieldOffset(20)] public float intercept;
-        [FieldOffset(24)] public float crankLength;
+        [FieldOffset(16)] public float crankLength;
+        [FieldOffset(20)] public ushort offset;
+        [FieldOffset(24)] public float slope;
+        [FieldOffset(28)] public float intercept;
     }
 
     public interface IJPowerDevice

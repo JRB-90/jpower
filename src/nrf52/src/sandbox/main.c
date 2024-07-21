@@ -154,7 +154,7 @@ static void softdevice_init()
     err_code = calibrate_srv_init();
     APP_ERROR_CHECK(err_code);
 
-    antsub_init();
+    //antsub_init();
 }
 
 static void start_timers()
@@ -237,7 +237,7 @@ static void callback_10ms(void* context)
 
     sensor_bike_data_t bike_data;
     sensor_get_bike_data(&bike_data);
-    antsub_update_power_cadence(bike_data.power, bike_data.cadence);
+    //antsub_update_power_cadence(bike_data.power, bike_data.cadence);
 
     if ((counter_10ms % 100) == 0)
     {

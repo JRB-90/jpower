@@ -96,6 +96,14 @@ namespace JPower.Shared.Ble
                 throw new InvalidOperationException("Failed to connect");
             }
 
+#if ANDROID
+            var negotiatedMTU = await device.RequestMtuAsync(128);
+            if (negotiatedMTU < 128)
+            {
+                throw new InvalidOperationException("Failed to negotiate sufficient MTU size");
+            }
+#endif
+
             await PopulateServices();
 
             return true;

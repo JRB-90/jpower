@@ -29,9 +29,10 @@ ret_code_t strain_init(
     current_cal = (calibration_data_t)
     {
         .cal_id = {{ 0 }},
+        .offset = 25000,
+        .crank_length_m = 0.1725f,
         .slope = 209018.859f,
         .intercept = 8386309.5f,
-        .crank_length_m = 0.1725f,
     };
 
     err_code =
@@ -43,6 +44,8 @@ ret_code_t strain_init(
             ss_pin
         );
     APP_ERROR_CHECK(err_code);
+
+    //ad7799_write_offset_reg(current_cal.offset);
 
     calibrate_reg_pull_cal_cb(strain_get_calibration);
     calibrate_reg_cal_pushed_cb(strain_set_calibration);
@@ -90,6 +93,7 @@ float strain_get_current_torque_nm()
 ret_code_t strain_zero_offset()
 {
     ad779x_system_zeroscale_calibration();
+    current_cal.offset = ad7799_read_offset_reg();
 
     return NRF_SUCCESS;
 }

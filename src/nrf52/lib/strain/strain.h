@@ -9,9 +9,10 @@
 typedef struct
 {
     guid_t cal_id;
+    float crank_length_m;
+    uint32_t offset;
     float slope;
     float intercept;
-    float crank_length_m;
 } calibration_data_t;
 
 extern ret_code_t strain_init(

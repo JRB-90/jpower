@@ -53,14 +53,18 @@ const float gain                    = 128.0f;
 
 // #region Private Function Defs
 
-static void write_register_8bit(
-    const uint8_t register_address,
-    const uint8_t value);
-
+// static void write_register_8bit(
+//     const uint8_t register_address,
+//     const uint8_t value
+// );
 static void write_register_16bit(
     const uint8_t register_address,
-    const uint16_t value);
-
+    const uint16_t value
+);
+static void write_register_24bit(
+    const uint8_t register_address,
+    const uint32_t value
+);
 static uint8_t read_register_8bit(const uint8_t register_address);
 static uint16_t read_register_16bit(const uint8_t register_address);
 static uint32_t read_register_24bit(const uint8_t register_address);
@@ -277,6 +281,26 @@ void ad779x_write_conf_reg(const ad779x_conf_reg_t* const conf)
     write_register_16bit(AD779X_REG_CONF, value);
 }
 
+uint16_t ad7798_read_offset_reg()
+{
+    return read_register_16bit(AD779X_REG_OFFSET);
+}
+
+void ad7798_write_offset_reg(const uint16_t value)
+{
+    write_register_16bit(AD779X_REG_OFFSET, value);
+}
+
+uint32_t ad7799_read_offset_reg()
+{
+    return read_register_24bit(AD779X_REG_OFFSET);
+}
+
+void ad7799_write_offset_reg(const uint32_t value)
+{
+    write_register_24bit(AD779X_REG_OFFSET, 0x7FFFFF - value);
+}
+
 uint16_t ad7798_read_raw_data_single()
 {
     ad779x_mode_reg_t mode = ad779x_read_mode_reg();
@@ -323,17 +347,17 @@ float ad7799_read_mV_single()
 
 // #region Private Functions Implementations
 
-static void write_register_8bit(
-    const uint8_t register_address,
-    const uint8_t value)
-{
-    uint8_t out_data[2] =
-        {
-            AD779X_COMM_WRITE | register_address,
-            value};
+// static void write_register_8bit(
+//     const uint8_t register_address,
+//     const uint8_t value)
+// {
+//     uint8_t out_data[2] =
+//         {
+//             AD779X_COMM_WRITE | register_address,
+//             value};
 
-    APP_ERROR_CHECK(spi_write(spi, out_data, 2));
-}
+//     APP_ERROR_CHECK(spi_write(spi, out_data, 2));
+// }
 
 static void write_register_16bit(
     const uint8_t register_address,
@@ -347,6 +371,21 @@ static void write_register_16bit(
         };
 
     APP_ERROR_CHECK(spi_write(spi, out_data, 3));
+}
+
+static void write_register_24bit(
+    const uint8_t register_address,
+    const uint32_t value)
+{
+    uint8_t out_data[4] =
+        {
+            AD779X_COMM_WRITE | register_address,
+            (uint8_t)((value & 0xFF0000) >> 16),
+            (uint8_t)((value & 0x00FF00) >> 8),
+            (uint8_t)((value & 0x0000FF) >> 0),
+        };
+
+    APP_ERROR_CHECK(spi_write(spi, out_data, 4));
 }
 
 static uint8_t read_register_8bit(const uint8_t register_address)

@@ -8,9 +8,10 @@ namespace JPower.Shared.UI
         public DisplayCalibrationViewModel()
         {
             id = "";
+            crank = "";
+            offset = "";
             slope = "";
             intercept = "";
-            crank = "";
         }
 
         public JPowerCalibrationData Calibration
@@ -21,9 +22,10 @@ namespace JPower.Shared.UI
                 SetProperty(ref calibration, value);
                 var guid = new Guid(calibration.guid);
                 ID = guid.ToString();
+                Crank = Convert.ToString(calibration.crankLength);
+                Offset = Convert.ToString(calibration.offset);
                 Slope = Convert.ToString(calibration.slope);
                 Intercept = Convert.ToString(calibration.intercept);
-                Crank = Convert.ToString(calibration.crankLength);
             }
         }
 
@@ -31,6 +33,18 @@ namespace JPower.Shared.UI
         {
             get => id;
             set => SetProperty(ref id, value);
+        }
+
+        public string Crank
+        {
+            get => crank;
+            set => SetProperty(ref crank, value);
+        }
+
+        public string Offset
+        {
+            get => offset;
+            set => SetProperty(ref offset, value);
         }
 
         public string Slope
@@ -45,16 +59,11 @@ namespace JPower.Shared.UI
             set => SetProperty(ref intercept, value);
         }
 
-        public string Crank
-        {
-            get => crank; 
-            set => SetProperty(ref crank, value);
-        }
-
         private JPowerCalibrationData calibration;
         private string id;
+        private string crank;
+        private string offset;
         private string slope;
         private string intercept;
-        private string crank;
     }
 }
