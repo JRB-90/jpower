@@ -154,7 +154,7 @@ static void softdevice_init()
     err_code = calibrate_srv_init();
     APP_ERROR_CHECK(err_code);
 
-    //antsub_init();
+    antsub_init();
 }
 
 static void start_timers()

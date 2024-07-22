@@ -298,7 +298,7 @@ uint32_t ad7799_read_offset_reg()
 
 void ad7799_write_offset_reg(const uint32_t value)
 {
-    write_register_24bit(AD779X_REG_OFFSET, 0x7FFFFF - value);
+    write_register_24bit(AD779X_REG_OFFSET, value);
 }
 
 uint16_t ad7798_read_raw_data_single()
