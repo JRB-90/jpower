@@ -2,6 +2,7 @@
 
 #include "ad779x.h"
 #include "calibrate_ble_srv.h"
+#include "nrf_log.h"
 
 #define KG_TO_N 9.81
 
@@ -92,10 +93,8 @@ float strain_get_current_torque_nm()
 
 ret_code_t strain_zero_offset()
 {
-    ad779x_system_zeroscale_calibration();
-
-    // TODO - Why doesn't this return the right value????
-    current_cal.offset = ad7799_read_offset_reg();
+    uint32_t offset = ad7799_system_zeroscale_calibration();
+    current_cal.offset = offset;
 
     return NRF_SUCCESS;
 }

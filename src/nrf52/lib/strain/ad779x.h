@@ -157,10 +157,14 @@ extern void ad779x_reset();
 extern bool ad779x_is_ready();
 extern void ad779x_set_default_settings();
 
-extern void ad779x_internal_zeroscale_calibration();
-extern void ad779x_internal_fullscale_calibration();
-extern void ad779x_system_zeroscale_calibration();
-extern void ad779x_system_fullscale_calibration();
+extern uint16_t ad7798_internal_zeroscale_calibration();
+extern uint16_t ad7798_internal_fullscale_calibration();
+extern uint16_t ad7798_system_zeroscale_calibration();
+extern uint16_t ad7798_system_fullscale_calibration();
+extern uint32_t ad7799_internal_zeroscale_calibration();
+extern uint32_t ad7799_internal_fullscale_calibration();
+extern uint32_t ad7799_system_zeroscale_calibration();
+extern uint32_t ad7799_system_fullscale_calibration();
 
 extern uint8_t ad779x_read_id_reg();
 extern ad779x_status_reg_t ad779x_read_status_reg();
@@ -172,6 +176,10 @@ extern uint16_t ad7798_read_offset_reg();
 extern void ad7798_write_offset_reg(const uint16_t value);
 extern uint32_t ad7799_read_offset_reg();
 extern void ad7799_write_offset_reg(const uint32_t value);
+extern uint16_t ad7798_read_fullscale_reg();
+extern void ad7798_write_fullscale_reg(const uint16_t value);
+extern uint32_t ad7799_read_fullscale_reg();
+extern void ad7799_write_fullscale_reg(const uint32_t value);
 
 extern uint16_t ad7798_read_raw_data_single();
 extern uint32_t ad7799_read_raw_data_single();

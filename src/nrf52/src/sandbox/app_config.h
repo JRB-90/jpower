@@ -238,7 +238,7 @@
 #endif
 
 #ifndef ANT_BPWR_LOG_ENABLED
-#define ANT_BPWR_LOG_ENABLED 1
+#define ANT_BPWR_LOG_ENABLED 0
 #endif
 
 // <0=> Off 
@@ -247,7 +247,7 @@
 // <3=> Info 
 // <4=> Debug 
 #ifndef ANT_BPWR_LOG_LEVEL
-#define ANT_BPWR_LOG_LEVEL 3
+#define ANT_BPWR_LOG_LEVEL 4
 #endif
 
 // <0=> Default 
@@ -264,7 +264,7 @@
 #endif
 
 #ifndef ANT_BPWR_COMMON_LOG_ENABLED
-#define ANT_BPWR_COMMON_LOG_ENABLED 1
+#define ANT_BPWR_COMMON_LOG_ENABLED 0
 #endif
 
 // <0=> Off 
@@ -290,7 +290,7 @@
 #endif
 
 #ifndef ANT_BPWR_PAGE_TORQUE_LOG_ENABLED
-#define ANT_BPWR_PAGE_TORQUE_LOG_ENABLED 1
+#define ANT_BPWR_PAGE_TORQUE_LOG_ENABLED 0
 #endif
 
 // <0=> Off 
@@ -299,7 +299,7 @@
 // <3=> Info 
 // <4=> Debug 
 #ifndef ANT_BPWR_PAGE_TORQUE_LOG_LEVEL
-#define ANT_BPWR_PAGE_TORQUE_LOG_LEVEL 3
+#define ANT_BPWR_PAGE_TORQUE_LOG_LEVEL 4
 #endif
 
 // <1=> Black 
@@ -315,7 +315,7 @@
 #endif
 
 #ifndef ANT_BPWR_PAGE_1_LOG_ENABLED
-#define ANT_BPWR_PAGE_1_LOG_ENABLED 1
+#define ANT_BPWR_PAGE_1_LOG_ENABLED 0
 #endif
  
 // <0=> Off 
@@ -324,7 +324,7 @@
 // <3=> Info 
 // <4=> Debug 
 #ifndef ANT_BPWR_PAGE_1_LOG_LEVEL
-#define ANT_BPWR_PAGE_1_LOG_LEVEL 3
+#define ANT_BPWR_PAGE_1_LOG_LEVEL 4
 #endif
 
 // <0=> Default 
@@ -342,7 +342,7 @@
 
 //==========================================================
 #ifndef ANT_BPWR_PAGE_16_LOG_ENABLED
-#define ANT_BPWR_PAGE_16_LOG_ENABLED 1
+#define ANT_BPWR_PAGE_16_LOG_ENABLED 0
 #endif
  
 // <0=> Off 
@@ -351,7 +351,7 @@
 // <3=> Info 
 // <4=> Debug 
 #ifndef ANT_BPWR_PAGE_16_LOG_LEVEL
-#define ANT_BPWR_PAGE_16_LOG_LEVEL 3
+#define ANT_BPWR_PAGE_16_LOG_LEVEL 4
 #endif
 
 // <0=> Default 
@@ -368,7 +368,7 @@
 #endif
 
 #ifndef ANT_BPWR_PAGE_17_LOG_ENABLED
-#define ANT_BPWR_PAGE_17_LOG_ENABLED 1
+#define ANT_BPWR_PAGE_17_LOG_ENABLED 0
 #endif
 
 // <1=> Error 
@@ -376,7 +376,7 @@
 // <3=> Info 
 // <4=> Debug 
 #ifndef ANT_BPWR_PAGE_17_LOG_LEVEL
-#define ANT_BPWR_PAGE_17_LOG_LEVEL 3
+#define ANT_BPWR_PAGE_17_LOG_LEVEL 4
 #endif
 
 // <0=> Default 
@@ -393,7 +393,7 @@
 #endif
 
 #ifndef ANT_BPWR_PAGE_18_LOG_ENABLED
-#define ANT_BPWR_PAGE_18_LOG_ENABLED 1
+#define ANT_BPWR_PAGE_18_LOG_ENABLED 0
 #endif
 
 // <0=> Off 
@@ -402,7 +402,7 @@
 // <3=> Info 
 // <4=> Debug 
 #ifndef ANT_BPWR_PAGE_18_LOG_LEVEL
-#define ANT_BPWR_PAGE_18_LOG_LEVEL 3
+#define ANT_BPWR_PAGE_18_LOG_LEVEL 4
 #endif
 
 // <0=> Default 
@@ -423,7 +423,7 @@
 #endif
 
 #ifndef ANT_COMMON_PAGE_80_LOG_ENABLED
-#define ANT_COMMON_PAGE_80_LOG_ENABLED 1
+#define ANT_COMMON_PAGE_80_LOG_ENABLED 0
 #endif
 
 // <0=> Off 
@@ -432,7 +432,7 @@
 // <3=> Info 
 // <4=> Debug 
 #ifndef ANT_COMMON_PAGE_80_LOG_LEVEL
-#define ANT_COMMON_PAGE_80_LOG_LEVEL 3
+#define ANT_COMMON_PAGE_80_LOG_LEVEL 4
 #endif
 
 // <0=> Default 
@@ -453,7 +453,7 @@
 #endif
 
 #ifndef ANT_COMMON_PAGE_81_LOG_ENABLED
-#define ANT_COMMON_PAGE_81_LOG_ENABLED 1
+#define ANT_COMMON_PAGE_81_LOG_ENABLED 0
 #endif
  
 // <0=> Off 
@@ -462,7 +462,7 @@
 // <3=> Info 
 // <4=> Debug 
 #ifndef ANT_COMMON_PAGE_81_LOG_LEVEL
-#define ANT_COMMON_PAGE_81_LOG_LEVEL 3
+#define ANT_COMMON_PAGE_81_LOG_LEVEL 4
 #endif
 
 // <0=> Default 

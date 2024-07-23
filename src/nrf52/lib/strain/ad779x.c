@@ -165,40 +165,92 @@ void ad779x_set_default_settings()
     ad779x_write_conf_reg(&default_conf);
 }
 
-void ad779x_internal_zeroscale_calibration()
+uint16_t ad7798_internal_zeroscale_calibration()
 {
     ad779x_mode_reg_t mode = ad779x_read_mode_reg();
     mode.mode = AD779X_MODE_CAL_INT_ZERO;
     ad779x_write_mode_reg(&mode);
 
     while (!ad779x_is_ready()) { }
+
+    return ad7798_read_offset_reg();
 }
 
-void ad779x_internal_fullscale_calibration()
+uint16_t ad7798_internal_fullscale_calibration()
 {
     ad779x_mode_reg_t mode = ad779x_read_mode_reg();
     mode.mode = AD779X_MODE_CAL_INT_FSCALE;
     ad779x_write_mode_reg(&mode);
 
     while (!ad779x_is_ready()) { }
+
+    return ad7798_read_fullscale_reg();
 }
 
-void ad779x_system_zeroscale_calibration()
+uint16_t ad7798_system_zeroscale_calibration()
 {
     ad779x_mode_reg_t mode = ad779x_read_mode_reg();
     mode.mode = AD779X_MODE_CAL_SYS_ZERO;
     ad779x_write_mode_reg(&mode);
 
     while (!ad779x_is_ready()) { }
+
+    return ad7798_read_offset_reg();
 }
 
-void ad779x_system_fullscale_calibration()
+uint16_t ad7798_system_fullscale_calibration()
 {
     ad779x_mode_reg_t mode = ad779x_read_mode_reg();
     mode.mode = AD779X_MODE_CAL_SYS_FSCALE;
     ad779x_write_mode_reg(&mode);
 
     while (!ad779x_is_ready()) { }
+
+    return ad7798_read_fullscale_reg();
+}
+
+uint32_t ad7799_internal_zeroscale_calibration()
+{
+    ad779x_mode_reg_t mode = ad779x_read_mode_reg();
+    mode.mode = AD779X_MODE_CAL_INT_ZERO;
+    ad779x_write_mode_reg(&mode);
+
+    while (!ad779x_is_ready()) { }
+
+    return ad7799_read_offset_reg();
+}
+
+uint32_t ad7799_internal_fullscale_calibration()
+{
+    ad779x_mode_reg_t mode = ad779x_read_mode_reg();
+    mode.mode = AD779X_MODE_CAL_INT_FSCALE;
+    ad779x_write_mode_reg(&mode);
+
+    while (!ad779x_is_ready()) { }
+
+    return ad7799_read_fullscale_reg();
+}
+
+uint32_t ad7799_system_zeroscale_calibration()
+{
+    ad779x_mode_reg_t mode = ad779x_read_mode_reg();
+    mode.mode = AD779X_MODE_CAL_SYS_ZERO;
+    ad779x_write_mode_reg(&mode);
+
+    while (!ad779x_is_ready()) { }
+
+    return ad7799_read_offset_reg();
+}
+
+uint32_t ad7799_system_fullscale_calibration()
+{
+    ad779x_mode_reg_t mode = ad779x_read_mode_reg();
+    mode.mode = AD779X_MODE_CAL_SYS_FSCALE;
+    ad779x_write_mode_reg(&mode);
+
+    while (!ad779x_is_ready()) { }
+
+    return ad7799_read_fullscale_reg();
 }
 
 uint8_t ad779x_read_id_reg()
